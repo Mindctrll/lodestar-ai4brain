@@ -125,6 +125,21 @@ Pin these exactly (`==` in Python, exact versions in `package.json`, image tags 
 | @playwright/test | 1.64.1 | | @picovoice/porcupine-web | 4.0.1 |
 | @huggingface/transformers | 4.3.1 | | kokoro-js | 1.2.1 |
 
+**Supporting packages and images (added in WP0.1, same pinning rule)**
+
+| Piece | Version | | Piece | Version |
+|---|---|---|---|---|
+| pyyaml | 6.0.3 | | @types/react, @types/react-dom | 19.3.0 |
+| jsonschema | 4.26.0 | | @types/node | 24.19.2 |
+| pytest-asyncio | 1.4.0 | | @eslint/js | 10.0.1 |
+| httpx (tests) | 0.28.1 | | eslint-plugin-react-hooks | 7.1.1 |
+| types-pyyaml | 6.0.12.20260906 | | eslint-plugin-react-refresh | 0.5.7 |
+| uv | 0.11.19 | | eslint-config-prettier | 10.1.8 |
+| Node.js | 24.22.0 (`.nvmrc`) | | globals | 17.13.0 |
+| Image `python` | 3.14.5-slim | | jsdom | 30.1.3 |
+| Image `node` | 24.22.0-slim | | @testing-library/react | 16.3.3 |
+| Image `postgres` | 18.6 | | @testing-library/jest-dom | 7.0.1 |
+
 **Known version conflicts**
 
 - **TypeScript 7.0 is out, but use 6.0.3.** `typescript-eslint` 8.72 only supports TypeScript below 6.1, so TS 7 would break linting.

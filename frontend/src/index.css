@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+/* Design tokens. WP2.5 sets the final look from design/reference.png. */
+@theme {
+  --color-surface: #f7f7f8;
+  --color-card: #ffffff;
+  --color-ink: #16161a;
+  --color-muted: #6b6b76;
+  --color-accent: #2f6fed;
+  --color-sky: #0b1026;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}

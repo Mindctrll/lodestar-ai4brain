@@ -1,0 +1,15 @@
+.git
+.venv
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+frontend
+docs
+design
+memory
+models
+data
+tests
+.env
+.env.*
