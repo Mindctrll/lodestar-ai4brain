@@ -20,7 +20,7 @@ The event table is the source of truth. The profile tables are projections of it
 | Driver | `psycopg` 3.3 + `psycopg-pool` (async) |
 | Queries | SQLAlchemy 2.1 Core (no ORM magic in hot paths) |
 | Migrations | Alembic; every schema change is a migration in the repo |
-| LangGraph checkpoints | `langgraph-checkpoint-postgres` 3.2 (`AsyncPostgresSaver`), sharing the same connection pool; `setup()` runs in a migration step |
+| LangGraph checkpoints | `langgraph-checkpoint-postgres` 3.2 (`AsyncPostgresSaver`) on its own `psycopg-pool` (SQLAlchemy keeps its pool; both point at the same database); `setup()` runs in Alembic revision 0002 |
 | Long-term semantic memory | Qdrant, through our `QdrantStore(BaseStore)` (`03`) |
 
 ## Schemas and tables
@@ -31,11 +31,11 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `users` | `user_id uuid pk`, `created_at`, `persona`, `success_mode`, `locale`, `age_confirmed` | Every other table references this with `ON DELETE CASCADE` |
+| `users` | `user_id uuid pk`, `created_at`, `display_name` (optional, never sent to an LLM), `persona`, `success_mode`, `locale`, `age_confirmed` | Every other table references this with `ON DELETE CASCADE` |
 | `consent` | `user_id`, `switch`, `granted`, `notice_version`, `changed_at` | Current state; history is in events |
 | `goals` | `goal_id`, `user_id`, `dim`, `kind`, `target`, `due`, `status` | e.g. "WM range ±5 by 7 Nov" |
 | `deletion_receipts` | `receipt_id`, `user_hash`, `counts jsonb`, `deleted_at` | Counts only, no personal content |
-| `llm_credentials` | `(user_id, provider) pk`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`NAJMA_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
+| `llm_credentials` | `credential_id pk`, `unique (user_id, provider)`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`NAJMA_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
 | `llm_selection` | `user_id pk`, `mode` (`hosted` or `local`), `provider`, `model`, `updated_at` | The active choice; `local` = Ollama |
 
 ### `twin`: the record and the profile
@@ -44,7 +44,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 |---|---|---|
 | `events` | `event_id uuid default uuidv7()` (native in Postgres 18, sorts by time), `user_id`, `session_id`, `ts timestamptz`, `primary key (event_id, ts)` (a partitioned table's key must include the partition column), `type`, `schema_version`, `payload jsonb` | **Append-only.** Partitioned by month. A trigger blocks `UPDATE`; `DELETE` only by the deletion and retention jobs' role |
 | `trials` | `trial_id`, `user_id`, `session_id`, `round_id`, `game_id`, `level`, `correct`, `rt_ms`, `hint_level`, `confidence`, `stimulus jsonb`, `response jsonb`, `ts` | Typed copy for analytics and charts; written in the same transaction as the event |
-| `rounds` | `round_id pk`, `user_id`, `session_id`, `game_id`, `level`, `score`, `status`, `started_at`, `ended_at` | `unique (user_id, round_id)` makes score updates idempotent |
+| `rounds` | `round_id pk`, `user_id`, `session_id`, `game_id`, `level`, `score`, `status`, `started_at`, `ended_at`, `scored_at` | Created with status `started` when the exercise is issued, so trials can reference it and a half-played game can be resumed (UW6). The primary key on `round_id` makes score updates idempotent |
 | `dimension_state` | `(user_id, dim) pk`, `mu`, `sigma`, `n`, `last_practised`, `last_event_id`, `updated_at` | The current Brain Twin (projection) |
 | `history` | `(user_id, day, dim) pk`, `mu`, `sigma`, `n` | One row per user, day and skill: the mandatory history, used for curves |
 | `item_difficulty` | `(game_id, level_key) pk`, `b`, `n`, `updated_at` | Shared across users (`07`) |
@@ -55,8 +55,9 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 | Table | Key columns | Notes |
 |---|---|---|
+| `sessions` | `session_id pk`, `user_id`, `trigger`, `status`, `started_at`, `ended_at` | Lists a user's LangGraph threads for deletion, and the paused session to resume |
 | `decisions` | `decision_id`, `session_id`, `user_id`, `node`, `question`, `candidates jsonb`, `chosen`, `reason`, `evidence text[]`, `ts` | The explainability log; the why cards read from here |
-| `traces` | `(session_id, seq) pk`, `node`, `event`, `ms`, `tokens`, `payload jsonb`, `ts` | Agent timeline and trace viewer |
+| `traces` | `(session_id, seq) pk`, `user_id`, `node`, `event`, `ms`, `tokens`, `payload jsonb`, `ts` | Agent timeline and trace viewer |
 | `experiments` | `exp_id`, `user_id`, `hypothesis`, `design jsonb`, `status`, `result jsonb`, `created_at` | Personal experiments (`09`) |
 | `content_pool` | `item_id`, `game_id`, `level`, `content jsonb`, `validator_report jsonb`, `prompt_version`, `created_at` | Pre-generated game content (`08`) |
 | `content_served` | `user_id`, `item_id`, `served_at` | So nobody gets the same item twice |

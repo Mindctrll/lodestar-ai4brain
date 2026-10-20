@@ -14,9 +14,10 @@ COPY pyproject.toml uv.lock .python-version README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 RUN useradd --create-home --uid 1000 najma && mkdir -p /app/memory /app/models && chown najma /app/memory /app/models
+COPY alembic.ini ./
 COPY backend ./backend
 COPY registry ./registry
 
 USER najma
 EXPOSE 8000
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn backend.api.main:app --host 0.0.0.0 --port 8000"]

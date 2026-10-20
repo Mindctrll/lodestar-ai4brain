@@ -3,7 +3,7 @@ COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
 .PHONY: help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
-	lint-frontend lint-language format contracts sim e2e
+	lint-frontend lint-language format contracts migrate seed db-shell sim e2e
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -50,6 +50,15 @@ format: ## auto-format backend and frontend
 	uv run ruff format .
 	uv run ruff check --fix .
 	$(FRONTEND) run format
+
+migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postgres)
+	uv run alembic upgrade head
+
+seed: ## add the demo user (Amira) with three weeks of practice
+	uv run python -m backend.db.seed
+
+db-shell: ## open psql inside the Postgres container
+	$(COMPOSE) exec postgres psql -U najma -d najma
 
 contracts: ## regenerate OpenAPI, registry schemas and TypeScript types
 	uv run python -m backend.contracts.export
