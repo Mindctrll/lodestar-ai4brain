@@ -22,6 +22,7 @@ p = logistic( (μ − b) / sqrt(1 + π·σ²/8) )
 - Timed games, deadline *d*, response time *t*, correct *x* ∈ {0, 1}, using the high-speed-high-stakes rule:
   `S_raw = (2x − 1) · (1 − t/d)` in [−1, 1], then `S = (S_raw + 1) / 2`.
   Fast and right scores high; fast and wrong scores low; slow answers count little either way. This discourages guessing.
+  **Rescaled before the update.** The raw score is shrunk toward 0.5 by slowness, so feeding it straight into a model of P(correct) pulls μ toward the item and difficulty targeting slides until users succeed almost always. We rescale it against a reference pace of half the deadline: `S = clip(0.5 + (S_hshs − 0.5) / 0.5, 0, 1)`. Right within the reference pace is a full success, wrong within it a full failure, and slower answers count partly, down to 0.5 at the deadline (`backend/scoring/hshs.py`).
 - Span games (Corsi, digit span): one S per sequence.
 
 **Update after each scored response** (one Kalman / Laplace step for a logistic model):
@@ -93,6 +94,7 @@ No headline "brain score". The radar shows each dimension with its range. If a s
 ```
 backend/scoring/
   kalman_elo.py      # predict, update, drift; pure functions
+  rounds.py          # one round's trials -> updated beliefs (process noise, trust, context)
   hshs.py            # timed scoring
   loadings.py        # registry → loading matrix
   levels.py          # b ↔ knobs, target selection
