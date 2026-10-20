@@ -16,6 +16,7 @@ dependencies = [
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "fastembed" },
+    { name = "httpx" },
     { name = "jsonschema" },
     { name = "langchain-anthropic" },
     { name = "langchain-core" },
@@ -54,7 +55,6 @@ whisper = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "hypothesis" },
     { name = "matplotlib" },
     { name = "mypy" },
@@ -71,6 +71,7 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.156.2" },
     { name = "fastembed", specifier = "==0.9.0" },
     { name = "faster-whisper", marker = "extra == 'whisper'", specifier = "==1.2.1" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "jsonschema", specifier = "==4.26.0" },
     { name = "langchain-anthropic", specifier = "==1.7.6" },
     { name = "langchain-core", specifier = "==1.6.12" },
@@ -105,7 +106,6 @@ provides-extras = ["whisper"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = "==0.28.1" },
     { name = "hypothesis", specifier = "==6.170.5" },
     { name = "matplotlib", specifier = "==3.11.2" },
     { name = "mypy", specifier = "==2.4.0" },

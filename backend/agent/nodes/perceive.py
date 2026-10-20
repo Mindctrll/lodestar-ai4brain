@@ -1,0 +1,104 @@
+"""Perception: five nodes that run in parallel at the start of every run (docs/plan/03).
+
+Each has a timeout; a failure leaves its input empty and is recorded in `degraded`, so the
+session continues.
+"""
+
+import asyncio
+from collections.abc import Awaitable
+from datetime import UTC, datetime
+from typing import Any
+
+from langgraph.runtime import Runtime
+from sqlalchemy import select
+
+from backend.agent.context import NajmaContext
+from backend.agent.state import NajmaState
+from backend.agent.telemetry import traced
+from backend.contracts.twin import DimensionState, LifeContextWindow, TwinSnapshot
+from backend.db import tables as t
+from backend.scoring.kalman_elo import Belief, drift
+
+PERCEIVE_TIMEOUT_S = 3.0
+PERCEIVE_NODES = ("load_twin", "recall_memory", "read_affect", "read_context", "forecast")
+
+
+async def _guarded(name: str, work: Awaitable[dict[str, Any]]) -> dict[str, Any]:
+    try:
+        return await asyncio.wait_for(work, PERCEIVE_TIMEOUT_S)
+    except Exception as exc:
+        return {"degraded": [f"{name}:{type(exc).__name__}->empty"]}
+
+
+async def read_twin_snapshot(ctx: NajmaContext, now: datetime | None = None) -> TwinSnapshot:
+    now = now or datetime.now(UTC)
+    async with ctx.services.engine.connect() as conn:
+        rows = await conn.execute(
+            select(t.dimension_state).where(t.dimension_state.c.user_id == ctx.user_id)
+        )
+        dims = {}
+        for r in rows:
+            b = drift(Belief(r.mu, r.sigma, r.n, r.last_practised), now)
+            dims[r.dim] = DimensionState(
+                dim=r.dim, mu=b.mu, sigma=b.sigma, n=b.n, last_practised=b.last_practised
+            )
+    return TwinSnapshot(user_id=ctx.user_id, as_of=now, dims=dims)
+
+
+@traced("load_twin")
+async def load_twin(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    async def work() -> dict[str, Any]:
+        return {"twin": await read_twin_snapshot(runtime.context)}
+
+    return await _guarded("load_twin", work())
+
+
+@traced("recall_memory")
+async def recall_memory(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    memory = runtime.context.services.memory
+    if memory is None:
+        return {}
+
+    async def work() -> dict[str, Any]:
+        query = state.messages[-1].text if state.messages else "session start"
+        return {"memories": await memory.recall(runtime.context.user_id, query)}
+
+    return await _guarded("recall_memory", work())
+
+
+@traced("read_affect")
+async def read_affect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    # Behaviour-only rules arrive in WP2.9; at session start there is nothing to read yet.
+    return {}
+
+
+@traced("read_context")
+async def read_context(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    async def work() -> dict[str, Any]:
+        now = datetime.now(UTC)
+        async with runtime.context.services.engine.connect() as conn:
+            rows = await conn.execute(
+                select(t.life_context).where(
+                    t.life_context.c.user_id == runtime.context.user_id,
+                    t.life_context.c.period.op("@>")(now),
+                )
+            )
+            windows = [
+                LifeContextWindow(
+                    context_id=r.context_id,
+                    label=r.label,
+                    start=r.period.lower,
+                    end=r.period.upper,
+                    weight=r.weight,
+                )
+                for r in rows
+            ]
+        return {"context": windows}
+
+    return await _guarded("read_context", work())
+
+
+@traced("forecast")
+async def forecast(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    # The growth forecast model arrives in WP2.7.
+    return {}

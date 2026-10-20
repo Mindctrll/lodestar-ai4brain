@@ -120,7 +120,9 @@ class LlmProvider(Contract):
     id: ProviderId
     name: str
     integration: str
-    base_url: HttpUrl | None = None
+    api_base: HttpUrl | None = Field(
+        default=None, description="Provider API root; Ollama's comes from OLLAMA_URL"
+    )
     hosting: str
     console_url: HttpUrl | None = None
     needs_key: bool

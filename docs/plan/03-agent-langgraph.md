@@ -44,6 +44,8 @@ flowchart TD
 
 Double-bracket boxes are subgraphs. `play` is the pause.
 
+**As built (WP1.4):** every scored round gets an after-game coach message (UW2), so the play path runs `score_update → monitor → reflect → coach → remember`, and `remember` uses the monitor's verdict to go back to `plan_next` (continue, ease), on to `consolidate` (end, break), or end the run (chat turns). The perceive fan-out uses `Send`; the five nodes join at `safety_gate`.
+
 ## State
 
 One Pydantic model, split into channels with reducers so parallel nodes can write safely.
@@ -192,6 +194,7 @@ Users paste an API key for the provider they want, or stay on the local model. N
 - **Registry:** `registry/llm_providers.yaml` lists each provider's id, base URL, default model and capabilities (structured output, tool calling, streaming). Adding a provider is a YAML entry, plus one adapter if it isn't covered by an existing integration.
 - **Models:** when a key is saved, the backend makes one cheap test call and lists the provider's models; the user picks one or keeps the registry default. Nodes never hard-code model ids.
 - **Factory:** `llm.get_model(role, ctx)` (role = `content`, `coach`, `router`, `safety`, `memory`) resolves the user's selection, decrypts the key in memory, and returns a LangChain chat model wrapped with timeout, retry and the fallback ladder. Keys never enter state, runtime context, checkpoints, traces or logs (`AGENTS.md` rule 9); a redaction filter on every logger is the second line of defence.
+- **Time limit:** every interactive call has 30 seconds; a slower rung falls to the next one. On this team's CPU-only laptops the local model (qwen3.5:4b, thinking off) takes 10-25 s for a coach message.
 - **Capabilities:** a node that needs structured output or tool calling gets a model that supports it, or falls back to Ollama, then templates. Every fallback is recorded in `degraded`.
 - **Background jobs** (the content pool filler) have no user, so they use the operator's provider from `.env` if one is set, else Ollama; if neither is available, pools hold code-generated content only.
 - **Same rules for every provider:** facts packets, the verifier and the language filter don't change, so switching provider can't change facts or decisions (UW20, UW22).
@@ -215,7 +218,7 @@ Long-term memory goes through LangGraph's store interface with our own `QdrantSt
 
 ## Streaming and the "agent timeline"
 
-We stream with modes `updates`, `messages` and `custom`. Nodes use `get_stream_writer()` to emit:
+We stream with modes `updates` and `custom` (the runner turns them into UI events). Raw `messages` tokens are not forwarded: user-facing text is streamed as `say` events only after the verifier has passed it, sentence by sentence. Nodes use `get_stream_writer()` to emit:
 
 ```json
 {"kind": "decision", "node": "plan_next", "chosen": "working_memory", "reason": "Least certain skill, 9 days since practice"}

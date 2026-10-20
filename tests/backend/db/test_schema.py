@@ -9,7 +9,7 @@ from sqlalchemy import Connection, Engine, MetaData, Table, func, insert, inspec
 from sqlalchemy.exc import DBAPIError
 
 from backend.db import tables as t
-from tests.backend.db.conftest import BASE_URL, alembic_config, recreate_database
+from tests.backend.conftest import BASE_URL, alembic_config, recreate_database
 
 NOW = datetime.now(UTC)
 

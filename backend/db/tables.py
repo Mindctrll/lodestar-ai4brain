@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import (
     ARRAY,
+    BigInteger,
     Boolean,
     Column,
     Date,
@@ -270,7 +271,7 @@ traces = Table(
     "traces",
     metadata,
     Column("session_id", UUID(as_uuid=True), primary_key=True),
-    Column("seq", Integer, primary_key=True),
+    Column("seq", BigInteger, primary_key=True, server_default=text("nextval('agent.trace_seq')")),
     _user_fk(),
     Column("node", Text, nullable=False),
     Column("event", Text, nullable=False),

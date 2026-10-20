@@ -12,6 +12,7 @@ from backend.contracts.common import (
     Probability,
     SuccessMode,
 )
+from backend.contracts.events import DimensionChange
 
 IntentKind = Literal[
     "play",
@@ -43,6 +44,7 @@ class SessionBudget(Contract):
 
 
 class SessionPlan(Contract):
+    game_id: GameId | None = Field(default=None, description="The game plan_next picked")
     mode: PlayMode
     success_mode: SuccessMode
     target_p: Probability
@@ -50,3 +52,21 @@ class SessionPlan(Contract):
         default_factory=list, description="Skills the user declined today"
     )
     goal_weights: dict[DimensionId, float] = Field(default_factory=dict)
+
+
+Verdict = Literal["continue", "ease", "break", "end"]
+
+
+class RoundSummary(Contract):
+    """What `score_update` hands to `monitor` and `reflect` about the round just played."""
+
+    round_id: str
+    game_id: GameId
+    status: Literal["completed", "stopped", "eased"]
+    mean_score: float | None
+    accuracy: float | None
+    correct: int = 0
+    answered: int = 0
+    observations: int
+    changes: list[DimensionChange] = Field(default_factory=list)
+    quality_verdict: str = "ok"

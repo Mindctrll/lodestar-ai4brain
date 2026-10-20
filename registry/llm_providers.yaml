@@ -6,6 +6,7 @@
 - id: anthropic
   name: Anthropic (Claude)
   integration: langchain-anthropic
+  api_base: https://api.anthropic.com
   hosting: United States
   console_url: https://www.anthropic.com/api
   needs_key: true
@@ -18,6 +19,7 @@
 - id: openai
   name: OpenAI
   integration: langchain-openai
+  api_base: https://api.openai.com/v1
   hosting: United States
   console_url: https://platform.openai.com
   needs_key: true
@@ -26,6 +28,7 @@
 - id: gemini
   name: Google Gemini
   integration: langchain-google-genai
+  api_base: https://generativelanguage.googleapis.com/v1beta
   hosting: United States
   console_url: https://aistudio.google.com
   needs_key: true
@@ -34,6 +37,7 @@
 - id: deepseek
   name: DeepSeek
   integration: langchain-deepseek
+  api_base: https://api.deepseek.com
   hosting: China
   console_url: https://platform.deepseek.com
   needs_key: true
@@ -42,6 +46,7 @@
 - id: xai
   name: xAI Grok
   integration: langchain-xai
+  api_base: https://api.x.ai/v1
   hosting: United States
   console_url: https://console.x.ai
   needs_key: true
@@ -50,6 +55,7 @@
 - id: mistral
   name: Mistral
   integration: langchain-mistralai
+  api_base: https://api.mistral.ai/v1
   hosting: European Union
   console_url: https://console.mistral.ai
   needs_key: true
@@ -58,6 +64,7 @@
 - id: groq
   name: Groq
   integration: langchain-groq
+  api_base: https://api.groq.com/openai/v1
   hosting: United States
   console_url: https://console.groq.com
   needs_key: true
@@ -67,7 +74,7 @@
 - id: openrouter
   name: OpenRouter
   integration: langchain-openai
-  base_url: https://openrouter.ai/api/v1
+  api_base: https://openrouter.ai/api/v1
   hosting: United States (routes to the chosen model's provider)
   console_url: https://openrouter.ai
   needs_key: true

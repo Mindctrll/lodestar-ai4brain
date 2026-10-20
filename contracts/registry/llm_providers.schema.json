@@ -3,7 +3,7 @@
     "LlmProvider": {
       "additionalProperties": false,
       "properties": {
-        "base_url": {
+        "api_base": {
           "anyOf": [
             {
               "format": "uri",
@@ -16,7 +16,8 @@
             }
           ],
           "default": null,
-          "title": "Base Url"
+          "description": "Provider API root; Ollama's comes from OLLAMA_URL",
+          "title": "Api Base"
         },
         "capabilities": {
           "$ref": "#/$defs/ProviderCapabilities"

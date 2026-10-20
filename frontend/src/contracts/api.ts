@@ -38,6 +38,58 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/llm/credentials/{provider_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Put Credential */
+    put: operations['put_credential_llm_credentials__provider_id__put']
+    post?: never
+    /** Remove Credential */
+    delete: operations['remove_credential_llm_credentials__provider_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/llm/providers': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Providers */
+    get: operations['get_providers_llm_providers_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/llm/selection': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Put Selection */
+    put: operations['put_selection_llm_selection_put']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/registry': {
     parameters: {
       query?: never
@@ -49,6 +101,74 @@ export interface paths {
     get: operations['get_registry_registry_get']
     put?: never
     post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/sessions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Start Session */
+    post: operations['start_session_sessions_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/sessions/{session_id}/messages': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Send Message */
+    post: operations['send_message_sessions__session_id__messages_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/sessions/{session_id}/pending': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Pending */
+    get: operations['pending_sessions__session_id__pending_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/sessions/{session_id}/resume': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Resume Session */
+    post: operations['resume_session_sessions__session_id__resume_post']
     delete?: never
     options?: never
     head?: never
@@ -1093,6 +1213,24 @@ export interface components {
       theme: string | null
     }
     JsonValue: unknown
+    /** KeyInput */
+    KeyInput: {
+      /**
+       * Api Key
+       * Format: password
+       */
+      api_key: string
+      /** Model */
+      model?: string | null
+    }
+    /** KeySaved */
+    KeySaved: {
+      credential: components['schemas']['CredentialSummary']
+      /** Model */
+      model: string
+      /** Models */
+      models: string[]
+    }
     /**
      * Knob
      * @description A difficulty knob: its value at level 0 (easy) and level 1 (hard).
@@ -1144,10 +1282,26 @@ export interface components {
        */
       weight: number
     }
+    /** LlmOverview */
+    LlmOverview: {
+      /** Credentials */
+      credentials: components['schemas']['CredentialSummary'][]
+      /**
+       * Keys Enabled
+       * @description False when the server has no master key
+       */
+      keys_enabled: boolean
+      /** Providers */
+      providers: components['schemas']['ProviderView'][]
+      selection: components['schemas']['LlmSelection']
+    }
     /** LlmProvider */
     LlmProvider: {
-      /** Base Url */
-      base_url?: string | null
+      /**
+       * Api Base
+       * @description Provider API root; Ollama's comes from OLLAMA_URL
+       */
+      api_base?: string | null
       capabilities?: components['schemas']['ProviderCapabilities']
       /** Console Url */
       console_url?: string | null
@@ -1189,9 +1343,8 @@ export interface components {
       /**
        * Credential Id
        * @description Points at app.llm_credentials; the key itself never travels
-       * @default null
        */
-      credential_id: string | null
+      credential_id?: string | null
       /**
        * Mode
        * @enum {string}
@@ -1360,6 +1513,11 @@ export interface components {
        */
       point_id: string
     }
+    /** MessageInput */
+    MessageInput: {
+      /** Text */
+      text: string
+    }
     /** ProviderCapabilities */
     ProviderCapabilities: {
       /**
@@ -1388,6 +1546,36 @@ export interface components {
        */
       tool_calling: boolean
     }
+    /** ProviderView */
+    ProviderView: {
+      /** Console Url */
+      console_url: string | null
+      /** Default Model */
+      default_model: string
+      /** Hosting */
+      hosting: string
+      /**
+       * Id
+       * @enum {string}
+       */
+      id:
+        | 'anthropic'
+        | 'openai'
+        | 'gemini'
+        | 'deepseek'
+        | 'xai'
+        | 'mistral'
+        | 'groq'
+        | 'openrouter'
+        | 'ollama'
+        | 'stub'
+      /** Name */
+      name: string
+      /** Needs Key */
+      needs_key: boolean
+      /** Notes */
+      notes: string | null
+    }
     /** Registry */
     Registry: {
       /** Batteries */
@@ -1400,6 +1588,13 @@ export interface components {
       games: components['schemas']['Game'][]
       /** Providers */
       providers: components['schemas']['LlmProvider'][]
+    }
+    /** ResumeInput */
+    ResumeInput: {
+      /** Value */
+      value: {
+        [key: string]: unknown
+      }
     }
     /** RoundCompleted */
     RoundCompleted: {
@@ -1505,6 +1700,31 @@ export interface components {
       /** Trust */
       trust: number
     }
+    /** SelectionInput */
+    SelectionInput: {
+      /**
+       * Mode
+       * @enum {string}
+       */
+      mode: 'hosted' | 'local'
+      /** Model */
+      model: string
+      /**
+       * Provider
+       * @enum {string}
+       */
+      provider:
+        | 'anthropic'
+        | 'openai'
+        | 'gemini'
+        | 'deepseek'
+        | 'xai'
+        | 'mistral'
+        | 'groq'
+        | 'openrouter'
+        | 'ollama'
+        | 'stub'
+    }
     /** SessionBudget */
     SessionBudget: {
       /**
@@ -1571,6 +1791,18 @@ export interface components {
       /** Rounds */
       rounds: number
     }
+    /** SessionEvents */
+    SessionEvents: {
+      /** Events */
+      events: {
+        [key: string]: unknown
+      }[]
+      /**
+       * Session Id
+       * Format: uuid
+       */
+      session_id: string
+    }
     /** SessionPlan */
     SessionPlan: {
       /**
@@ -1578,6 +1810,12 @@ export interface components {
        * @description Skills the user declined today
        */
       declined_dims?: string[]
+      /**
+       * Game Id
+       * @description The game plan_next picked
+       * @default null
+       */
+      game_id: string | null
       /** Goal Weights */
       goal_weights?: {
         [key: string]: number
@@ -1639,6 +1877,15 @@ export interface components {
       persona: 'zitouna' | 'barq' | 'hikma' | 'sahbi'
       /**
        * Trigger
+       * @enum {string}
+       */
+      trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
+    }
+    /** StartSession */
+    StartSession: {
+      /**
+       * Trigger
+       * @default ui
        * @enum {string}
        */
       trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
@@ -1954,6 +2201,160 @@ export interface operations {
       }
     }
   }
+  put_credential_llm_credentials__provider_id__put: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        provider_id:
+          | 'anthropic'
+          | 'openai'
+          | 'gemini'
+          | 'deepseek'
+          | 'xai'
+          | 'mistral'
+          | 'groq'
+          | 'openrouter'
+          | 'ollama'
+          | 'stub'
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['KeyInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['KeySaved']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  remove_credential_llm_credentials__provider_id__delete: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        provider_id:
+          | 'anthropic'
+          | 'openai'
+          | 'gemini'
+          | 'deepseek'
+          | 'xai'
+          | 'mistral'
+          | 'groq'
+          | 'openrouter'
+          | 'ollama'
+          | 'stub'
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_providers_llm_providers_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LlmOverview']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  put_selection_llm_selection_put: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SelectionInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LlmSelection']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   get_registry_registry_get: {
     parameters: {
       query?: never
@@ -1970,6 +2371,150 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Registry']
+        }
+      }
+    }
+  }
+  start_session_sessions_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StartSession']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionEvents']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  send_message_sessions__session_id__messages_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        session_id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MessageInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionEvents']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  pending_sessions__session_id__pending_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        session_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  resume_session_sessions__session_id__resume_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        session_id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResumeInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionEvents']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
         }
       }
     }

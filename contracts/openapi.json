@@ -2111,6 +2111,61 @@
         "type": "object"
       },
       "JsonValue": {},
+      "KeyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "format": "password",
+            "maxLength": 400,
+            "minLength": 8,
+            "title": "Api Key",
+            "type": "string",
+            "writeOnly": true
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "required": [
+          "api_key"
+        ],
+        "title": "KeyInput",
+        "type": "object"
+      },
+      "KeySaved": {
+        "additionalProperties": false,
+        "properties": {
+          "credential": {
+            "$ref": "#/components/schemas/CredentialSummary"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models",
+            "type": "array"
+          }
+        },
+        "required": [
+          "credential",
+          "models",
+          "model"
+        ],
+        "title": "KeySaved",
+        "type": "object"
+      },
       "Knob": {
         "additionalProperties": false,
         "description": "A difficulty knob: its value at level 0 (easy) and level 1 (hard).",
@@ -2222,10 +2277,45 @@
         "title": "LifeContextWindow",
         "type": "object"
       },
+      "LlmOverview": {
+        "additionalProperties": false,
+        "properties": {
+          "credentials": {
+            "items": {
+              "$ref": "#/components/schemas/CredentialSummary"
+            },
+            "title": "Credentials",
+            "type": "array"
+          },
+          "keys_enabled": {
+            "description": "False when the server has no master key",
+            "title": "Keys Enabled",
+            "type": "boolean"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderView"
+            },
+            "title": "Providers",
+            "type": "array"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/LlmSelection"
+          }
+        },
+        "required": [
+          "providers",
+          "credentials",
+          "selection",
+          "keys_enabled"
+        ],
+        "title": "LlmOverview",
+        "type": "object"
+      },
       "LlmProvider": {
         "additionalProperties": false,
         "properties": {
-          "base_url": {
+          "api_base": {
             "anyOf": [
               {
                 "format": "uri",
@@ -2237,7 +2327,8 @@
                 "type": "null"
               }
             ],
-            "title": "Base Url"
+            "description": "Provider API root; Ollama's comes from OLLAMA_URL",
+            "title": "Api Base"
           },
           "capabilities": {
             "$ref": "#/components/schemas/ProviderCapabilities"
@@ -2333,7 +2424,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Points at app.llm_credentials; the key itself never travels",
             "title": "Credential Id"
           },
@@ -2653,6 +2743,22 @@
         "title": "MemoryWrittenPayload",
         "type": "object"
       },
+      "MessageInput": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "MessageInput",
+        "type": "object"
+      },
       "ProviderCapabilities": {
         "additionalProperties": false,
         "properties": {
@@ -2683,6 +2789,76 @@
           }
         },
         "title": "ProviderCapabilities",
+        "type": "object"
+      },
+      "ProviderView": {
+        "additionalProperties": false,
+        "properties": {
+          "console_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Console Url"
+          },
+          "default_model": {
+            "title": "Default Model",
+            "type": "string"
+          },
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs_key": {
+            "title": "Needs Key",
+            "type": "boolean"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hosting",
+          "needs_key",
+          "default_model",
+          "console_url",
+          "notes"
+        ],
+        "title": "ProviderView",
         "type": "object"
       },
       "Registry": {
@@ -2724,6 +2900,21 @@
           "batteries"
         ],
         "title": "Registry",
+        "type": "object"
+      },
+      "ResumeInput": {
+        "additionalProperties": false,
+        "properties": {
+          "value": {
+            "additionalProperties": true,
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "ResumeInput",
         "type": "object"
       },
       "RoundCompleted": {
@@ -2913,6 +3104,48 @@
         "title": "ScoringInputs",
         "type": "object"
       },
+      "SelectionInput": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "hosted",
+              "local"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "model": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "provider",
+          "model"
+        ],
+        "title": "SelectionInput",
+        "type": "object"
+      },
       "SessionBudget": {
         "additionalProperties": false,
         "properties": {
@@ -3042,6 +3275,30 @@
         "title": "SessionEndedPayload",
         "type": "object"
       },
+      "SessionEvents": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "events"
+        ],
+        "title": "SessionEvents",
+        "type": "object"
+      },
       "SessionPlan": {
         "additionalProperties": false,
         "properties": {
@@ -3053,6 +3310,20 @@
             },
             "title": "Declined Dims",
             "type": "array"
+          },
+          "game_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The game plan_next picked",
+            "title": "Game Id"
           },
           "goal_weights": {
             "patternProperties": {
@@ -3188,6 +3459,25 @@
           "persona"
         ],
         "title": "SessionStartedPayload",
+        "type": "object"
+      },
+      "StartSession": {
+        "additionalProperties": false,
+        "properties": {
+          "trigger": {
+            "default": "ui",
+            "enum": [
+              "voice",
+              "ui",
+              "cli",
+              "schedule",
+              "proactive"
+            ],
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "title": "StartSession",
         "type": "object"
       },
       "TrialBatch": {
@@ -3778,6 +4068,255 @@
         "summary": "Health"
       }
     },
+    "/llm/credentials/{provider_id}": {
+      "delete": {
+        "operationId": "remove_credential_llm_credentials__provider_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "enum": [
+                "anthropic",
+                "openai",
+                "gemini",
+                "deepseek",
+                "xai",
+                "mistral",
+                "groq",
+                "openrouter",
+                "ollama",
+                "stub"
+              ],
+              "title": "Provider Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Credential",
+        "tags": [
+          "llm"
+        ]
+      },
+      "put": {
+        "operationId": "put_credential_llm_credentials__provider_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "enum": [
+                "anthropic",
+                "openai",
+                "gemini",
+                "deepseek",
+                "xai",
+                "mistral",
+                "groq",
+                "openrouter",
+                "ollama",
+                "stub"
+              ],
+              "title": "Provider Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeySaved"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Credential",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
+    "/llm/providers": {
+      "get": {
+        "operationId": "get_providers_llm_providers_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LlmOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Providers",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
+    "/llm/selection": {
+      "put": {
+        "operationId": "put_selection_llm_selection_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LlmSelection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Selection",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
     "/registry": {
       "get": {
         "operationId": "get_registry_registry_get",
@@ -3796,6 +4335,264 @@
         "summary": "Get Registry",
         "tags": [
           "registry"
+        ]
+      }
+    },
+    "/sessions": {
+      "post": {
+        "operationId": "start_session_sessions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEvents"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/messages": {
+      "post": {
+        "operationId": "send_message_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEvents"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Message",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/pending": {
+      "get": {
+        "operationId": "pending_sessions__session_id__pending_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Pending Sessions  Session Id  Pending Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pending",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/resume": {
+      "post": {
+        "operationId": "resume_session_sessions__session_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEvents"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Session",
+        "tags": [
+          "sessions"
         ]
       }
     },

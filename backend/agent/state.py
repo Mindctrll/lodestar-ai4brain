@@ -5,7 +5,8 @@ and no API key is ever stored in state (AGENTS.md rule 9).
 """
 
 import operator
-from typing import Annotated
+from datetime import datetime
+from typing import Annotated, Literal
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
@@ -18,7 +19,13 @@ from backend.contracts.decision import Decision
 from backend.contracts.exercise import ExerciseSpec, RoundResult
 from backend.contracts.facts import CoachReply, FactsPacket
 from backend.contracts.memory import MemoryHit
-from backend.contracts.session import Intent, SessionBudget, SessionPlan
+from backend.contracts.session import (
+    Intent,
+    RoundSummary,
+    SessionBudget,
+    SessionPlan,
+    Verdict,
+)
 from backend.contracts.twin import ForecastBand, LifeContextWindow, TwinSnapshot
 
 
@@ -49,6 +56,11 @@ class NajmaState(BaseModel):
     facts: FactsPacket | None = None
     reply: CoachReply | None = None
 
+    last_round: RoundSummary | None = None
+    verdict: Verdict | None = None
+
     # control
+    started_at: datetime | None = None
+    success_mode: Literal["chill", "balanced", "push"] = "balanced"
     budget: SessionBudget = Field(default_factory=SessionBudget)
     degraded: Annotated[list[str], operator.add] = Field(default_factory=list)
