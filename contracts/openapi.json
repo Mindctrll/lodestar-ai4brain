@@ -1,0 +1,3469 @@
+{
+  "components": {
+    "schemas": {
+      "AcsEvent": {
+        "additionalProperties": false,
+        "description": "One opportunity for a component; `success` says whether the user took it well.",
+        "properties": {
+          "component": {
+            "enum": [
+              "V",
+              "A",
+              "I",
+              "C",
+              "R"
+            ],
+            "title": "Component",
+            "type": "string"
+          },
+          "round_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Round Id"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "success": {
+            "title": "Success",
+            "type": "boolean"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "component",
+          "success",
+          "source",
+          "ts"
+        ],
+        "title": "AcsEvent",
+        "type": "object"
+      },
+      "AcsObserved": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/AcsEvent"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "acs.observed",
+            "default": "acs.observed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "AcsObserved",
+        "type": "object"
+      },
+      "AffectEstimated": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/AffectReading"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "affect.estimated",
+            "default": "affect.estimated",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "AffectEstimated",
+        "type": "object"
+      },
+      "AffectReading": {
+        "additionalProperties": false,
+        "properties": {
+          "behaviour_weight": {
+            "description": "Behaviour weight in the fusion (>= 0.7)",
+            "maximum": 1.0,
+            "minimum": 0.7,
+            "title": "Behaviour Weight",
+            "type": "number"
+          },
+          "fatigue_p": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Fatigue P",
+            "type": "number"
+          },
+          "frustration_p": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Frustration P",
+            "type": "number"
+          },
+          "sources": {
+            "items": {
+              "enum": [
+                "behaviour",
+                "camera",
+                "voice"
+              ],
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "frustration_p",
+          "fatigue_p",
+          "sources",
+          "behaviour_weight"
+        ],
+        "title": "AffectReading",
+        "type": "object"
+      },
+      "Battery": {
+        "additionalProperties": false,
+        "properties": {
+          "games": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Games",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "assess",
+              "train"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "seconds_each": {
+            "exclusiveMinimum": 0.0,
+            "title": "Seconds Each",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seconds_each",
+          "mode",
+          "games"
+        ],
+        "title": "Battery",
+        "type": "object"
+      },
+      "BehaviourSignals": {
+        "additionalProperties": false,
+        "description": "Signals from play itself: the mandatory, non-biometric path.",
+        "properties": {
+          "error_streak": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Error Streak",
+            "type": "integer"
+          },
+          "hint_burst": {
+            "default": false,
+            "title": "Hint Burst",
+            "type": "boolean"
+          },
+          "mood": {
+            "anyOf": [
+              {
+                "enum": [
+                  "good",
+                  "ok",
+                  "tough"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mood"
+          },
+          "quit_mid_game": {
+            "default": false,
+            "title": "Quit Mid Game",
+            "type": "boolean"
+          },
+          "rapid_taps": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Rapid Taps",
+            "type": "integer"
+          },
+          "rt_variability_z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rt Variability Z"
+          },
+          "rt_z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "RT vs the user's own baseline",
+            "title": "Rt Z"
+          },
+          "too_hard_pressed": {
+            "default": false,
+            "title": "Too Hard Pressed",
+            "type": "boolean"
+          }
+        },
+        "title": "BehaviourSignals",
+        "type": "object"
+      },
+      "BiometricCues": {
+        "additionalProperties": false,
+        "description": "Coarse local cues, only when their consent switches are on. Never stored as raw data.",
+        "properties": {
+          "strain_cue": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Camera, one per 10 s",
+            "title": "Strain Cue"
+          },
+          "voice_strain_cue": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Voice, per utterance",
+            "title": "Voice Strain Cue"
+          }
+        },
+        "title": "BiometricCues",
+        "type": "object"
+      },
+      "Candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "breakdown": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Named parts of the score, e.g. uncertainty: 0.31",
+            "title": "Breakdown",
+            "type": "object"
+          },
+          "option": {
+            "title": "Option",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "option",
+          "score"
+        ],
+        "title": "Candidate",
+        "type": "object"
+      },
+      "CoachReply": {
+        "additionalProperties": false,
+        "properties": {
+          "cited_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited Ids",
+            "type": "array"
+          },
+          "first_draft_passed": {
+            "title": "First Draft Passed",
+            "type": "boolean"
+          },
+          "persona": {
+            "enum": [
+              "zitouna",
+              "barq",
+              "hikma",
+              "sahbi"
+            ],
+            "title": "Persona",
+            "type": "string"
+          },
+          "repairs": {
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Repairs",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "used_template": {
+            "title": "Used Template",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "text",
+          "cited_ids",
+          "persona",
+          "first_draft_passed",
+          "repairs",
+          "used_template"
+        ],
+        "title": "CoachReply",
+        "type": "object"
+      },
+      "ConsentChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ConsentPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "consent.changed",
+            "default": "consent.changed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "ConsentChanged",
+        "type": "object"
+      },
+      "ConsentPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "granted": {
+            "title": "Granted",
+            "type": "boolean"
+          },
+          "notice_version": {
+            "title": "Notice Version",
+            "type": "string"
+          },
+          "switch": {
+            "enum": [
+              "core",
+              "cloud_ai",
+              "microphone",
+              "camera",
+              "voice_tone",
+              "deliberate_mistakes",
+              "research_export"
+            ],
+            "title": "Switch",
+            "type": "string"
+          }
+        },
+        "required": [
+          "switch",
+          "granted",
+          "notice_version"
+        ],
+        "title": "ConsentPayload",
+        "type": "object"
+      },
+      "ContextAdded": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/LifeContextWindow"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "context.added",
+            "default": "context.added",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "ContextAdded",
+        "type": "object"
+      },
+      "CredentialSummary": {
+        "additionalProperties": false,
+        "description": "What the API and the export show about a saved key.",
+        "properties": {
+          "key_last4": {
+            "maxLength": 4,
+            "minLength": 4,
+            "title": "Key Last4",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "rejected",
+              "out_of_credit",
+              "unchecked"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "key_last4",
+          "status"
+        ],
+        "title": "CredentialSummary",
+        "type": "object"
+      },
+      "DataExported": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/DataExportedPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "data.exported",
+            "default": "data.exported",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "DataExported",
+        "type": "object"
+      },
+      "DataExportedPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "counts"
+        ],
+        "title": "DataExportedPayload",
+        "type": "object"
+      },
+      "Decision": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "chosen": {
+            "title": "Chosen",
+            "type": "string"
+          },
+          "decision_id": {
+            "format": "uuid",
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "evidence": {
+            "description": "Event ids or fact ids",
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "node": {
+            "title": "Node",
+            "type": "string"
+          },
+          "question": {
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Plain words, shown in the UI",
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision_id",
+          "node",
+          "at",
+          "question",
+          "candidates",
+          "chosen",
+          "reason"
+        ],
+        "title": "Decision",
+        "type": "object"
+      },
+      "Dimension": {
+        "additionalProperties": false,
+        "properties": {
+          "badge": {
+            "enum": [
+              "established",
+              "moderate",
+              "experimental"
+            ],
+            "title": "Badge",
+            "type": "string"
+          },
+          "biases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Biases",
+            "type": "array"
+          },
+          "framework": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Framework",
+            "type": "array"
+          },
+          "group": {
+            "enum": [
+              "attention",
+              "control",
+              "memory",
+              "speed",
+              "reasoning",
+              "language",
+              "style"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "in_overall": {
+            "title": "In Overall",
+            "type": "boolean"
+          },
+          "main_metric": {
+            "title": "Main Metric",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "plain": {
+            "title": "Plain",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "style": {
+            "default": false,
+            "description": "Shown as a style, not better or worse",
+            "title": "Style",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "plain",
+          "badge",
+          "in_overall",
+          "group",
+          "framework",
+          "main_metric",
+          "biases",
+          "sources"
+        ],
+        "title": "Dimension",
+        "type": "object"
+      },
+      "DimensionChange": {
+        "additionalProperties": false,
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "mu_after": {
+            "title": "Mu After",
+            "type": "number"
+          },
+          "mu_before": {
+            "title": "Mu Before",
+            "type": "number"
+          },
+          "n_after": {
+            "title": "N After",
+            "type": "integer"
+          },
+          "sigma_after": {
+            "title": "Sigma After",
+            "type": "number"
+          },
+          "sigma_before": {
+            "title": "Sigma Before",
+            "type": "number"
+          }
+        },
+        "required": [
+          "dim",
+          "mu_before",
+          "mu_after",
+          "sigma_before",
+          "sigma_after",
+          "n_after"
+        ],
+        "title": "DimensionChange",
+        "type": "object"
+      },
+      "DimensionState": {
+        "additionalProperties": false,
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "last_practised": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Practised"
+          },
+          "mu": {
+            "description": "Belief mean on the logit scale",
+            "title": "Mu",
+            "type": "number"
+          },
+          "n": {
+            "description": "Scored answers so far",
+            "minimum": 0,
+            "title": "N",
+            "type": "integer"
+          },
+          "sigma": {
+            "description": "Belief standard deviation",
+            "exclusiveMinimum": 0.0,
+            "title": "Sigma",
+            "type": "number"
+          }
+        },
+        "required": [
+          "dim",
+          "mu",
+          "sigma",
+          "n"
+        ],
+        "title": "DimensionState",
+        "type": "object"
+      },
+      "Event": {
+        "discriminator": {
+          "mapping": {
+            "acs.observed": "#/components/schemas/AcsObserved",
+            "affect.estimated": "#/components/schemas/AffectEstimated",
+            "consent.changed": "#/components/schemas/ConsentChanged",
+            "context.added": "#/components/schemas/ContextAdded",
+            "data.exported": "#/components/schemas/DataExported",
+            "experiment.completed": "#/components/schemas/ExperimentCompleted",
+            "experiment.session_logged": "#/components/schemas/ExperimentSessionLogged",
+            "experiment.started": "#/components/schemas/ExperimentStarted",
+            "goal.set": "#/components/schemas/GoalSet",
+            "llm.selection_changed": "#/components/schemas/LlmSelectionChanged",
+            "memory.written": "#/components/schemas/MemoryWritten",
+            "round.completed": "#/components/schemas/RoundCompleted",
+            "session.ended": "#/components/schemas/SessionEnded",
+            "session.started": "#/components/schemas/SessionStarted",
+            "trial.recorded": "#/components/schemas/TrialRecorded",
+            "twin.snapshot": "#/components/schemas/TwinSnapshotTaken",
+            "twin.updated": "#/components/schemas/TwinUpdated"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SessionStarted"
+          },
+          {
+            "$ref": "#/components/schemas/TrialRecorded"
+          },
+          {
+            "$ref": "#/components/schemas/RoundCompleted"
+          },
+          {
+            "$ref": "#/components/schemas/TwinUpdated"
+          },
+          {
+            "$ref": "#/components/schemas/AcsObserved"
+          },
+          {
+            "$ref": "#/components/schemas/AffectEstimated"
+          },
+          {
+            "$ref": "#/components/schemas/ContextAdded"
+          },
+          {
+            "$ref": "#/components/schemas/GoalSet"
+          },
+          {
+            "$ref": "#/components/schemas/ExperimentStarted"
+          },
+          {
+            "$ref": "#/components/schemas/ExperimentSessionLogged"
+          },
+          {
+            "$ref": "#/components/schemas/ExperimentCompleted"
+          },
+          {
+            "$ref": "#/components/schemas/ConsentChanged"
+          },
+          {
+            "$ref": "#/components/schemas/MemoryWritten"
+          },
+          {
+            "$ref": "#/components/schemas/SessionEnded"
+          },
+          {
+            "$ref": "#/components/schemas/DataExported"
+          },
+          {
+            "$ref": "#/components/schemas/TwinSnapshotTaken"
+          },
+          {
+            "$ref": "#/components/schemas/LlmSelectionChanged"
+          }
+        ]
+      },
+      "ExerciseSpec": {
+        "additionalProperties": false,
+        "description": "Payload of the `play` interrupt.",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Generated items for games that need them",
+            "title": "Content"
+          },
+          "content_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Item Id"
+          },
+          "difficulty_b": {
+            "description": "Item difficulty on the logit scale",
+            "title": "Difficulty B",
+            "type": "number"
+          },
+          "duration_s": {
+            "minimum": 0,
+            "title": "Duration S",
+            "type": "integer"
+          },
+          "game_id": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Game Id",
+            "type": "string"
+          },
+          "knobs": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Knobs",
+            "type": "object"
+          },
+          "level": {
+            "description": "Difficulty level, 0 easy to 1 hard",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Level",
+            "type": "number"
+          },
+          "mode": {
+            "enum": [
+              "assess",
+              "train"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "practice_trials": {
+            "minimum": 0,
+            "title": "Practice Trials",
+            "type": "integer"
+          },
+          "reason": {
+            "description": "Why this exercise, in plain words",
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "integer"
+          },
+          "target_p": {
+            "description": "Success rate the level aims for",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target P",
+            "type": "number"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Theme"
+          }
+        },
+        "required": [
+          "round_id",
+          "game_id",
+          "mode",
+          "target_p",
+          "level",
+          "difficulty_b",
+          "knobs",
+          "seed",
+          "practice_trials",
+          "duration_s",
+          "reason"
+        ],
+        "title": "ExerciseSpec",
+        "type": "object"
+      },
+      "ExperimentCompleted": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ExperimentPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "experiment.completed",
+            "default": "experiment.completed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "ExperimentCompleted",
+        "type": "object"
+      },
+      "ExperimentPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Condition"
+          },
+          "exp_id": {
+            "format": "uuid",
+            "title": "Exp Id",
+            "type": "string"
+          },
+          "hypothesis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hypothesis"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Result"
+          }
+        },
+        "required": [
+          "exp_id"
+        ],
+        "title": "ExperimentPayload",
+        "type": "object"
+      },
+      "ExperimentSessionLogged": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ExperimentPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "experiment.session_logged",
+            "default": "experiment.session_logged",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "ExperimentSessionLogged",
+        "type": "object"
+      },
+      "ExperimentStarted": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ExperimentPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "experiment.started",
+            "default": "experiment.started",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "ExperimentStarted",
+        "type": "object"
+      },
+      "Fact": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "default": false,
+            "title": "Decision",
+            "type": "boolean"
+          },
+          "dim": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dim"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "id": {
+            "pattern": "^[FD]\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "Fact",
+        "type": "object"
+      },
+      "FactsPacket": {
+        "additionalProperties": false,
+        "properties": {
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "knowledge": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeItem"
+            },
+            "title": "Knowledge",
+            "type": "array"
+          },
+          "memories": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryItem"
+            },
+            "title": "Memories",
+            "type": "array"
+          }
+        },
+        "title": "FactsPacket",
+        "type": "object"
+      },
+      "ForecastBand": {
+        "additionalProperties": false,
+        "description": "A growth forecast is always a range (AGENTS.md rule 5).",
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "title": "Median",
+            "type": "number"
+          },
+          "nominal_coverage": {
+            "default": 0.8,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Nominal Coverage",
+            "type": "number"
+          },
+          "sessions_ahead": {
+            "exclusiveMinimum": 0,
+            "title": "Sessions Ahead",
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "model",
+              "prior"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dim",
+          "sessions_ahead",
+          "low",
+          "median",
+          "high",
+          "source"
+        ],
+        "title": "ForecastBand",
+        "type": "object"
+      },
+      "Game": {
+        "additionalProperties": false,
+        "properties": {
+          "acs_hooks": {
+            "items": {
+              "enum": [
+                "verification",
+                "autonomy",
+                "iteration",
+                "clarification",
+                "responsible_use"
+              ],
+              "type": "string"
+            },
+            "title": "Acs Hooks",
+            "type": "array"
+          },
+          "code_source": {
+            "title": "Code Source",
+            "type": "string"
+          },
+          "content": {
+            "enum": [
+              "code",
+              "llm",
+              "code_with_llm_hints"
+            ],
+            "title": "Content",
+            "type": "string"
+          },
+          "dims": {
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "type": "number"
+              }
+            },
+            "title": "Dims",
+            "type": "object"
+          },
+          "does": {
+            "title": "Does",
+            "type": "string"
+          },
+          "duration_s": {
+            "minimum": 0.0,
+            "title": "Duration S",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "game",
+              "story",
+              "probe"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "knobs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Knob"
+            },
+            "title": "Knobs",
+            "type": "object"
+          },
+          "level_map": {
+            "enum": [
+              "linear",
+              "none"
+            ],
+            "title": "Level Map",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "modalities": {
+            "items": {
+              "enum": [
+                "keyboard",
+                "touch",
+                "voice"
+              ],
+              "type": "string"
+            },
+            "title": "Modalities",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "origin": {
+            "enum": [
+              "classic",
+              "original",
+              "custom"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "paradigm": {
+            "title": "Paradigm",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "P1",
+              "P2",
+              "L"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "practice_trials": {
+            "minimum": 0.0,
+            "title": "Practice Trials",
+            "type": "integer"
+          },
+          "reliability": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reliability"
+          },
+          "scoring": {
+            "enum": [
+              "binary",
+              "hshs",
+              "span",
+              "continuous",
+              "rubric",
+              "style",
+              "calibration",
+              "none"
+            ],
+            "title": "Scoring",
+            "type": "string"
+          },
+          "staircase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Knob tuned inside the game",
+            "title": "Staircase"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "phase",
+          "dims",
+          "origin",
+          "paradigm",
+          "code_source",
+          "does",
+          "scoring",
+          "duration_s",
+          "metrics",
+          "knobs",
+          "level_map",
+          "content",
+          "modalities",
+          "acs_hooks",
+          "practice_trials"
+        ],
+        "title": "Game",
+        "type": "object"
+      },
+      "GoalPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "due": {
+            "format": "date",
+            "title": "Due",
+            "type": "string"
+          },
+          "goal_id": {
+            "format": "uuid",
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "range",
+              "score"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "number"
+          }
+        },
+        "required": [
+          "goal_id",
+          "dim",
+          "kind",
+          "target",
+          "due"
+        ],
+        "title": "GoalPayload",
+        "type": "object"
+      },
+      "GoalSet": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/GoalPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "goal.set",
+            "default": "goal.set",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "GoalSet",
+        "type": "object"
+      },
+      "HistoryRow": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "mu": {
+            "title": "Mu",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "sigma": {
+            "title": "Sigma",
+            "type": "number"
+          }
+        },
+        "required": [
+          "day",
+          "dim",
+          "mu",
+          "sigma",
+          "n"
+        ],
+        "title": "HistoryRow",
+        "type": "object"
+      },
+      "Intent": {
+        "additionalProperties": false,
+        "properties": {
+          "dim": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dim"
+          },
+          "game_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Game Id"
+          },
+          "kind": {
+            "enum": [
+              "play",
+              "proactive",
+              "chat",
+              "twin_chat",
+              "experiment",
+              "goal",
+              "life_context",
+              "settings",
+              "refuse"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Text"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Theme"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "Intent",
+        "type": "object"
+      },
+      "JsonValue": {},
+      "Knob": {
+        "additionalProperties": false,
+        "description": "A difficulty knob: its value at level 0 (easy) and level 1 (hard).",
+        "properties": {
+          "easy": {
+            "title": "Easy",
+            "type": "number"
+          },
+          "hard": {
+            "title": "Hard",
+            "type": "number"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "easy",
+          "hard"
+        ],
+        "title": "Knob",
+        "type": "object"
+      },
+      "KnowledgeItem": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Evidence Level"
+          },
+          "id": {
+            "pattern": "^K\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "source"
+        ],
+        "title": "KnowledgeItem",
+        "type": "object"
+      },
+      "LifeContextWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "context_id": {
+            "format": "uuid",
+            "title": "Context Id",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          },
+          "weight": {
+            "description": "Scoring weight inside the window (0.5 by default)",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "context_id",
+          "label",
+          "start",
+          "end",
+          "weight"
+        ],
+        "title": "LifeContextWindow",
+        "type": "object"
+      },
+      "LlmProvider": {
+        "additionalProperties": false,
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/ProviderCapabilities"
+          },
+          "console_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Console Url"
+          },
+          "default_model": {
+            "title": "Default Model",
+            "type": "string"
+          },
+          "hidden": {
+            "default": false,
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "integration": {
+            "title": "Integration",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs_key": {
+            "title": "Needs Key",
+            "type": "boolean"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "integration",
+          "hosting",
+          "needs_key",
+          "default_model"
+        ],
+        "title": "LlmProvider",
+        "type": "object"
+      },
+      "LlmSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Points at app.llm_credentials; the key itself never travels",
+            "title": "Credential Id"
+          },
+          "mode": {
+            "enum": [
+              "hosted",
+              "local",
+              "stub"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "model": {
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "provider",
+          "model"
+        ],
+        "title": "LlmSelection",
+        "type": "object"
+      },
+      "LlmSelectionChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/LlmSelectionPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "llm.selection_changed",
+            "default": "llm.selection_changed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "LlmSelectionChanged",
+        "type": "object"
+      },
+      "LlmSelectionPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "hosted",
+              "local",
+              "stub"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "anthropic",
+              "openai",
+              "gemini",
+              "deepseek",
+              "xai",
+              "mistral",
+              "groq",
+              "openrouter",
+              "ollama",
+              "stub"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "provider",
+          "model"
+        ],
+        "title": "LlmSelectionPayload",
+        "type": "object"
+      },
+      "MemoryHit": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "enum": [
+              "episodic",
+              "facts"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "importance": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Importance",
+            "type": "number"
+          },
+          "point_id": {
+            "format": "uuid",
+            "title": "Point Id",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source_event_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Source Event Ids",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "point_id",
+          "collection",
+          "text",
+          "score",
+          "created_at",
+          "importance"
+        ],
+        "title": "MemoryHit",
+        "type": "object"
+      },
+      "MemoryItem": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^M\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "MemoryItem",
+        "type": "object"
+      },
+      "MemoryWritten": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/MemoryWrittenPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "memory.written",
+            "default": "memory.written",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "MemoryWritten",
+        "type": "object"
+      },
+      "MemoryWrittenPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "enum": [
+              "episodic",
+              "facts"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "importance": {
+            "title": "Importance",
+            "type": "number"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "point_id": {
+            "format": "uuid",
+            "title": "Point Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "point_id",
+          "collection",
+          "kind",
+          "importance"
+        ],
+        "title": "MemoryWrittenPayload",
+        "type": "object"
+      },
+      "ProviderCapabilities": {
+        "additionalProperties": false,
+        "properties": {
+          "forced_tool_choice": {
+            "default": true,
+            "title": "Forced Tool Choice",
+            "type": "boolean"
+          },
+          "sampling_params": {
+            "default": true,
+            "title": "Sampling Params",
+            "type": "boolean"
+          },
+          "streaming": {
+            "default": true,
+            "title": "Streaming",
+            "type": "boolean"
+          },
+          "structured_output": {
+            "default": true,
+            "title": "Structured Output",
+            "type": "boolean"
+          },
+          "tool_calling": {
+            "default": true,
+            "title": "Tool Calling",
+            "type": "boolean"
+          }
+        },
+        "title": "ProviderCapabilities",
+        "type": "object"
+      },
+      "Registry": {
+        "additionalProperties": false,
+        "properties": {
+          "batteries": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Battery"
+            },
+            "title": "Batteries",
+            "type": "object"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/Dimension"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/Game"
+            },
+            "title": "Games",
+            "type": "array"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/LlmProvider"
+            },
+            "title": "Providers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dimensions",
+          "games",
+          "providers",
+          "batteries"
+        ],
+        "title": "Registry",
+        "type": "object"
+      },
+      "RoundCompleted": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/RoundResult"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "round.completed",
+            "default": "round.completed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "RoundCompleted",
+        "type": "object"
+      },
+      "RoundResult": {
+        "additionalProperties": false,
+        "description": "Resume value after a game. Trials themselves arrive through POST /events.",
+        "properties": {
+          "ended_at": {
+            "format": "date-time",
+            "title": "Ended At",
+            "type": "string"
+          },
+          "final_level": {
+            "description": "Difficulty level, 0 easy to 1 hard",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Final Level",
+            "type": "number"
+          },
+          "game_id": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Game Id",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Metrics",
+            "type": "object"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "stopped",
+              "eased"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "user",
+                  "frustration",
+                  "error"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stop Reason"
+          },
+          "trial_count": {
+            "minimum": 0,
+            "title": "Trial Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round_id",
+          "game_id",
+          "status",
+          "trial_count",
+          "final_level",
+          "started_at",
+          "ended_at"
+        ],
+        "title": "RoundResult",
+        "type": "object"
+      },
+      "SessionBudget": {
+        "additionalProperties": false,
+        "properties": {
+          "fatigue_point_min": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Minutes after which this user's speed usually drops",
+            "title": "Fatigue Point Min"
+          },
+          "max_minutes": {
+            "default": 15.0,
+            "exclusiveMinimum": 0,
+            "title": "Max Minutes",
+            "type": "number"
+          },
+          "max_rounds": {
+            "default": 3,
+            "minimum": 1,
+            "title": "Max Rounds",
+            "type": "integer"
+          }
+        },
+        "title": "SessionBudget",
+        "type": "object"
+      },
+      "SessionEnded": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SessionEndedPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "session.ended",
+            "default": "session.ended",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "SessionEnded",
+        "type": "object"
+      },
+      "SessionEndedPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "minutes": {
+            "minimum": 0,
+            "title": "Minutes",
+            "type": "number"
+          },
+          "reason": {
+            "enum": [
+              "budget",
+              "fatigue",
+              "user",
+              "break",
+              "error"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "rounds": {
+            "minimum": 0,
+            "title": "Rounds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reason",
+          "rounds",
+          "minutes"
+        ],
+        "title": "SessionEndedPayload",
+        "type": "object"
+      },
+      "SessionPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "declined_dims": {
+            "description": "Skills the user declined today",
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "title": "Declined Dims",
+            "type": "array"
+          },
+          "goal_weights": {
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "type": "number"
+              }
+            },
+            "title": "Goal Weights",
+            "type": "object"
+          },
+          "mode": {
+            "enum": [
+              "assess",
+              "train"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "success_mode": {
+            "enum": [
+              "chill",
+              "balanced",
+              "push"
+            ],
+            "title": "Success Mode",
+            "type": "string"
+          },
+          "target_p": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target P",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mode",
+          "success_mode",
+          "target_p"
+        ],
+        "title": "SessionPlan",
+        "type": "object"
+      },
+      "SessionStarted": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SessionStartedPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "session.started",
+            "default": "session.started",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "SessionStarted",
+        "type": "object"
+      },
+      "SessionStartedPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "persona": {
+            "enum": [
+              "zitouna",
+              "barq",
+              "hikma",
+              "sahbi"
+            ],
+            "title": "Persona",
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "voice",
+              "ui",
+              "cli",
+              "schedule",
+              "proactive"
+            ],
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trigger",
+          "persona"
+        ],
+        "title": "SessionStartedPayload",
+        "type": "object"
+      },
+      "TrialEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Answer to 'How sure are you?' when asked",
+            "title": "Confidence"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "None for style and rubric games, which have no right answer",
+            "title": "Correct"
+          },
+          "game_id": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Game Id",
+            "type": "string"
+          },
+          "hint_level": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hint Level",
+            "type": "integer"
+          },
+          "level": {
+            "description": "Difficulty level, 0 easy to 1 hard",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Level",
+            "type": "number"
+          },
+          "practice": {
+            "default": false,
+            "title": "Practice",
+            "type": "boolean"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Response"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          },
+          "rt_ms": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rt Ms"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "stimulus": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Stimulus",
+            "type": "object"
+          },
+          "trial_id": {
+            "format": "uuid",
+            "title": "Trial Id",
+            "type": "string"
+          },
+          "trial_index": {
+            "minimum": 0,
+            "title": "Trial Index",
+            "type": "integer"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_id",
+          "round_id",
+          "session_id",
+          "game_id",
+          "level",
+          "trial_index",
+          "stimulus",
+          "ts"
+        ],
+        "title": "TrialEvent",
+        "type": "object"
+      },
+      "TrialRecorded": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/TrialEvent"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "trial.recorded",
+            "default": "trial.recorded",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "TrialRecorded",
+        "type": "object"
+      },
+      "TwinSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "dims": {
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "$ref": "#/components/schemas/DimensionState"
+              }
+            },
+            "title": "Dims",
+            "type": "object"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "as_of",
+          "dims"
+        ],
+        "title": "TwinSnapshot",
+        "type": "object"
+      },
+      "TwinSnapshotPayload": {
+        "additionalProperties": false,
+        "description": "Written by the retention job before it drops an old partition.",
+        "properties": {
+          "covers_until": {
+            "format": "date-time",
+            "title": "Covers Until",
+            "type": "string"
+          },
+          "dims": {
+            "items": {
+              "$ref": "#/components/schemas/DimensionState"
+            },
+            "title": "Dims",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryRow"
+            },
+            "title": "History",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dims",
+          "history",
+          "covers_until"
+        ],
+        "title": "TwinSnapshotPayload",
+        "type": "object"
+      },
+      "TwinSnapshotTaken": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/TwinSnapshotPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "twin.snapshot",
+            "default": "twin.snapshot",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "TwinSnapshotTaken",
+        "type": "object"
+      },
+      "TwinUpdated": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/TwinUpdatedPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "twin.updated",
+            "default": "twin.updated",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "TwinUpdated",
+        "type": "object"
+      },
+      "TwinUpdatedPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/DimensionChange"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round_id",
+          "changes"
+        ],
+        "title": "TwinUpdatedPayload",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Najma API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/registry": {
+      "get": {
+        "operationId": "get_registry_registry_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Registry"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Registry",
+        "tags": [
+          "registry"
+        ]
+      }
+    }
+  }
+}

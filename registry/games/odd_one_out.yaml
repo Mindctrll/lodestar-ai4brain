@@ -1,0 +1,30 @@
+# Odd One Out (docs/plan/06)
+id: odd_one_out
+name: Odd One Out
+kind: game
+phase: P1
+dims:
+  selective_attention: 1.0
+origin: classic
+paradigm: Visual search
+code_source: own
+does: Find the different item in a crowd
+scoring: hshs
+duration_s: 60
+metrics:
+- search_slope_ms_per_item
+- accuracy
+knobs:
+  set_size:
+    easy: 4
+    hard: 32
+  similarity:
+    easy: 0.2
+    hard: 0.9
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

@@ -1,0 +1,92 @@
+# LLM providers users can pick (docs/plan/03, "LLM providers"). Hosted ones need the user's own key.
+# `default_model` is a suggestion: when a key is saved, the backend lists the provider's models and
+# falls back to the first chat model if the default isn't offered. Checked 20 Oct 2026.
+# Capabilities default to true; set one to false when the provider rejects it.
+
+- id: anthropic
+  name: Anthropic (Claude)
+  integration: langchain-anthropic
+  hosting: United States
+  console_url: https://www.anthropic.com/api
+  needs_key: true
+  default_model: claude-opus-5-5
+  capabilities:
+    forced_tool_choice: false   # Claude Opus 5.5 returns 400 on tool_choice any/tool
+    sampling_params: false      # temperature/top_p/top_k return 400 on current models
+  notes: Structured output must use JSON-schema output, not a forced tool call.
+
+- id: openai
+  name: OpenAI
+  integration: langchain-openai
+  hosting: United States
+  console_url: https://platform.openai.com
+  needs_key: true
+  default_model: gpt-6.1-sol
+
+- id: gemini
+  name: Google Gemini
+  integration: langchain-google-genai
+  hosting: United States
+  console_url: https://aistudio.google.com
+  needs_key: true
+  default_model: gemini-3.8-flash
+
+- id: deepseek
+  name: DeepSeek
+  integration: langchain-deepseek
+  hosting: China
+  console_url: https://platform.deepseek.com
+  needs_key: true
+  default_model: deepseek-chat
+
+- id: xai
+  name: xAI Grok
+  integration: langchain-xai
+  hosting: United States
+  console_url: https://console.x.ai
+  needs_key: true
+  default_model: grok-4.7
+
+- id: mistral
+  name: Mistral
+  integration: langchain-mistralai
+  hosting: European Union
+  console_url: https://console.mistral.ai
+  needs_key: true
+  default_model: mistral-medium-latest
+
+- id: groq
+  name: Groq
+  integration: langchain-groq
+  hosting: United States
+  console_url: https://console.groq.com
+  needs_key: true
+  default_model: openai/gpt-oss-120b
+  notes: Low latency; good for spoken replies.
+
+- id: openrouter
+  name: OpenRouter
+  integration: langchain-openai
+  base_url: https://openrouter.ai/api/v1
+  hosting: United States (routes to the chosen model's provider)
+  console_url: https://openrouter.ai
+  needs_key: true
+  default_model: anthropic/claude-opus-5.5
+  notes: One key, many models.
+
+- id: ollama
+  name: Local (Ollama)
+  integration: langchain-ollama
+  hosting: This server
+  console_url: https://ollama.com
+  needs_key: false
+  default_model: qwen3.5:4b   # overridden by NAJMA_LOCAL_MODEL
+  notes: Privacy and offline mode. Slower, simpler answers.
+
+- id: stub
+  name: Stub (tests only)
+  integration: stub
+  hosting: This server
+  needs_key: false
+  default_model: stub
+  hidden: true

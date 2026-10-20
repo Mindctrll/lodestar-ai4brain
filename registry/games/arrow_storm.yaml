@@ -1,0 +1,35 @@
+# Arrow Storm (docs/plan/06)
+id: arrow_storm
+name: Arrow Storm
+kind: game
+phase: P1
+dims:
+  selective_attention: 1.0
+  inhibition: 0.3
+origin: classic
+paradigm: Eriksen flanker
+code_source: jspsych-timelines arrow flanker (MIT)
+does: Which way does the middle arrow point?
+scoring: hshs
+duration_s: 60
+metrics:
+- flanker_cost_ms
+- accuracy
+knobs:
+  deadline_ms:
+    easy: 2000
+    hard: 700
+    unit: ms
+  incongruent_ratio:
+    easy: 0.2
+    hard: 0.7
+  flankers:
+    easy: 2
+    hard: 6
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

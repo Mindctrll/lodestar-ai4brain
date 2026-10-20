@@ -1,0 +1,24 @@
+# Balloon Pump (docs/plan/06)
+id: balloon_pump
+name: Balloon Pump
+kind: game
+phase: P2
+dims:
+  decision_style: 1.0
+origin: classic
+paradigm: Balloon analogue risk task
+code_source: jspsych-timelines BART (MIT)
+does: Pump for points; the balloon may pop
+scoring: style
+duration_s: 120
+metrics:
+- adjusted_pumps
+knobs: {}
+level_map: none
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Shown as a style, never as better or worse.

@@ -1,0 +1,36 @@
+# Ink Clash (docs/plan/06)
+id: ink_clash
+name: Ink Clash
+kind: game
+phase: P1
+dims:
+  inhibition: 1.0
+  selective_attention: 0.3
+origin: classic
+paradigm: Stroop
+code_source: Experiment Factory logic (MIT), ported
+does: Tap the ink colour, not the word
+scoring: hshs
+duration_s: 60
+metrics:
+- stroop_effect_ms
+- accuracy
+knobs:
+  deadline_ms:
+    easy: 2500
+    hard: 900
+    unit: ms
+  incongruent_ratio:
+    easy: 0.25
+    hard: 0.75
+  shuffled_buttons:
+    easy: 0
+    hard: 1
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Colour-blind mode adds patterns to every colour.

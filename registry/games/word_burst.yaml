@@ -1,0 +1,27 @@
+# Word Burst (docs/plan/06)
+id: word_burst
+name: Word Burst
+kind: game
+phase: P2
+dims:
+  verbal_skill: 1.0
+origin: classic
+paradigm: Letter fluency
+code_source: own
+does: Say or type words starting with a letter in 60 seconds
+scoring: continuous
+duration_s: 60
+metrics:
+- valid_words_per_min
+knobs:
+  letter_difficulty:
+    easy: 0.1
+    hard: 0.9
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+- voice
+acs_hooks: []
+practice_trials: 3

@@ -1,0 +1,141 @@
+{
+  "$defs": {
+    "LlmProvider": {
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ProviderCapabilities"
+        },
+        "console_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Console Url"
+        },
+        "default_model": {
+          "title": "Default Model",
+          "type": "string"
+        },
+        "hidden": {
+          "default": false,
+          "title": "Hidden",
+          "type": "boolean"
+        },
+        "hosting": {
+          "title": "Hosting",
+          "type": "string"
+        },
+        "id": {
+          "enum": [
+            "anthropic",
+            "openai",
+            "gemini",
+            "deepseek",
+            "xai",
+            "mistral",
+            "groq",
+            "openrouter",
+            "ollama",
+            "stub"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "integration": {
+          "title": "Integration",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "needs_key": {
+          "title": "Needs Key",
+          "type": "boolean"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "integration",
+        "hosting",
+        "needs_key",
+        "default_model"
+      ],
+      "title": "LlmProvider",
+      "type": "object"
+    },
+    "ProviderCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "forced_tool_choice": {
+          "default": true,
+          "title": "Forced Tool Choice",
+          "type": "boolean"
+        },
+        "sampling_params": {
+          "default": true,
+          "title": "Sampling Params",
+          "type": "boolean"
+        },
+        "streaming": {
+          "default": true,
+          "title": "Streaming",
+          "type": "boolean"
+        },
+        "structured_output": {
+          "default": true,
+          "title": "Structured Output",
+          "type": "boolean"
+        },
+        "tool_calling": {
+          "default": true,
+          "title": "Tool Calling",
+          "type": "boolean"
+        }
+      },
+      "title": "ProviderCapabilities",
+      "type": "object"
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/LlmProvider"
+  },
+  "type": "array"
+}

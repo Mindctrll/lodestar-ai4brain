@@ -1,0 +1,29 @@
+# Two Screens (docs/plan/06)
+id: two_screens
+name: Two Screens
+kind: game
+phase: L
+dims:
+  divided_attention: 1.0
+origin: classic
+paradigm: Dual task (tracking + questions)
+code_source: own
+does: Track a dot while answering questions
+scoring: binary
+duration_s: 120
+metrics:
+- dual_task_cost
+knobs:
+  dot_speed:
+    easy: 0.5
+    hard: 2.0
+  question_rate:
+    easy: 0.1
+    hard: 0.4
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

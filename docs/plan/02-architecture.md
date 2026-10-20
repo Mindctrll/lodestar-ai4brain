@@ -144,6 +144,7 @@ Pin these exactly (`==` in Python, exact versions in `package.json`, image tags 
 
 - **TypeScript 7.0 is out, but use 6.0.3.** `typescript-eslint` 8.72 only supports TypeScript below 6.1, so TS 7 would break linting.
 - **kokoro-js 1.2.1** (May 2025, still the latest) depends on `@huggingface/transformers` ^3.5, while Whisper in the browser would use 4.3. Two copies would ship. Option: keep Kokoro on its own 3.x copy in a lazy-loaded chunk, or run Whisper on the server with faster-whisper.
+- **openapi-typescript 7.13.0** declares a peer dependency on TypeScript 5. `frontend/package.json` overrides it to use our TypeScript 6.0.3; generation works and `make contracts` checks the output.
 - **Tailwind 4** configures through CSS (`@theme`), not `tailwind.config.js`; agents trained on Tailwind 3 examples must follow the v4 docs.
 
 ## Repo layout
@@ -154,6 +155,7 @@ ai4brain/
 ├── registry/                    # source of truth for skills, games and LLM providers
 │   ├── dimensions.yaml
 │   ├── llm_providers.yaml       # provider ids, base URLs, default models, capabilities
+│   ├── batteries.yaml           # onboarding and check-up game sequences
 │   └── games/<game-id>.yaml
 ├── frontend/
 │   └── src/
@@ -164,8 +166,11 @@ ai4brain/
 │       ├── coach/               # chat, why cards, persona picker
 │       ├── voice/               # wake word, STT, TTS
 │       └── affect/              # behaviour signals, optional camera
+├── contracts/                   # generated: openapi.json, registry JSON Schemas (`make contracts`)
 ├── backend/
 │   ├── api/                     # FastAPI routes, websocket
+│   ├── contracts/               # Pydantic contract models shared by API, events and the graph
+│   ├── registry/                # registry models and loader
 │   ├── agent/                   # LangGraph: state.py, graph.py, nodes/, subgraphs/, tools/
 │   ├── llm/                     # provider adapters, key vault, model factory, fallback ladder
 │   ├── db/                      # SQLAlchemy tables, queries, Alembic migrations

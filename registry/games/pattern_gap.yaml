@@ -1,0 +1,30 @@
+# Pattern Gap (docs/plan/06)
+id: pattern_gap
+name: Pattern Gap
+kind: game
+phase: P1
+dims:
+  reasoning: 1.0
+origin: classic
+paradigm: Matrix reasoning
+code_source: own (rule-based generator + solver)
+does: What completes the pattern?
+scoring: binary
+duration_s: 120
+metrics:
+- accuracy_by_difficulty
+knobs:
+  rules:
+    easy: 1
+    hard: 4
+  distractor_similarity:
+    easy: 0.3
+    hard: 0.9
+level_map: linear
+content: code_with_llm_hints
+modalities:
+- keyboard
+- touch
+acs_hooks:
+- autonomy
+practice_trials: 3

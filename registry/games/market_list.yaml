@@ -1,0 +1,31 @@
+# Market List (docs/plan/06)
+id: market_list
+name: Market List
+kind: game
+phase: P1
+dims:
+  short_term_memory: 1.0
+  verbal_skill: 0.3
+origin: classic
+paradigm: Free word recall
+code_source: own (team prototype)
+does: Words flash; type all you remember
+scoring: binary
+duration_s: 90
+metrics:
+- items_recalled
+knobs:
+  list_length:
+    easy: 5
+    hard: 15
+  speed_ms:
+    easy: 1500
+    hard: 700
+    unit: ms
+level_map: linear
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

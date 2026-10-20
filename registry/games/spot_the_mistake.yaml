@@ -1,0 +1,31 @@
+# Spot the AI's Mistake (docs/plan/06)
+id: spot_the_mistake
+name: Spot the AI's Mistake
+kind: game
+phase: P1
+dims:
+  reasoning: 1.0
+origin: original
+paradigm: Verifying worked solutions
+code_source: own
+does: Najma solves a puzzle; find the planted error, or confirm it's right
+scoring: binary
+duration_s: 120
+metrics:
+- balanced_accuracy
+knobs:
+  error_subtlety:
+    easy: 0.2
+    hard: 0.9
+  steps:
+    easy: 3
+    hard: 6
+level_map: linear
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks:
+- verification
+practice_trials: 3
+notes: 70% of items carry one planted error, confirmed by the solver. Disclosed at consent.

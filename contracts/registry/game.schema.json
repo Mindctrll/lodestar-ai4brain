@@ -1,0 +1,238 @@
+{
+  "$defs": {
+    "Knob": {
+      "additionalProperties": false,
+      "description": "A difficulty knob: its value at level 0 (easy) and level 1 (hard).",
+      "properties": {
+        "easy": {
+          "title": "Easy",
+          "type": "number"
+        },
+        "hard": {
+          "title": "Hard",
+          "type": "number"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "easy",
+        "hard"
+      ],
+      "title": "Knob",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "acs_hooks": {
+      "items": {
+        "enum": [
+          "verification",
+          "autonomy",
+          "iteration",
+          "clarification",
+          "responsible_use"
+        ],
+        "type": "string"
+      },
+      "title": "Acs Hooks",
+      "type": "array"
+    },
+    "code_source": {
+      "title": "Code Source",
+      "type": "string"
+    },
+    "content": {
+      "enum": [
+        "code",
+        "llm",
+        "code_with_llm_hints"
+      ],
+      "title": "Content",
+      "type": "string"
+    },
+    "dims": {
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "type": "number"
+        }
+      },
+      "title": "Dims",
+      "type": "object"
+    },
+    "does": {
+      "title": "Does",
+      "type": "string"
+    },
+    "duration_s": {
+      "minimum": 0,
+      "title": "Duration S",
+      "type": "integer"
+    },
+    "id": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "game",
+        "story",
+        "probe"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "knobs": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Knob"
+      },
+      "title": "Knobs",
+      "type": "object"
+    },
+    "level_map": {
+      "enum": [
+        "linear",
+        "none"
+      ],
+      "title": "Level Map",
+      "type": "string"
+    },
+    "metrics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "modalities": {
+      "items": {
+        "enum": [
+          "keyboard",
+          "touch",
+          "voice"
+        ],
+        "type": "string"
+      },
+      "title": "Modalities",
+      "type": "array"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    },
+    "origin": {
+      "enum": [
+        "classic",
+        "original",
+        "custom"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "paradigm": {
+      "title": "Paradigm",
+      "type": "string"
+    },
+    "phase": {
+      "enum": [
+        "P1",
+        "P2",
+        "L"
+      ],
+      "title": "Phase",
+      "type": "string"
+    },
+    "practice_trials": {
+      "minimum": 0,
+      "title": "Practice Trials",
+      "type": "integer"
+    },
+    "reliability": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reliability"
+    },
+    "scoring": {
+      "enum": [
+        "binary",
+        "hshs",
+        "span",
+        "continuous",
+        "rubric",
+        "style",
+        "calibration",
+        "none"
+      ],
+      "title": "Scoring",
+      "type": "string"
+    },
+    "staircase": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Knob tuned inside the game",
+      "title": "Staircase"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "phase",
+    "dims",
+    "origin",
+    "paradigm",
+    "code_source",
+    "does",
+    "scoring",
+    "duration_s",
+    "metrics",
+    "knobs",
+    "level_map",
+    "content",
+    "modalities",
+    "acs_hooks",
+    "practice_trials"
+  ],
+  "title": "Game",
+  "type": "object"
+}

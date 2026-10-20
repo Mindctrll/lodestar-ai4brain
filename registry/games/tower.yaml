@@ -1,0 +1,27 @@
+# Tower (docs/plan/06)
+id: tower
+name: Tower
+kind: game
+phase: P2
+dims:
+  planning: 1.0
+origin: classic
+paradigm: Tower of London
+code_source: own (jspsych-contrib only after a licence check)
+does: Match the picture in the fewest moves
+scoring: binary
+duration_s: 150
+metrics:
+- optimal_share
+- planning_time_ms
+knobs:
+  min_moves:
+    easy: 2
+    hard: 7
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

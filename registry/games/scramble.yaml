@@ -1,0 +1,27 @@
+# Scramble (docs/plan/06)
+id: scramble
+name: Scramble
+kind: game
+phase: P2
+dims:
+  verbal_skill: 1.0
+origin: classic
+paradigm: Anagrams
+code_source: own
+does: Unscramble words
+scoring: hshs
+duration_s: 90
+metrics:
+- solved
+- time_ms
+knobs:
+  length:
+    easy: 4
+    hard: 8
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

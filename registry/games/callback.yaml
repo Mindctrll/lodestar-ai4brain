@@ -1,0 +1,28 @@
+# Callback (docs/plan/06)
+id: callback
+name: Callback
+kind: game
+phase: P2
+dims:
+  short_term_memory: 1.0
+origin: classic
+paradigm: Delayed recall
+code_source: own
+does: At the end of the session, recall the earlier list
+scoring: binary
+duration_s: 60
+metrics:
+- delayed_recall_share
+knobs:
+  delay_min:
+    easy: 3
+    hard: 15
+    unit: min
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Recalls the Market List from earlier in the same session.

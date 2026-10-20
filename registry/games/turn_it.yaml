@@ -1,0 +1,31 @@
+# Turn It (docs/plan/06)
+id: turn_it
+name: Turn It
+kind: game
+phase: P1
+dims:
+  spatial_thinking: 1.0
+origin: classic
+paradigm: Mental rotation
+code_source: own
+does: Same shape or mirrored?
+scoring: hshs
+duration_s: 90
+metrics:
+- angle_rt_slope
+- accuracy
+knobs:
+  max_angle:
+    easy: 45
+    hard: 180
+    unit: deg
+  three_d:
+    easy: 0
+    hard: 1
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

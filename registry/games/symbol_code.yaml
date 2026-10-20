@@ -1,0 +1,30 @@
+# Symbol Code (docs/plan/06)
+id: symbol_code
+name: Symbol Code
+kind: game
+phase: P1
+dims:
+  processing_speed: 1.0
+origin: classic
+paradigm: Digit-symbol substitution
+code_source: 'own (PEBL has one: ideas only)'
+does: Match symbols to a key, fast
+scoring: hshs
+duration_s: 90
+metrics:
+- items_per_min
+knobs:
+  key_size:
+    easy: 4
+    hard: 9
+  deadline_ms:
+    easy: 3000
+    hard: 1200
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

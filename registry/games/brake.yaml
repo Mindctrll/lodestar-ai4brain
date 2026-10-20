@@ -1,0 +1,31 @@
+# Brake (docs/plan/06)
+id: brake
+name: Brake
+kind: game
+phase: P2
+dims:
+  inhibition: 1.0
+origin: classic
+paradigm: Stop-signal
+code_source: Experiment Factory logic (MIT), ported
+does: Respond, but stop when a beep sounds
+scoring: binary
+duration_s: 120
+metrics:
+- ssrt_ms
+knobs:
+  go_deadline_ms:
+    easy: 1200
+    hard: 700
+    unit: ms
+  stop_ratio:
+    easy: 0.2
+    hard: 0.33
+staircase: stop_delay_ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

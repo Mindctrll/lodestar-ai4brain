@@ -1,0 +1,26 @@
+# Logic Lock (docs/plan/06)
+id: logic_lock
+name: Logic Lock
+kind: game
+phase: P2
+dims:
+  reasoning: 1.0
+origin: classic
+paradigm: Conditional reasoning
+code_source: own (generator + solver)
+does: If-then puzzles
+scoring: binary
+duration_s: 120
+metrics:
+- accuracy
+knobs:
+  premises:
+    easy: 2
+    hard: 5
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

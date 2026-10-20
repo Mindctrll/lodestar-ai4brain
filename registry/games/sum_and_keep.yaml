@@ -1,0 +1,28 @@
+# Sum & Keep (docs/plan/06)
+id: sum_and_keep
+name: Sum & Keep
+kind: game
+phase: L
+dims:
+  working_memory: 1.0
+  numerical_thinking: 0.3
+origin: classic
+paradigm: Operation span
+code_source: own
+does: Solve sums while remembering letters
+scoring: span
+duration_s: 150
+metrics:
+- span
+- maths_accuracy
+knobs:
+  set_size:
+    easy: 2
+    hard: 7
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

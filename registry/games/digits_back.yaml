@@ -1,0 +1,31 @@
+# Digits Back (docs/plan/06)
+id: digits_back
+name: Digits Back
+kind: game
+phase: P2
+dims:
+  working_memory: 1.0
+origin: classic
+paradigm: Backward digit span
+code_source: own
+does: Hear or see digits, type them backwards
+scoring: span
+duration_s: 90
+metrics:
+- span
+knobs:
+  length:
+    easy: 3
+    hard: 9
+  speed_ms:
+    easy: 1000
+    hard: 600
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+- voice
+acs_hooks: []
+practice_trials: 3

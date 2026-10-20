@@ -1,0 +1,31 @@
+# Switch (docs/plan/06)
+id: switch
+name: Switch
+kind: game
+phase: P1
+dims:
+  cognitive_flexibility: 1.0
+origin: classic
+paradigm: Task switching
+code_source: own
+does: Sort by colour or by shape, as the cue says
+scoring: hshs
+duration_s: 90
+metrics:
+- switch_cost_ms
+- accuracy
+knobs:
+  switch_rate:
+    easy: 0.2
+    hard: 0.6
+  cue_time_ms:
+    easy: 800
+    hard: 150
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

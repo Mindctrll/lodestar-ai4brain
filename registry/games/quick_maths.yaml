@@ -1,0 +1,30 @@
+# Quick Maths (docs/plan/06)
+id: quick_maths
+name: Quick Maths
+kind: game
+phase: P2
+dims:
+  numerical_thinking: 1.0
+  processing_speed: 0.3
+origin: classic
+paradigm: Arithmetic fluency
+code_source: own
+does: Fast arithmetic
+scoring: hshs
+duration_s: 60
+metrics:
+- correct_per_min
+knobs:
+  operations:
+    easy: 1
+    hard: 4
+  operand_max:
+    easy: 10
+    hard: 100
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

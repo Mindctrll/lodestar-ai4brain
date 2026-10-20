@@ -1,0 +1,32 @@
+"""Load and validate the YAML registry."""
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from backend.config import get_settings
+from backend.registry.models import Registry
+
+
+def _read(path: Path) -> Any:
+    with path.open(encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def load_registry_from(root: Path) -> Registry:
+    games = [_read(p) for p in sorted((root / "games").glob("*.yaml"))]
+    return Registry.model_validate(
+        {
+            "dimensions": _read(root / "dimensions.yaml"),
+            "games": games,
+            "providers": _read(root / "llm_providers.yaml"),
+            "batteries": _read(root / "batteries.yaml"),
+        }
+    )
+
+
+@lru_cache
+def load_registry() -> Registry:
+    return load_registry_from(Path(get_settings().registry_dir))

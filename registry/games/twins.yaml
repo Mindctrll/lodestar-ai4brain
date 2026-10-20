@@ -1,0 +1,27 @@
+# Twins (docs/plan/06)
+id: twins
+name: Twins
+kind: game
+phase: P2
+dims:
+  processing_speed: 1.0
+origin: classic
+paradigm: Pattern comparison
+code_source: own
+does: Same or different?
+scoring: hshs
+duration_s: 60
+metrics:
+- items_per_min
+- accuracy
+knobs:
+  complexity:
+    easy: 0.2
+    hard: 0.9
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

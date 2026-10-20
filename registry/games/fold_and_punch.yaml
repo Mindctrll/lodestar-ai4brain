@@ -1,0 +1,26 @@
+# Fold & Punch (docs/plan/06)
+id: fold_and_punch
+name: Fold & Punch
+kind: game
+phase: L
+dims:
+  spatial_thinking: 1.0
+origin: classic
+paradigm: Paper folding
+code_source: own
+does: Where do the holes end up?
+scoring: binary
+duration_s: 120
+metrics:
+- accuracy
+knobs:
+  folds:
+    easy: 1
+    hard: 3
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

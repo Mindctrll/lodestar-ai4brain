@@ -1,0 +1,30 @@
+# Control Tower (docs/plan/06)
+id: control_tower
+name: Control Tower
+kind: game
+phase: P2
+dims:
+  divided_attention: 1.0
+  cognitive_flexibility: 0.3
+origin: original
+paradigm: Multi-tasking with rule changes
+code_source: own
+does: Land planes while the rules change
+scoring: binary
+duration_s: 120
+metrics:
+- dual_task_cost
+knobs:
+  planes:
+    easy: 2
+    hard: 6
+  rule_change_rate:
+    easy: 0.0
+    hard: 0.3
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

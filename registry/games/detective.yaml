@@ -1,0 +1,22 @@
+# Detective (docs/plan/06)
+id: detective
+name: Detective
+kind: story
+phase: L
+dims: {}
+origin: original
+paradigm: Story wrapper
+code_source: own
+does: A mystery where each chapter is a game
+scoring: none
+duration_s: 600
+metrics: []
+knobs: {}
+level_map: none
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 0
+notes: Chains other games; each chapter is scored by its own game.

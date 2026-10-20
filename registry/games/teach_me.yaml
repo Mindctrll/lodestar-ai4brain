@@ -1,0 +1,31 @@
+# Teach Me (docs/plan/06)
+id: teach_me
+name: Teach Me
+kind: game
+phase: P2
+dims:
+  verbal_skill: 1.0
+  reasoning: 0.3
+origin: original
+reliability: 0.5
+paradigm: Explaining to a learner
+code_source: own
+does: Explain something to a confused Najma
+scoring: rubric
+duration_s: 180
+metrics:
+- rubric_score
+knobs:
+  topic_difficulty:
+    easy: 0.2
+    hard: 0.9
+level_map: linear
+content: llm
+modalities:
+- keyboard
+- touch
+- voice
+acs_hooks:
+- clarification
+practice_trials: 3
+notes: AI-rated rubric, counted at low weight.

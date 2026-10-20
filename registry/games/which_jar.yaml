@@ -1,0 +1,27 @@
+# Which Jar? (docs/plan/06)
+id: which_jar
+name: Which Jar?
+kind: game
+phase: P2
+dims:
+  numerical_thinking: 1.0
+origin: classic
+paradigm: Approximate number comparison
+code_source: own
+does: Which side has more?
+scoring: hshs
+duration_s: 60
+metrics:
+- accuracy
+- rt_ms
+knobs:
+  ratio:
+    easy: 0.5
+    hard: 0.92
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

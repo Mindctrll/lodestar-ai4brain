@@ -1,0 +1,191 @@
+# The 16 skills Najma measures (docs/plan/05). Source of truth for the UI, the scorer and the agent.
+# Which games measure a skill, and how strongly, lives in each game's file (registry/games/*.yaml).
+# `group` places the skill's constellation in the night sky (docs/plan/13).
+
+- id: selective_attention
+  name: Selective attention
+  plain: Focusing on what matters
+  badge: established
+  in_overall: true
+  group: attention
+  framework: [CHC:Gs, NIH:flanker, NCPT:selective_attention]
+  main_metric: Flanker RT cost; search slope (ms per item)
+  biases: [screen size, device lag, speed vs accuracy trade-off]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: sustained_attention
+  name: Sustained attention
+  plain: Staying alert over time
+  badge: established
+  in_overall: true
+  group: attention
+  framework: [CHC:Gs]
+  main_metric: Hits, false alarms, d-prime, RT variability
+  biases: [boredom, noisy room]
+  sources: []  # filled and checked in WP4.3
+
+- id: divided_attention
+  name: Divided attention
+  plain: Doing two things at once
+  badge: moderate
+  in_overall: true
+  group: attention
+  framework: [NCPT:divided_attention]
+  main_metric: Dual-task cost (% drop vs single task)
+  biases: [strategy learning]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: inhibition
+  name: Inhibition
+  plain: Holding back an automatic response
+  badge: established
+  in_overall: true
+  group: control
+  framework: [Miyake:inhibition, NIH:flanker, NCPT:response_inhibition]
+  main_metric: Stroop effect, commission errors, SSRT
+  biases: [reading fluency with English colour words]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: working_memory
+  name: Working memory
+  plain: Holding information in mind and using it
+  badge: established
+  in_overall: true
+  group: memory
+  framework: [CHC:Gwm, Miyake:updating, NIH:list_sorting, NCPT:working_memory]
+  main_metric: d-prime by n, span
+  biases: [chunking strategy, practice gains on n-back]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: short_term_memory
+  name: Short-term memory
+  plain: Remembering what you just saw
+  badge: established
+  in_overall: true
+  group: memory
+  framework: [CHC:Gwm, NIH:picture_sequence_memory, NCPT:visuospatial_memory]
+  main_metric: Items recalled, recognition d-prime
+  biases: [language, repeated lists (use fresh content)]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: processing_speed
+  name: Processing speed
+  plain: Speed on simple tasks
+  badge: established
+  in_overall: true
+  group: speed
+  framework: [CHC:Gs, NIH:pattern_comparison, NCPT:psychomotor_speed]
+  main_metric: Median RT, items per minute
+  biases: [device latency, motor speed]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: cognitive_flexibility
+  name: Cognitive flexibility
+  plain: Switching between rules
+  badge: established
+  in_overall: true
+  group: control
+  framework: [Miyake:shifting, NIH:card_sort]
+  main_metric: Switch cost, perseverative errors
+  biases: [card sort loses meaning on repeat once the trick is known]
+  sources: []  # filled and checked in WP4.3
+
+- id: planning
+  name: Planning
+  plain: Thinking ahead
+  badge: moderate
+  in_overall: true
+  group: reasoning
+  framework: [CHC:Gf]
+  main_metric: Percent optimal solutions, planning time, extra moves
+  biases: [trial-and-error strategies]
+  sources: []  # filled and checked in WP4.3
+
+- id: reasoning
+  name: Reasoning
+  plain: Logic and patterns
+  badge: established
+  in_overall: true
+  group: reasoning
+  framework: [CHC:Gf, NCPT:abstract_reasoning]
+  main_metric: Accuracy by item difficulty
+  biases: [item memorisation (generate fresh items, solver-checked)]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: spatial_thinking
+  name: Spatial thinking
+  plain: Imagining shapes and places
+  badge: established
+  in_overall: true
+  group: reasoning
+  framework: [CHC:Gv, NCPT:visuospatial_memory]
+  main_metric: Angle-RT slope, accuracy, span
+  biases: [prior gaming experience]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: verbal_skill
+  name: Verbal skill
+  plain: Working with words
+  badge: moderate
+  in_overall: true
+  group: language
+  framework: [CHC:Gc, CHC:Gr]
+  main_metric: Words per minute, solutions
+  biases: [the English-only rule disadvantages Arabic and French speakers]
+  note: Tasks are in English, which puts Arabic and French speakers at a disadvantage.
+  sources: []  # filled and checked in WP4.3
+
+- id: numerical_thinking
+  name: Numerical thinking
+  plain: Feel for numbers
+  badge: established
+  in_overall: true
+  group: language
+  framework: [CHC:Gq, NCPT:numerical_calculation]
+  main_metric: Percent absolute error, RT
+  biases: [maths worry, schooling]
+  sources:
+    - https://www.nature.com/articles/s41597-022-01872-8
+
+- id: decision_style
+  name: Decision style under risk
+  plain: Cautious or bold
+  badge: moderate
+  in_overall: false
+  style: true
+  group: style
+  framework: [BART, IGT]
+  main_metric: Adjusted pumps, advantageous choices
+  biases: [learning the task vs risk preference]
+  note: Shown as a style, not as better or worse.
+  sources: []  # filled and checked in WP4.3
+
+- id: accuracy_awareness
+  name: Self-awareness of accuracy
+  plain: Knowing when you're right
+  badge: experimental
+  in_overall: false
+  group: style
+  framework: [metacognition]
+  main_metric: Calibration error, Brier score
+  biases: [needs many answers, linked to accuracy]
+  sources: []  # filled and checked in WP4.3
+
+- id: creativity
+  name: Creativity
+  plain: Coming up with ideas
+  badge: experimental
+  in_overall: false
+  group: style
+  framework: [AUT]
+  main_metric: Fluency, originality (AI-rated)
+  biases: [AI rater bias, validity unproven]
+  sources: []  # filled and checked in WP4.3

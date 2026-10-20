@@ -1,0 +1,29 @@
+# Connect (docs/plan/06)
+id: connect
+name: Connect
+kind: game
+phase: P2
+dims:
+  processing_speed: 1.0
+origin: classic
+paradigm: Trail making A
+code_source: own
+does: Join 1 to 25 in order
+scoring: continuous
+duration_s: 90
+metrics:
+- time_s
+knobs:
+  count:
+    easy: 10
+    hard: 25
+  clutter:
+    easy: 0.0
+    hard: 1.0
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

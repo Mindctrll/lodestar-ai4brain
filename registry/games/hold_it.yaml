@@ -1,0 +1,31 @@
+# Hold It (docs/plan/06)
+id: hold_it
+name: Hold It
+kind: game
+phase: P1
+dims:
+  inhibition: 1.0
+origin: classic
+paradigm: Go/no-go
+code_source: jspsych-timelines go/no-go (MIT)
+does: Tap for most shapes, hold back for one
+scoring: binary
+duration_s: 60
+metrics:
+- commission_errors
+- go_rt_ms
+knobs:
+  go_ratio:
+    easy: 0.6
+    hard: 0.9
+  isi_ms:
+    easy: 1200
+    hard: 500
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

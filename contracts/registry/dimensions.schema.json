@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "Dimension": {
+      "additionalProperties": false,
+      "properties": {
+        "badge": {
+          "enum": [
+            "established",
+            "moderate",
+            "experimental"
+          ],
+          "title": "Badge",
+          "type": "string"
+        },
+        "biases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Biases",
+          "type": "array"
+        },
+        "framework": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Framework",
+          "type": "array"
+        },
+        "group": {
+          "enum": [
+            "attention",
+            "control",
+            "memory",
+            "speed",
+            "reasoning",
+            "language",
+            "style"
+          ],
+          "title": "Group",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "in_overall": {
+          "title": "In Overall",
+          "type": "boolean"
+        },
+        "main_metric": {
+          "title": "Main Metric",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "plain": {
+          "title": "Plain",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "style": {
+          "default": false,
+          "description": "Shown as a style, not better or worse",
+          "title": "Style",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "plain",
+        "badge",
+        "in_overall",
+        "group",
+        "framework",
+        "main_metric",
+        "biases",
+        "sources"
+      ],
+      "title": "Dimension",
+      "type": "object"
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/Dimension"
+  },
+  "type": "array"
+}

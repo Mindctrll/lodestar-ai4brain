@@ -1,0 +1,27 @@
+# How sure are you? (docs/plan/06)
+id: how_sure
+name: How sure are you?
+kind: probe
+phase: P2
+dims:
+  accuracy_awareness: 1.0
+origin: classic
+paradigm: Confidence ratings
+code_source: own
+does: A confidence slider after some answers in any game
+scoring: calibration
+duration_s: 0
+metrics:
+- calibration_error
+- brier_score
+knobs:
+  probe_rate:
+    easy: 0.1
+    hard: 0.3
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 0

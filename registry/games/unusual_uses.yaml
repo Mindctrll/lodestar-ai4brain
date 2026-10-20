@@ -1,0 +1,26 @@
+# Unusual Uses (docs/plan/06)
+id: unusual_uses
+name: Unusual Uses
+kind: game
+phase: L
+dims:
+  creativity: 1.0
+origin: classic
+reliability: 0.5
+paradigm: Alternative uses task
+code_source: own
+does: List uses for an everyday object
+scoring: rubric
+duration_s: 120
+metrics:
+- fluency
+- originality
+knobs: {}
+level_map: none
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: AI-rated originality; experimental, never in an overall score.

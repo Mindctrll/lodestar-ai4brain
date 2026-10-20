@@ -1,0 +1,30 @@
+# Look Here (docs/plan/06)
+id: look_here
+name: Look Here
+kind: game
+phase: P2
+dims:
+  selective_attention: 1.0
+origin: classic
+paradigm: Posner cueing
+code_source: jspsych-timelines Posner cueing (MIT)
+does: React where a hint points, or doesn't
+scoring: hshs
+duration_s: 90
+metrics:
+- cue_validity_effect_ms
+knobs:
+  cue_validity:
+    easy: 0.9
+    hard: 0.6
+  soa_ms:
+    easy: 300
+    hard: 100
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

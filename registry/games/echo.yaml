@@ -1,0 +1,30 @@
+# Echo (docs/plan/06)
+id: echo
+name: Echo
+kind: game
+phase: P1
+dims:
+  working_memory: 1.0
+origin: classic
+paradigm: N-back
+code_source: Experiment Factory / jspsych-timelines spatial n-back (MIT)
+does: Does this match the one n steps back?
+scoring: binary
+duration_s: 90
+metrics:
+- d_prime_by_n
+knobs:
+  n:
+    easy: 1
+    hard: 4
+  pace_ms:
+    easy: 3000
+    hard: 1500
+    unit: ms
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

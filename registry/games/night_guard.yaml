@@ -1,0 +1,32 @@
+# Night Guard (docs/plan/06)
+id: night_guard
+name: Night Guard
+kind: game
+phase: P2
+dims:
+  sustained_attention: 1.0
+origin: classic
+paradigm: Continuous performance (vigilance)
+code_source: 'own (PEBL has variants: ideas only)'
+does: Press only for rare signals over 3 minutes
+scoring: binary
+duration_s: 180
+metrics:
+- hits
+- false_alarms
+- d_prime
+- rt_drift_ms
+knobs:
+  signal_rate:
+    easy: 0.2
+    hard: 0.05
+  subtlety:
+    easy: 0.2
+    hard: 0.9
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

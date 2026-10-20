@@ -1,0 +1,27 @@
+# Name Tags (docs/plan/06)
+id: name_tags
+name: Name Tags
+kind: game
+phase: L
+dims:
+  short_term_memory: 1.0
+origin: classic
+paradigm: Face-name association (drawn characters only)
+code_source: own
+does: Match drawn characters to names
+scoring: binary
+duration_s: 90
+metrics:
+- accuracy
+knobs:
+  pairs:
+    easy: 3
+    hard: 10
+level_map: linear
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Drawn characters only, never real faces.

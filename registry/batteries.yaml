@@ -1,0 +1,13 @@
+# Fixed game sequences. The onboarding battery defines the "core skills": every dimension one of
+# these games loads on with a primary loading (docs/plan/07, UW1).
+
+onboarding:
+  seconds_each: 50
+  mode: assess
+  games: [quick_draw, ink_clash, arrow_storm, echo, turn_it, pattern_gap]
+
+checkup:
+  # After a long break (UW15): the drifted skills are picked by the policy from these games.
+  seconds_each: 45
+  mode: assess
+  games: [quick_draw, arrow_storm, echo, market_list, switch, turn_it, number_line]

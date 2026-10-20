@@ -1,0 +1,42 @@
+{
+  "$defs": {
+    "Battery": {
+      "additionalProperties": false,
+      "properties": {
+        "games": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Games",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "assess",
+            "train"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "seconds_each": {
+          "exclusiveMinimum": 0,
+          "title": "Seconds Each",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seconds_each",
+        "mode",
+        "games"
+      ],
+      "title": "Battery",
+      "type": "object"
+    }
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/Battery"
+  },
+  "type": "object"
+}

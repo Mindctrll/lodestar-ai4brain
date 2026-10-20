@@ -1,0 +1,34 @@
+# Light Path (docs/plan/06)
+id: light_path
+name: Light Path
+kind: game
+phase: P1
+dims:
+  spatial_thinking: 1.0
+  working_memory: 0.3
+origin: classic
+paradigm: Corsi blocks
+code_source: own (jspsych-contrib Corsi only after a licence check)
+does: Tap squares in the order they lit up (or backwards)
+scoring: span
+duration_s: 90
+metrics:
+- span
+knobs:
+  sequence_length:
+    easy: 3
+    hard: 9
+  speed_ms:
+    easy: 1000
+    hard: 500
+    unit: ms
+  backwards:
+    easy: 0
+    hard: 1
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

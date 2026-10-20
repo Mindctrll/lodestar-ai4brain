@@ -1,0 +1,24 @@
+# Card Gamble (docs/plan/06)
+id: card_gamble
+name: Card Gamble
+kind: game
+phase: L
+dims:
+  decision_style: 1.0
+origin: classic
+paradigm: Gambling task (IGT idea)
+code_source: 'own (PEBL has one: ideas only)'
+does: Pick from 4 decks; learn which pay off
+scoring: style
+duration_s: 150
+metrics:
+- advantageous_choices
+knobs: {}
+level_map: none
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Shown as a style, never as better or worse.

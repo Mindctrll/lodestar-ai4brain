@@ -1,0 +1,31 @@
+# Maze Escape (docs/plan/06)
+id: maze_escape
+name: Maze Escape
+kind: game
+phase: L
+dims:
+  planning: 1.0
+  spatial_thinking: 0.3
+origin: classic
+paradigm: Maze planning
+code_source: own
+does: Find the exit
+scoring: continuous
+duration_s: 120
+metrics:
+- extra_moves
+- planning_time_ms
+knobs:
+  size:
+    easy: 5
+    hard: 15
+  dead_ends:
+    easy: 0.1
+    hard: 0.5
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

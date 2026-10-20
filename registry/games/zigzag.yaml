@@ -1,0 +1,27 @@
+# Zigzag (docs/plan/06)
+id: zigzag
+name: Zigzag
+kind: game
+phase: P2
+dims:
+  cognitive_flexibility: 1.0
+  processing_speed: 0.3
+origin: classic
+paradigm: Trail making B
+code_source: own
+does: Join 1, A, 2, B and so on
+scoring: continuous
+duration_s: 90
+metrics:
+- b_minus_a_s
+knobs:
+  count:
+    easy: 8
+    hard: 20
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

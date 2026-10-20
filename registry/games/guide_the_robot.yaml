@@ -1,0 +1,34 @@
+# Guide the Robot (docs/plan/06)
+id: guide_the_robot
+name: Guide the Robot
+kind: game
+phase: P2
+dims:
+  planning: 1.0
+  verbal_skill: 0.3
+origin: original
+paradigm: Instruction planning with ambiguity
+code_source: own
+does: Type instructions to move a robot; vague ones fail
+scoring: binary
+duration_s: 150
+metrics:
+- optimal_share
+- clarifications
+- retries
+knobs:
+  maze_size:
+    easy: 4
+    hard: 8
+  ambiguity:
+    easy: 0.0
+    hard: 0.5
+level_map: linear
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks:
+- iteration
+- clarification
+practice_trials: 3

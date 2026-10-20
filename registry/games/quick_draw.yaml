@@ -1,0 +1,27 @@
+# Quick Draw (docs/plan/06)
+id: quick_draw
+name: Quick Draw
+kind: game
+phase: P1
+dims:
+  processing_speed: 1.0
+origin: classic
+paradigm: Simple and choice reaction time
+code_source: own
+does: Tap as soon as the target appears
+scoring: hshs
+duration_s: 50
+metrics:
+- median_rt_ms
+knobs:
+  choices:
+    easy: 1
+    hard: 4
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+notes: Also measures the device-lag baseline at onboarding.

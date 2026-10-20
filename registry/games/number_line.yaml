@@ -1,0 +1,26 @@
+# Number Line (docs/plan/06)
+id: number_line
+name: Number Line
+kind: game
+phase: P1
+dims:
+  numerical_thinking: 1.0
+origin: classic
+paradigm: Number-line estimation
+code_source: own
+does: Place a number on a line
+scoring: continuous
+duration_s: 60
+metrics:
+- mean_abs_error_share
+knobs:
+  range_max:
+    easy: 10
+    hard: 1000
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

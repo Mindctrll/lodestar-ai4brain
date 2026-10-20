@@ -3,7 +3,7 @@ COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
 .PHONY: help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
-	lint-frontend lint-language format sim e2e
+	lint-frontend lint-language format contracts sim e2e
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -50,6 +50,10 @@ format: ## auto-format backend and frontend
 	uv run ruff format .
 	uv run ruff check --fix .
 	$(FRONTEND) run format
+
+contracts: ## regenerate OpenAPI, registry schemas and TypeScript types
+	uv run python -m backend.contracts.export
+	$(FRONTEND) run contracts
 
 sim: ## run the simulator (WP1.2)
 	@echo "The simulator arrives in WP1.2." && exit 1

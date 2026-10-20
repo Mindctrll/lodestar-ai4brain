@@ -1,0 +1,29 @@
+# Seen It? (docs/plan/06)
+id: seen_it
+name: Seen It?
+kind: game
+phase: P2
+dims:
+  short_term_memory: 1.0
+origin: classic
+paradigm: Picture recognition
+code_source: own
+does: Old picture or new?
+scoring: binary
+duration_s: 90
+metrics:
+- recognition_d_prime
+knobs:
+  set_size:
+    easy: 8
+    hard: 30
+  similarity:
+    easy: 0.2
+    hard: 0.9
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3

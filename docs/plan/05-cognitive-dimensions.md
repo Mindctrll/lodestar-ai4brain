@@ -70,6 +70,8 @@ Classic tasks are built to show group effects, not to rank individuals. Hedge, P
 
 ## Registry format
 
+Which games measure a dimension, and how strongly, is written once, in each game's file (`dims: {working_memory: 1.0, short_term_memory: 0.5}`, see `06`). The loader derives each dimension's task list from there, so the two can't disagree.
+
 ```yaml
 # registry/dimensions.yaml
 - id: working_memory
@@ -77,11 +79,9 @@ Classic tasks are built to show group effects, not to rank individuals. Hedge, P
   plain: Holding information in mind and using it
   badge: established
   in_overall: true
+  group: memory                  # where its constellation sits in the night sky
   framework: [CHC:Gwm, Miyake:updating, NIH:list_sorting, NCPT:working_memory]
-  tasks:
-    - {game: nback, weight: 1.0}
-    - {game: souk_rush, weight: 1.0}
-    - {game: corsi, weight: 0.3}          # secondary loading
+  main_metric: d-prime by n, span
   biases: [chunking strategy, practice gains on n-back]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
