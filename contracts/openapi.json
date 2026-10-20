@@ -607,6 +607,27 @@
         "title": "ContextAdded",
         "type": "object"
       },
+      "CreatedUser": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "description": "Bearer token; shown once, stored only as a hash",
+            "title": "Token",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "token"
+        ],
+        "title": "CreatedUser",
+        "type": "object"
+      },
       "CredentialSummary": {
         "additionalProperties": false,
         "description": "What the API and the export show about a saved key.",
@@ -903,6 +924,19 @@
             "title": "Dim",
             "type": "string"
           },
+          "last_practised_after": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Practised After"
+          },
           "mu_after": {
             "title": "Mu After",
             "type": "number"
@@ -981,6 +1015,77 @@
           "n"
         ],
         "title": "DimensionState",
+        "type": "object"
+      },
+      "DimensionView": {
+        "additionalProperties": false,
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "last_practised": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Practised"
+          },
+          "mu": {
+            "title": "Mu",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "norms": {
+            "description": "'simulated' until NCPT norms exist for this skill",
+            "title": "Norms",
+            "type": "string"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "number"
+          },
+          "percent_high": {
+            "title": "Percent High",
+            "type": "number"
+          },
+          "percent_low": {
+            "title": "Percent Low",
+            "type": "number"
+          },
+          "sigma": {
+            "description": "With staleness drift applied at read time",
+            "title": "Sigma",
+            "type": "number"
+          },
+          "still_learning": {
+            "description": "Shown greyed: 'still learning about you'",
+            "title": "Still Learning",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dim",
+          "mu",
+          "sigma",
+          "n",
+          "last_practised",
+          "percent",
+          "percent_low",
+          "percent_high",
+          "norms",
+          "still_learning"
+        ],
+        "title": "DimensionView",
         "type": "object"
       },
       "Event": {
@@ -1861,6 +1966,19 @@
         "title": "GoalSet",
         "type": "object"
       },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "HistoryRow": {
         "additionalProperties": false,
         "properties": {
@@ -1895,6 +2013,25 @@
           "n"
         ],
         "title": "HistoryRow",
+        "type": "object"
+      },
+      "IngestResult": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "duplicates": {
+            "title": "Duplicates",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accepted",
+          "duplicates"
+        ],
+        "title": "IngestResult",
         "type": "object"
       },
       "Intent": {
@@ -2734,6 +2871,48 @@
         "title": "RoundResult",
         "type": "object"
       },
+      "ScoringInputs": {
+        "additionalProperties": false,
+        "description": "Everything outside the trials that shaped the update, so a rebuild or re-score of the\nevent log reproduces it exactly (item difficulties change as other users play).",
+        "properties": {
+          "context_weight": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Context Weight",
+            "type": "number"
+          },
+          "device_lag_ms": {
+            "default": 0.0,
+            "title": "Device Lag Ms",
+            "type": "number"
+          },
+          "item_b": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "level -> difficulty used",
+            "title": "Item B",
+            "type": "object"
+          },
+          "quality_verdict": {
+            "title": "Quality Verdict",
+            "type": "string"
+          },
+          "trust": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Trust",
+            "type": "number"
+          }
+        },
+        "required": [
+          "context_weight",
+          "trust",
+          "quality_verdict"
+        ],
+        "title": "ScoringInputs",
+        "type": "object"
+      },
       "SessionBudget": {
         "additionalProperties": false,
         "properties": {
@@ -3011,6 +3190,25 @@
         "title": "SessionStartedPayload",
         "type": "object"
       },
+      "TrialBatch": {
+        "additionalProperties": false,
+        "properties": {
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/TrialEvent"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Trials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "trials"
+        ],
+        "title": "TrialBatch",
+        "type": "object"
+      },
       "TrialEvent": {
         "additionalProperties": false,
         "properties": {
@@ -3025,7 +3223,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Answer to 'How sure are you?' when asked",
             "title": "Confidence"
           },
@@ -3038,7 +3235,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "None for style and rubric games, which have no right answer",
             "title": "Correct"
           },
@@ -3049,7 +3245,7 @@
           },
           "hint_level": {
             "default": 0,
-            "minimum": 0,
+            "minimum": 0.0,
             "title": "Hint Level",
             "type": "integer"
           },
@@ -3077,7 +3273,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Response"
           },
           "round_id": {
@@ -3095,7 +3290,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Rt Ms"
           },
           "session_id": {
@@ -3116,7 +3310,7 @@
             "type": "string"
           },
           "trial_index": {
-            "minimum": 0,
+            "minimum": 0.0,
             "title": "Trial Index",
             "type": "integer"
           },
@@ -3401,6 +3595,9 @@
             "title": "Changes",
             "type": "array"
           },
+          "inputs": {
+            "$ref": "#/components/schemas/ScoringInputs"
+          },
           "round_id": {
             "format": "uuid",
             "title": "Round Id",
@@ -3409,9 +3606,87 @@
         },
         "required": [
           "round_id",
-          "changes"
+          "changes",
+          "inputs"
         ],
         "title": "TwinUpdatedPayload",
+        "type": "object"
+      },
+      "TwinView": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "dims": {
+            "items": {
+              "$ref": "#/components/schemas/DimensionView"
+            },
+            "title": "Dims",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryRow"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "as_of",
+          "dims",
+          "history"
+        ],
+        "title": "TwinView",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
         "type": "object"
       }
     }
@@ -3422,6 +3697,65 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/events": {
+      "post": {
+        "operationId": "post_events_events_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrialBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Events",
+        "tags": [
+          "events"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health_health_get",
@@ -3462,6 +3796,77 @@
         "summary": "Get Registry",
         "tags": [
           "registry"
+        ]
+      }
+    },
+    "/twin": {
+      "get": {
+        "operationId": "get_twin_twin_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwinView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Twin",
+        "tags": [
+          "twin"
+        ]
+      }
+    },
+    "/users": {
+      "post": {
+        "description": "Create a user and return their bearer token. WP2.8 adds the age check and consent.",
+        "operationId": "post_user_users_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedUser"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Post User",
+        "tags": [
+          "users"
         ]
       }
     }

@@ -43,11 +43,24 @@ class DimensionChange(Contract):
     sigma_before: float
     sigma_after: float
     n_after: int
+    last_practised_after: AwareDatetime | None = None
+
+
+class ScoringInputs(Contract):
+    """Everything outside the trials that shaped the update, so a rebuild or re-score of the
+    event log reproduces it exactly (item difficulties change as other users play)."""
+
+    context_weight: float = Field(ge=0.0, le=1.0)
+    item_b: dict[str, float] = Field(default_factory=dict, description="level -> difficulty used")
+    device_lag_ms: float = 0.0
+    trust: float = Field(ge=0.0, le=1.0)
+    quality_verdict: str
 
 
 class TwinUpdatedPayload(Contract):
     round_id: UUID
     changes: list[DimensionChange]
+    inputs: ScoringInputs
 
 
 class GoalPayload(Contract):

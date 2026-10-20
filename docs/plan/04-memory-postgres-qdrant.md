@@ -34,6 +34,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 | `users` | `user_id uuid pk`, `created_at`, `display_name` (optional, never sent to an LLM), `persona`, `success_mode`, `locale`, `age_confirmed` | Every other table references this with `ON DELETE CASCADE` |
 | `consent` | `user_id`, `switch`, `granted`, `notice_version`, `changed_at` | Current state; history is in events |
 | `goals` | `goal_id`, `user_id`, `dim`, `kind`, `target`, `due`, `status` | e.g. "WM range ±5 by 7 Nov" |
+| `user_tokens` | `token_hash pk`, `user_id`, `created_at`, `last_used` | Bearer tokens for the API; only a SHA-256 hash is stored |
 | `deletion_receipts` | `receipt_id`, `user_hash`, `counts jsonb`, `deleted_at` | Counts only, no personal content |
 | `llm_credentials` | `credential_id pk`, `unique (user_id, provider)`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`NAJMA_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
 | `llm_selection` | `user_id pk`, `mode` (`hosted` or `local`), `provider`, `model`, `updated_at` | The active choice; `local` = Ollama |
@@ -75,7 +76,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 - **Per-user lock** inside that transaction: `pg_advisory_xact_lock(hashtext(user_id))`, so two tabs can't update the same profile at once.
 - **Idempotency:** a repeated resume with the same `round_id` hits the unique constraint and is ignored.
 - **Live dashboard:** after commit, `NOTIFY twin_updated, '<user_id>'`; the API `LISTEN`s and pushes to that user's WebSocket.
-- **Rebuild:** `make rebuild-twin USER=<id>` deletes the user's projection rows and replays `twin.events` in `event_id` order, starting from the user's latest `twin.snapshot` event if one exists. Used in tests.
+- **Rebuild:** `make rebuild-twin USER=<id>` deletes the user's projection rows and replays `twin.events` in `event_id` order, starting from the user's latest `twin.snapshot` event if one exists. Used in tests. Each `twin.updated` event carries the after-state of every skill it changed and the scoring inputs that aren't in the trials (learned item difficulties, context weight, trust), because shared item difficulties keep changing as other users play; with those, a re-score of the raw trials reproduces the recorded update.
 
 ### Event types
 

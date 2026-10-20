@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+  '/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Post Events */
+    post: operations['post_events_events_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/health': {
     parameters: {
       query?: never
@@ -32,6 +49,43 @@ export interface paths {
     get: operations['get_registry_registry_get']
     put?: never
     post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/twin': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Twin */
+    get: operations['get_twin_twin_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/users': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Post User
+     * @description Create a user and return their bearer token. WP2.8 adds the age check and consent.
+     */
+    post: operations['post_user_users_post']
     delete?: never
     options?: never
     head?: never
@@ -349,6 +403,19 @@ export interface components {
        */
       user_id: string
     }
+    /** CreatedUser */
+    CreatedUser: {
+      /**
+       * Token
+       * @description Bearer token; shown once, stored only as a hash
+       */
+      token: string
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
     /**
      * CredentialSummary
      * @description What the API and the export show about a saved key.
@@ -491,6 +558,11 @@ export interface components {
     DimensionChange: {
       /** Dim */
       dim: string
+      /**
+       * Last Practised After
+       * @default null
+       */
+      last_practised_after: string | null
       /** Mu After */
       mu_after: number
       /** Mu Before */
@@ -526,6 +598,38 @@ export interface components {
        * @description Belief standard deviation
        */
       sigma: number
+    }
+    /** DimensionView */
+    DimensionView: {
+      /** Dim */
+      dim: string
+      /** Last Practised */
+      last_practised: string | null
+      /** Mu */
+      mu: number
+      /** N */
+      n: number
+      /**
+       * Norms
+       * @description 'simulated' until NCPT norms exist for this skill
+       */
+      norms: string
+      /** Percent */
+      percent: number
+      /** Percent High */
+      percent_high: number
+      /** Percent Low */
+      percent_low: number
+      /**
+       * Sigma
+       * @description With staleness drift applied at read time
+       */
+      sigma: number
+      /**
+       * Still Learning
+       * @description Shown greyed: 'still learning about you'
+       */
+      still_learning: boolean
     }
     Event:
       | components['schemas']['SessionStarted']
@@ -923,6 +1027,11 @@ export interface components {
        */
       user_id: string
     }
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components['schemas']['ValidationError'][]
+    }
     /** HistoryRow */
     HistoryRow: {
       /**
@@ -938,6 +1047,13 @@ export interface components {
       n: number
       /** Sigma */
       sigma: number
+    }
+    /** IngestResult */
+    IngestResult: {
+      /** Accepted */
+      accepted: number
+      /** Duplicates */
+      duplicates: number
     }
     /** Intent */
     Intent: {
@@ -1364,6 +1480,31 @@ export interface components {
       /** Trial Count */
       trial_count: number
     }
+    /**
+     * ScoringInputs
+     * @description Everything outside the trials that shaped the update, so a rebuild or re-score of the
+     *     event log reproduces it exactly (item difficulties change as other users play).
+     */
+    ScoringInputs: {
+      /** Context Weight */
+      context_weight: number
+      /**
+       * Device Lag Ms
+       * @default 0
+       */
+      device_lag_ms: number
+      /**
+       * Item B
+       * @description level -> difficulty used
+       */
+      item_b?: {
+        [key: string]: number
+      }
+      /** Quality Verdict */
+      quality_verdict: string
+      /** Trust */
+      trust: number
+    }
     /** SessionBudget */
     SessionBudget: {
       /**
@@ -1502,20 +1643,23 @@ export interface components {
        */
       trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
     }
+    /** TrialBatch */
+    TrialBatch: {
+      /** Trials */
+      trials: components['schemas']['TrialEvent'][]
+    }
     /** TrialEvent */
     TrialEvent: {
       /**
        * Confidence
        * @description Answer to 'How sure are you?' when asked
-       * @default null
        */
-      confidence: number | null
+      confidence?: number | null
       /**
        * Correct
        * @description None for style and rubric games, which have no right answer
-       * @default null
        */
-      correct: boolean | null
+      correct?: boolean | null
       /** Game Id */
       game_id: string
       /**
@@ -1533,11 +1677,8 @@ export interface components {
        * @default false
        */
       practice: boolean
-      /**
-       * Response
-       * @default null
-       */
-      response: {
+      /** Response */
+      response?: {
         [key: string]: components['schemas']['JsonValue']
       } | null
       /**
@@ -1545,11 +1686,8 @@ export interface components {
        * Format: uuid
        */
       round_id: string
-      /**
-       * Rt Ms
-       * @default null
-       */
-      rt_ms: number | null
+      /** Rt Ms */
+      rt_ms?: number | null
       /**
        * Session Id
        * Format: uuid
@@ -1713,11 +1851,42 @@ export interface components {
     TwinUpdatedPayload: {
       /** Changes */
       changes: components['schemas']['DimensionChange'][]
+      inputs: components['schemas']['ScoringInputs']
       /**
        * Round Id
        * Format: uuid
        */
       round_id: string
+    }
+    /** TwinView */
+    TwinView: {
+      /**
+       * As Of
+       * Format: date-time
+       */
+      as_of: string
+      /** Dims */
+      dims: components['schemas']['DimensionView'][]
+      /** History */
+      history: components['schemas']['HistoryRow'][]
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
+    /** ValidationError */
+    ValidationError: {
+      /** Context */
+      ctx?: Record<string, never>
+      /** Input */
+      input?: unknown
+      /** Location */
+      loc: (string | number)[]
+      /** Message */
+      msg: string
+      /** Error Type */
+      type: string
     }
   }
   responses: never
@@ -1728,6 +1897,41 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  post_events_events_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TrialBatch']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['IngestResult']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   health_health_get: {
     parameters: {
       query?: never
@@ -1766,6 +1970,57 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Registry']
+        }
+      }
+    }
+  }
+  get_twin_twin_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TwinView']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  post_user_users_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CreatedUser']
         }
       }
     }

@@ -2,10 +2,11 @@
 
 from fastapi import FastAPI
 
-from backend.api import registry
+from backend.api import registry, twin
 
 app = FastAPI(title="Najma API", version="0.1.0")
 app.include_router(registry.router)
+app.include_router(twin.router)
 
 
 @app.get("/health")

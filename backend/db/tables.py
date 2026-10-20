@@ -1,6 +1,8 @@
 """SQLAlchemy Core tables mirroring migration 0001. Used for queries only; the migration is the
 source of truth, and tests/backend/db/test_schema.py checks that these columns match it."""
 
+from typing import Any
+
 from sqlalchemy import (
     ARRAY,
     Boolean,
@@ -24,13 +26,13 @@ NOW = text("now()")
 UUIDV7 = text("uuidv7()")
 
 
-def _uuid_pk(name: str, generated: bool = True) -> Column[object]:
+def _uuid_pk(name: str, generated: bool = True) -> Column[Any]:
     return Column(
         name, UUID(as_uuid=True), primary_key=True, server_default=UUIDV7 if generated else None
     )
 
 
-def _user_fk() -> Column[object]:
+def _user_fk() -> Column[Any]:
     return Column("user_id", UUID(as_uuid=True), nullable=False)
 
 
@@ -108,6 +110,16 @@ llm_selection = Table(
     Column("provider", Text, nullable=False),
     Column("model", Text, nullable=False),
     Column("updated_at", TZ, nullable=False, server_default=NOW),
+    schema="app",
+)
+
+user_tokens = Table(
+    "user_tokens",
+    metadata,
+    Column("token_hash", Text, primary_key=True),
+    _user_fk(),
+    Column("created_at", TZ, nullable=False, server_default=NOW),
+    Column("last_used", TZ),
     schema="app",
 )
 
@@ -321,6 +333,7 @@ ml_models = Table(
 
 # Tables holding one user's data, deleted by the cascade from app.users (docs/plan/14).
 USER_TABLES: tuple[Table, ...] = (
+    user_tokens,
     consent,
     goals,
     llm_credentials,
