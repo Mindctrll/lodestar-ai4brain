@@ -64,8 +64,9 @@ contracts: ## regenerate OpenAPI, registry schemas and TypeScript types
 	uv run python -m backend.contracts.export
 	$(FRONTEND) run contracts
 
-sim: ## run the simulator (WP1.2)
-	@echo "The simulator arrives in WP1.2." && exit 1
+N ?= 200
+sim: ## simulate N users (default 200), write docs/figures, fail if a target is missed
+	uv run python -m simulator --users $(N)
 
 e2e: ## run end-to-end tests (WP1.3)
 	@echo "End-to-end tests arrive in WP1.3." && exit 1

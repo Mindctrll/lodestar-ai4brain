@@ -28,6 +28,7 @@ jobs:
           version: "0.11.19"
       - run: uv sync --frozen --python 3.14
       - run: make lint-backend lint-language test-backend
+      - run: make sim N=200
 
   frontend:
     runs-on: ubuntu-latest
