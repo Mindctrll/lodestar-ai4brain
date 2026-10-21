@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+import numpy as np
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import any_, func, literal, select
@@ -25,12 +26,13 @@ from backend.contracts.exercise import ExerciseSpec, RoundResult
 from backend.contracts.session import RoundSummary, SessionPlan, Verdict
 from backend.db import tables as t
 from backend.db.twin_store import append_event, score_round_tx, start_round
+from backend.ml import bandit
 from backend.registry.models import Game, Registry
 from backend.scoring.kalman_elo import SIGMA_START, Belief
 from backend.scoring.levels import TARGET_P, b_for_level, choose_mode, knobs_for, next_level
 
-# docs/plan/03, "How plan_next decides". bandit_gain, goal_weight and plan_priority arrive with
-# WP2.3 and WP3.3; they are 0 until then and still shown in the breakdown.
+# docs/plan/03, "How plan_next decides". bandit_gain is the best-next-game bandit
+# (backend/ml/bandit.py); it stays 0 until the person has played enough rounds.
 WEIGHTS = {
     "uncertainty": 0.35,
     "staleness": 0.20,
@@ -83,7 +85,32 @@ def _pick(options: list[Game], last_game: str | None, seed: int) -> Game:
     return random.Random(seed).choice(choices)
 
 
+def _best(options: list[Game], last_game: str | None, samples: dict[str, float]) -> Game | None:
+    """The game with the best bandit sample (not the one just played), or None without data."""
+    choices = [g for g in options if g.id != last_game] or options
+    if not samples or not choices:
+        return None
+    return max(choices, key=lambda g: samples.get(g.id, float("-inf")))
+
+
+async def _bandit_samples(
+    ctx: NajmaContext, state: NajmaState, pool: dict[str, list[Game]]
+) -> dict[str, float]:
+    """One Thompson sample per game on offer (docs/plan/10, section 4); empty until there is
+    data that says something (everyone's rounds, or enough of the person's own)."""
+    registry = ctx.services.registry
+    async with ctx.services.engine.connect() as conn:
+        gains = await bandit.gains_by_game(conn, ctx.user_id, registry)
+    priors = await bandit.population(ctx.services.engine, registry)
+    if not bandit.ready(gains, priors):
+        return {}
+    games = {g.id for options in pool.values() for g in options}
+    rng = np.random.default_rng([ctx.seed, len(state.rounds), ctx.session_id.int % 2**32])
+    return bandit.thompson(bandit.arms(gains, games, priors), rng)
+
+
 QUICK_S = 60  # "something quick": games of a minute or less
+EASED_ROUNDS = 2  # a session offered to someone drifting away
 NUDGE_AFTER = 3  # UW3: sessions in a row a skill was turned down before Najma asks once
 
 
@@ -239,6 +266,10 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     if not pool:
         pool = by_dim
 
+    samples = await _bandit_samples(ctx, state, pool)
+    bandit_by_dim = bandit.skill_gains(
+        samples, {d: [g.id for g in games] for d, games in pool.items()}
+    )
     candidates: list[Candidate] = []
     for dim, games in pool.items():
         belief = _belief(state, dim)
@@ -248,7 +279,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
             "staleness": 1.0 if days is None else min(days / STALENESS_CAP_DAYS, 1.0),
             "goal_weight": 1.0 if dim in state.goal_dims else 0.0,
             "plan_priority": 0.0,  # personal experiments, WP3.2
-            "bandit_gain": 0.0,  # best-next-game bandit, WP3.3
+            "bandit_gain": bandit_by_dim.get(dim, 0.0),
             "fatigue_penalty": fatigue * (1.0 if max(g.duration_s for g in games) > 90 else 0.5),
             "repetition": 1.0 if dim in last_dims else 0.0,
         }
@@ -257,6 +288,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     candidates.sort(key=lambda c: c.score, reverse=True)
 
     update: dict[str, Any] = {}
+    evidence: list[str] = []
     requested = registry.game(intent.game_id) if intent and intent.game_id else None
     themed = _themed_game(registry, pool, intent) if requested is None else None
     experiment = None
@@ -300,7 +332,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         )
     elif overridden and not state.onboarding:
         dim = candidates[0].option
-        game = _pick(pool[dim], last_game, seed)
+        game = _best(pool[dim], last_game, samples) or _pick(pool[dim], last_game, seed)
         name = registry.dimension(dim).name.lower()
         reason = f"Sure. Here's {game.name}, a {_length(game)} {name} game, instead."
     elif state.onboarding:
@@ -315,7 +347,11 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         force_assess = True
     else:
         dim = candidates[0].option
-        game = _pick(pool[dim], last_game, seed)
+        easing = not state.rounds and state.engagement is not None and state.engagement.high_risk
+        options = pool[dim]
+        if easing:  # drifting away: something short and easy (docs/plan/10, section 2)
+            options = [g for g in options if g.duration_s <= QUICK_S] or options
+        game = _best(options, last_game, samples) or _pick(options, last_game, seed)
         belief = _belief(state, dim)
         name = registry.dimension(dim).name
         days = _days_since(belief, now)
@@ -329,8 +365,25 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
                 f"{name} is the skill I'm least sure about right now, "
                 f"and you last practised it {when}."
             )
+        if easing and state.engagement is not None:
+            reason = (
+                f"A short, easy session today: {game.name}, a {_length(game)} "
+                f"{name.lower()} game. Two rounds and we're done."
+            )
+            update["budget"] = state.budget.model_copy(
+                update={"max_rounds": min(state.budget.max_rounds, EASED_ROUNDS)}
+            )
+            evidence.append(
+                f"engagement_risk:{state.engagement.low:.2f}-{state.engagement.high:.2f}"
+            )
         away = state.away_days
-        if away is not None and away >= CHECKUP_AFTER_DAYS and len(state.rounds) < CHECKUP_ROUNDS:
+        # Someone drifting away gets the short, easy session; the check-up can wait.
+        if (
+            away is not None
+            and away >= CHECKUP_AFTER_DAYS
+            and not easing
+            and len(state.rounds) < CHECKUP_ROUNDS
+        ):
             force_assess = True
             reason = (
                 f"Welcome back. It's been {away:.0f} days, so I'm less sure about you than "
@@ -338,8 +391,14 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
             )
 
     belief = _belief(state, dim)
-    success_mode = "chill" if state.verdict == "ease" else state.success_mode
+    eased = state.verdict == "ease" or any(e.startswith("engagement_risk:") for e in evidence)
+    success_mode = "chill" if eased else state.success_mode
     mode = "assess" if force_assess else choose_mode(belief, success_mode)
+    if not state.rounds and state.fatigue_point is not None:
+        budget = update.get("budget", state.budget)
+        update["budget"] = budget.model_copy(
+            update={"fatigue_point_min": state.fatigue_point.median}
+        )
     decision = Decision(
         decision_id=uuid4(),
         node="plan_next",
@@ -348,7 +407,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         candidates=candidates[:3],
         chosen=f"{dim}:{game.id}",
         reason=reason,
-        evidence=[f"declined:{d}" for d in turned_down] + (["quick"] if quick else []),
+        evidence=[f"declined:{d}" for d in turned_down] + (["quick"] if quick else []) + evidence,
     )
     await record_decision(ctx, decision)
     if state.game_waiting() and state.exercise is not None:
@@ -623,9 +682,14 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
         reason = "Your answers are slowing down compared with the start. Good place to stop."
     elif budget.fatigue_point_min and minutes > budget.fatigue_point_min:
         verdict = "end"
+        point = state.fatigue_point
+        when = (
+            f"{point.low:.0f} to {point.high:.0f} minutes"
+            if point is not None and round(point.low) < round(point.high)
+            else f"about {budget.fatigue_point_min:.0f} minutes"
+        )
         reason = (
-            f"Your speed usually drops after about {budget.fatigue_point_min:.0f} minutes. "
-            "Good place to stop."
+            f"Your answers usually start to slow down {when} into a session. Good place to stop."
         )
     elif len(rounds) >= budget.max_rounds:
         verdict, reason = "end", f"That's {len(rounds)} rounds. Nice session."

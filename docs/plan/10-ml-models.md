@@ -43,17 +43,23 @@ Two models trained on real public data, plus two light models that need no exter
 
 **Honesty note (shown in the model card):** OULAD is about online courses, not brain games, so this is a transfer of behaviour patterns, validated only on our pilot users.
 
+**As built (WP3.3).** `make ml-data` also fetches OULAD; `make ml-engagement` builds one example per enrolment and course week (853,000 examples, 25,273 students), labelled "no activity in the next 7 days, or unregistered", with eight behaviour features shared with the app through one function (`backend/ml/engagement.py`; days since last activity, active days in the last 7, the 7 before and the last 28, the trend in activity per active day, the streak, failures in the last 28 days, days since starting). On held-out students: AUC 0.857 for the logistic regression, 0.863 for LightGBM and 0.828 for days-since-last alone, so the regression is served; its numbers live in `agent.ml_models`. Probabilities get an inductive Venn-Abers range (expected calibration error 0.006). In the app the `forecast` node reads it at the start of a session. When even the low end of the range is 0.5 or more, `plan_next` offers a short, easy session: a game of a minute or less, Chill difficulty, two rounds. That takes priority over the post-break check-up. The evidence records the range; the user sees only "A short, easy session today". Card: `backend/ml/model_cards/engagement_risk.md`.
+
 ## 3. Fatigue point
 
 - **P1:** rule. Rolling z-score of RT and error rate against the user's baseline; a sustained rise past 1.5 SD flags fatigue.
 - **P2:** changepoint model per user. The estimate becomes the session budget in `monitor`.
 - Fatigue is a physical state, outside the EU AI Act's emotion-recognition definition, and it's measured from behaviour only.
 
+**As built (WP3.3).** `backend/ml/fatigue.py`: response times as z-scores against the person's usual time per game, one least-squares changepoint per session (kept if it beats a BIC-style penalty, is at least 0.5 SD slower and accuracy didn't rise), and a Kaplan-Meier curve over the last 30 sessions with sessions without a change counted as censored. The median sets `budget.fatigue_point_min`; `monitor` ends the session past it and says the middle half as a range. Card: `backend/ml/model_cards/fatigue_point.md`.
+
 ## 4. Best next game (bandit)
 
 - Each (user, game) pair keeps a Beta or Gaussian posterior on "μ gain per round".
 - Thompson sampling gives `bandit_gain(d)` to the policy (`03`).
 - Tested on the simulator, where each simulated user has hidden per-game learning rates.
+
+**As built (WP3.3).** `backend/ml/bandit.py`. The reward is the change in the Brain Twin estimate of the game's main skill, credited to the game played before it on that skill, since a round measures what was learned earlier. Per-person data alone was too noisy: on the simulator it did not beat random. A population prior fixes this. It is a least-squares fit across people of each skill's total change against rounds of each game, and the person's own rounds update it. With that prior, on the simulator (600 people for the prior, 200 paired), the bandit gains +0.095 to +0.210 more true skill than random game choice (95%), and an oracle gains about +0.21. Card: `backend/ml/model_cards/best_next_game.md`.
 
 ## NCPT dataset (not a predictor, but important)
 
@@ -75,6 +81,7 @@ backend/ml/
   notebooks/02_engagement_risk.ipynb
   notebooks/03_ncpt_norms.ipynb
   train_growth.py  train_engagement.py
+  engagement.py  fatigue.py  bandit.py
   conformal.py
   serve.py           # loads the active model files listed in agent.ml_models, exposes predict()
   model_cards/       # one card per model: data, metrics, limits, intended use

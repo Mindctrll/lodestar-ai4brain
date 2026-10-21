@@ -28,7 +28,13 @@ from backend.contracts.session import (
     ToolOutcome,
     Verdict,
 )
-from backend.contracts.twin import ForecastBand, LifeContextWindow, TwinSnapshot
+from backend.contracts.twin import (
+    EngagementReading,
+    FatiguePoint,
+    ForecastBand,
+    LifeContextWindow,
+    TwinSnapshot,
+)
 
 
 class NajmaState(BaseModel):
@@ -74,6 +80,8 @@ class NajmaState(BaseModel):
     )
     goal_dims: list[str] = Field(default_factory=list, description="Skills with an active goal")
     away_days: float | None = Field(default=None, description="Days since the last session")
+    engagement: EngagementReading | None = None
+    fatigue_point: FatiguePoint | None = None
 
     def game_waiting(self) -> bool:
         """A suggested game the user hasn't played yet: chat turns come back to it."""

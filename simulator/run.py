@@ -4,6 +4,7 @@ The game choice stands in for `plan_next` until WP2.3: the least certain skill, 
 than last time, and the level that targets the mode's success rate.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
@@ -34,6 +35,7 @@ class RoundLog:
     target_p: float
     mean_score: float | None
     accuracy: float
+    gain: float = 0.0  # change in the estimate of the game's main skill (the bandit's reward)
 
 
 @dataclass
@@ -110,14 +112,25 @@ def play_round(
     outcome = score_round(
         game, trials, beliefs, loadings, practice=practice.per_round if practice else None
     )
+    before = beliefs[primary].mu if primary in beliefs else 0.0
     run.beliefs.update(outcome.beliefs)
     if outcome.quality.trust == 0:
         run.trust_zero_rounds += 1
     accuracy = sum(t.correct is True for t in trials) / len(trials)
-    run.rounds.append(RoundLog(session, game.id, mode, target_p, outcome.mean_score, accuracy))
+    gain = run.beliefs[primary].mu - before if primary in run.beliefs else 0.0
+    run.rounds.append(
+        RoundLog(session, game.id, mode, target_p, outcome.mean_score, accuracy, gain)
+    )
     for dim, loading in loadings.items():
         if dim in user.gain:
-            user.practise(dim, loading)
+            user.practise(dim, loading, game.id)
+
+
+ChooseGame = Callable[[list[Game], UserRun, np.random.Generator], Game]
+
+
+def random_game(options: list[Game], run: UserRun, rng: np.random.Generator) -> Game:
+    return options[int(rng.integers(len(options)))]
 
 
 def simulate_user(
@@ -126,6 +139,7 @@ def simulate_user(
     sessions: int,
     rng: np.random.Generator,
     success_mode: str = "balanced",
+    choose_game: ChooseGame = random_game,
 ) -> UserRun:
     matrix = loading_matrix(registry)
     by_dim = _p1_games_by_dim(registry)
@@ -155,7 +169,7 @@ def simulate_user(
             for r in range(ROUNDS_PER_SESSION):
                 dim = max(tracked, key=lambda d: run.beliefs[d].sigma)
                 options = [g for g in by_dim[dim] if g.id != last_game] or by_dim[dim]
-                game = options[int(rng.integers(len(options)))]
+                game = choose_game(options, run, rng)
                 mode = choose_mode(run.beliefs[dim], success_mode)  # type: ignore[arg-type]
                 target = TARGET_P[mode]
                 level = next_level(run.beliefs[dim], target)

@@ -40,6 +40,38 @@ class ForecastBand(Contract):
         return self
 
 
+class EngagementReading(Contract):
+    """Chance of no activity in the next 7 days, as a Venn-Abers range (docs/plan/10, section 2).
+    Used only to offer a shorter, easier session; never shown as a score of the person."""
+
+    low: Probability
+    high: Probability
+    active_7: int = Field(ge=0, description="Days played in the last 7 days, today included")
+    active_prev_7: int = Field(ge=0, description="Days played in the 7 days before")
+    model_version: str
+
+    @property
+    def high_risk(self) -> bool:
+        """Sure enough to act on: even the low end of the range says likely."""
+        return self.low >= 0.5
+
+
+class FatiguePoint(Contract):
+    """Minutes into a session when this person's answers usually start to slow down
+    (docs/plan/10, section 3): a median with its middle half, from past sessions."""
+
+    low: float = Field(gt=0, description="25th percentile, minutes")
+    median: float = Field(gt=0)
+    high: float = Field(gt=0, description="75th percentile, minutes")
+    sessions: int = Field(ge=1, description="Sessions it rests on")
+
+    @model_validator(mode="after")
+    def _ordered(self) -> FatiguePoint:
+        if not self.low <= self.median <= self.high:
+            raise ValueError("fatigue point must satisfy low <= median <= high")
+        return self
+
+
 class LifeContextWindow(Contract):
     context_id: UUID
     label: str = Field(min_length=1, max_length=80)

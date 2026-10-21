@@ -42,16 +42,18 @@ class SimUser:
     learned: dict[str, float] = field(default_factory=dict)
     practice: dict[str, float] = field(default_factory=dict)
     rate: tuple[float, float] | None = None  # (a, b) of the Lumosity per-round gain
+    game_gain: dict[str, float] = field(default_factory=dict)  # hidden per-game learning rates
 
     def theta(self, dim: str) -> float:
         return self.theta0[dim] + self.learned.get(dim, 0.0)
 
-    def practise(self, dim: str, amount: float) -> None:
+    def practise(self, dim: str, amount: float, game_id: str | None = None) -> None:
         """Power law of practice. With the Lumosity rate (registry/practice.yaml) a round adds
         g * amount * a * (n+1)^-b, where g is this person's learning factor; without it, the
-        older form g((n+1)^-alpha - (n+1+amount)^-alpha)."""
+        older form g((n+1)^-alpha - (n+1+amount)^-alpha). Some games suit a person better
+        than others: `game_gain` scales the step (1 when not set)."""
         n = self.practice.get(dim, 0.0)
-        g = self.gain[dim]
+        g = self.gain[dim] * (self.game_gain.get(game_id, 1.0) if game_id else 1.0)
         if self.rate is not None:
             a, b = self.rate
             step = g * amount * a * (n + 1) ** -b

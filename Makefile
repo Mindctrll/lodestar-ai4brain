@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env cli practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env cli ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
@@ -72,11 +72,14 @@ pool: ## fill agent.content_pool so play never waits on an LLM
 rebuild-twin: ## recompute a user's profile from the event log: make rebuild-twin USER=<uuid>
 	uv run python -m backend.db.rebuild $(USER)
 
-ml-data: ## download the public datasets the models train on into data/ (about 2.6 GB)
+ml-data: ## download the public datasets the models train on into data/ (about 3.1 GB)
 	uv run python -m backend.ml.download
 
 ml-train: ## train the growth forecast, write its model card and make it the active model
 	uv run python -m backend.ml.train_growth --register
+
+ml-engagement: ## train the engagement-risk model on OULAD, write its model card and make it active
+	uv run python -m backend.ml.train_engagement --register
 
 practice-prior: ## refit the average practice gain per round from Lumosity (registry/practice.yaml)
 	uv run python -m backend.ml.practice

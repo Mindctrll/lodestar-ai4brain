@@ -17,7 +17,7 @@ from backend.agent.state import NajmaState
 from backend.agent.telemetry import traced
 from backend.contracts.twin import DimensionState, LifeContextWindow, TwinSnapshot
 from backend.db import tables as t
-from backend.ml.serve import forecast_bands, user_history
+from backend.ml.serve import engagement_reading, fatigue_now, forecast_bands, user_history
 from backend.scoring.kalman_elo import Belief, drift
 
 PERCEIVE_TIMEOUT_S = 3.0
@@ -149,14 +149,30 @@ async def read_context(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 
 @traced("forecast")
 async def forecast(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    """Growth bands for each skill with at least three days of practice (docs/plan/10)."""
-    services = runtime.context.services
-    forecaster = services.forecaster
-    if forecaster is None:
-        return {}
+    """The models (docs/plan/10): growth bands for each skill with at least three days of
+    practice, and, at the start of a session, the engagement risk and the fatigue point."""
+    ctx = runtime.context
+    services = ctx.services
 
     async def work() -> dict[str, Any]:
-        history = await user_history(services.engine, runtime.context.user_id)
-        return {"forecast": forecast_bands(forecaster, services.registry, history)}
+        out: dict[str, Any] = {}
+        if services.forecaster is not None:
+            history = await user_history(services.engine, ctx.user_id)
+            out["forecast"] = forecast_bands(services.forecaster, services.registry, history)
+        if state.rounds:
+            return out
+        if services.engagement is not None:
+            async with services.engine.connect() as conn:
+                tz = (
+                    await conn.execute(
+                        select(t.users.c.timezone).where(t.users.c.user_id == ctx.user_id)
+                    )
+                ).scalar_one_or_none()
+            out["engagement"] = await engagement_reading(
+                services.engine, services.engagement, ctx.user_id, tz or "UTC", datetime.now(UTC)
+            )
+        if (point := await fatigue_now(services.engine, ctx.user_id)) is not None:
+            out["fatigue_point"] = point
+        return out
 
     return await _guarded("forecast", work())
