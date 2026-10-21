@@ -1,0 +1,8 @@
+# Odd One Out (visual search). Knobs: registry/games/odd_one_out.yaml.
+trials: 16
+deadline_ms: 6000
+# Distractor / target glyph pairs, from easy (pops out) to hard (one small difference).
+pairs:
+  - [square, circle]
+  - [O, Q]
+  - [E, F]

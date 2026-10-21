@@ -1,0 +1,4 @@
+# Pattern Gap (matrices). Knobs: registry/games/pattern_gap.yaml. Puzzles come from the server,
+# built from rules by code and checked by a solver (docs/plan/08).
+deadline_ms: 90000
+option_keys: [a, b, c, d, e, f]

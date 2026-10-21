@@ -1,7 +1,7 @@
 import { parse } from 'yaml'
 
 import { median, pick, shuffle, type Rng } from '../../lib/rng'
-import { itemsToTimeline, makePlugin } from '../../taskhost/plugin'
+import { itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
 import { practiceFeedback, waitForResponse } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
 import rawConfig from './config.yaml?raw'
@@ -83,7 +83,7 @@ const InkClashPlugin = makePlugin<InkItem>(
       targets: buttons.map((element, i) => ({ element, key: config.keys[i] ?? '' })),
       deadlineMs: item.deadline_ms,
       onReady: () => {
-        if (e2e) stage.dataset['answer'] = keyForInk(item)
+        markAnswer(stage, e2e, `key:${keyForInk(item)}`)
       },
     })
     const chosen =

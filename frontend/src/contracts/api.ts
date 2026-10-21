@@ -1542,6 +1542,13 @@ export interface components {
        */
       streaming: boolean
       /**
+       * Structured Method
+       * @description How LangChain asks for structured output
+       * @default function_calling
+       * @enum {string}
+       */
+      structured_method: 'json_schema' | 'function_calling'
+      /**
        * Structured Output
        * @default true
        */

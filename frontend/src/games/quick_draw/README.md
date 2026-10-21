@@ -10,5 +10,5 @@ published descriptions; no code from PEBL or PsyToolkit.
 
 **Metrics:** median correct RT (ms), accuracy. Answers under 150 ms are anticipations and don't count.
 
-**Difficulty knobs:** `choices` 1 to 4, `deadline_ms` 1200 to 450 (scored with the rescaled
+**Difficulty knobs:** `choices` 1 to 4, `deadline_ms` 1500 to 600 (scored with the rescaled
 high-speed-high-stakes rule, docs/plan/07).

@@ -1,0 +1,12 @@
+# Turn It (mental rotation). Knobs: registry/games/turn_it.yaml. 2D shapes; the 3D knob is noted
+# but 2D only for now.
+trials: 16
+deadline_ms: 7000
+same_key: f
+mirror_key: j
+# Asymmetric polyomino shapes on a 4x4 grid (cells as [col, row]).
+shapes:
+  - [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]]
+  - [[0, 0], [1, 0], [1, 1], [1, 2], [2, 1]]
+  - [[0, 1], [1, 1], [1, 0], [2, 0], [2, 2]]
+  - [[0, 0], [0, 1], [1, 1], [2, 1], [2, 2], [3, 2]]

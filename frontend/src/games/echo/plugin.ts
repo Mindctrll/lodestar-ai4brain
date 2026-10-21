@@ -1,7 +1,7 @@
 import { parse } from 'yaml'
 
 import { pick, type Rng } from '../../lib/rng'
-import { itemsToTimeline, makePlugin } from '../../taskhost/plugin'
+import { itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
 import { practiceFeedback, wait, waitForResponse } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
 import rawConfig from './config.yaml?raw'
@@ -67,7 +67,7 @@ const EchoPlugin = makePlugin<EchoItem>(
       targets: [{ element: match, key: config.match_key }],
       deadlineMs: item.pace_ms,
       onReady: () => {
-        if (e2e) stage.dataset['answer'] = item.is_target ? 'match' : 'none'
+        markAnswer(stage, e2e, item.is_target ? 'key:Space' : 'none')
       },
     })
     const pressed = response.key !== null

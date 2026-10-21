@@ -1,0 +1,3 @@
+# Hold It (go/no-go). Knobs: registry/games/hold_it.yaml.
+trials: 24
+go_key: ' '

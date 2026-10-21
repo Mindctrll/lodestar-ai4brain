@@ -18,8 +18,8 @@ knobs:
     easy: 1
     hard: 4
   deadline_ms:
-    easy: 1200
-    hard: 450
+    easy: 1500
+    hard: 600
     unit: ms
 level_map: linear
 content: code

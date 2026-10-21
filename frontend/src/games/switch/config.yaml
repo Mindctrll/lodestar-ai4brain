@@ -1,0 +1,10 @@
+# Switch (task switching). Knobs: registry/games/switch.yaml.
+trials: 24
+deadline_ms: 3000
+left_key: f
+right_key: j
+# Colour is part of this task, so each colour also has a pattern and a name.
+colours:
+  - { name: blue, hex: '#1d4ed8' }
+  - { name: orange, hex: '#c2410c' }
+shapes: [circle, square]

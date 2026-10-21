@@ -1,0 +1,13 @@
+# Light Path (Corsi blocks). Knobs: registry/games/light_path.yaml.
+sequences: 6
+# Fixed, irregular block positions (percent of the board), as in the Corsi board.
+blocks:
+  - [10, 15]
+  - [45, 8]
+  - [78, 18]
+  - [22, 45]
+  - [58, 38]
+  - [85, 55]
+  - [8, 78]
+  - [40, 72]
+  - [70, 82]

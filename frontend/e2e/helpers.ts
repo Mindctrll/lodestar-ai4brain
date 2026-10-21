@@ -7,7 +7,9 @@ export interface SentTrial {
   practice: boolean
   correct: boolean | null
   rt_ms: number | null
+  hint_level: number
   stimulus: Record<string, unknown>
+  response: Record<string, unknown> | null
 }
 
 /** Turn on the test flag (stimuli expose their expected answer) and record every trial sent. */
@@ -32,18 +34,38 @@ export async function startSession(page: Page, ask: string): Promise<void> {
   await expect(page.getByTestId('suggestion')).toBeVisible({ timeout: 30_000 })
 }
 
-/** Play the current game by reading each trial's expected answer and giving it. */
+/** Perform one expected answer (see markAnswer in src/taskhost/plugin.ts). */
+async function perform(page: Page, answer: string): Promise<void> {
+  const [kind, ...rest] = answer.split(':')
+  const arg = rest.join(':')
+  if (kind === 'none') return
+  // Answer at a human pace: faster than ~200 ms is treated as impossible and isn't counted.
+  await page.waitForTimeout(250 + Math.random() * 150)
+  if (kind === 'key') await page.keyboard.press(arg)
+  else if (kind === 'click') await page.getByTestId(arg).click()
+  else if (kind === 'clicks') {
+    for (const id of arg.split('|')) await page.getByTestId(id).click()
+  } else if (kind === 'type') {
+    await page.getByTestId('recall-input').fill(arg)
+    await page.getByTestId('recall-done').click()
+  } else if (kind === 'point') {
+    const [id, fraction] = arg.split(':')
+    const box = await page.getByTestId(id).boundingBox()
+    if (!box) throw new Error(`no box for ${id}`)
+    await page.mouse.click(box.x + box.width * Number(fraction), box.y + box.height / 2)
+  }
+}
+
+/** Play the current game by reading each step's expected answer and giving it. */
 export async function playCurrentGame(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Let's go|Next game/ }).click()
   await page.getByRole('button', { name: 'Start' }).click()
   const after = page.getByTestId('after-game')
-  let last = -1
+  let last = ''
   for (;;) {
     if (await after.isVisible()) return
-    // The next trial we haven't answered yet, once it is listening for an answer.
-    const stage = page.locator(
-      `[data-testid="stage"][data-answer]:not([data-trial="${String(last)}"])`,
-    )
+    // The next step we haven't answered yet, once it is listening for an answer.
+    const stage = page.locator(`[data-testid="stage"][data-answer]:not([data-trial="${last}"])`)
     try {
       await stage.waitFor({ timeout: 3_000 })
     } catch {
@@ -53,16 +75,13 @@ export async function playCurrentGame(page: Page): Promise<void> {
       stage.getAttribute('data-answer'),
       stage.getAttribute('data-trial'),
     ])
-    // Answer at a human pace: faster than ~200 ms is treated as impossible and isn't counted.
-    if (answer !== 'none') await page.waitForTimeout(250 + Math.random() * 150)
-    if (answer === 'match' || answer === ' ') await page.keyboard.press('Space')
-    else if (answer && answer !== 'none') await page.keyboard.press(answer)
-    last = Number(trial)
+    await perform(page, answer ?? 'none')
+    last = trial ?? ''
   }
 }
 
 export function expectWellFormed(trials: SentTrial[], gameId: string): void {
-  expect(trials.length).toBeGreaterThan(5)
+  expect(trials.length).toBeGreaterThan(3)
   const rounds = new Set(trials.map((t) => t.round_id))
   expect(rounds.size).toBe(1)
   const indexes = trials.map((t) => t.trial_index)

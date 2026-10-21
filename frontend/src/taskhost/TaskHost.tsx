@@ -39,7 +39,7 @@ function toEvent(record: TrialRecord, spec: ExerciseSpec, sessionId: string): Tr
     response: record.response,
     correct: record.correct,
     rt_ms: record.rt_ms,
-    hint_level: 0,
+    hint_level: record.hint_level ?? 0,
     ts: new Date().toISOString(),
   }
 }
@@ -83,6 +83,7 @@ export function TaskHost({
     let status: FinishStatus = 'completed'
     let finished = false
     let disposed = false
+    let steps = 0
 
     const finish = async () => {
       if (finished) return
@@ -107,11 +108,14 @@ export function TaskHost({
     const jsPsych = initJsPsych({
       display_element: element,
       on_data_update: (data: Record<string, unknown>) => {
-        const record = data['najma'] as TrialRecord | undefined
-        if (!record || disposed) return
-        records.push(record)
-        batcher.add(toEvent(record, spec, sessionId))
-        callbacks.current.onProgress?.(records.length, total)
+        const found = data['najma'] as TrialRecord[] | undefined
+        if (!found || disposed) return
+        for (const record of found) {
+          records.push(record)
+          batcher.add(toEvent(record, spec, sessionId))
+        }
+        steps += 1
+        callbacks.current.onProgress?.(steps, total)
       },
       on_finish: () => void finish(),
     })

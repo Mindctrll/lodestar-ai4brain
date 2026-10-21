@@ -1,7 +1,7 @@
 import { parse } from 'yaml'
 
 import { median, randInt, type Rng } from '../../lib/rng'
-import { itemsToTimeline, makePlugin } from '../../taskhost/plugin'
+import { itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
 import { practiceFeedback, waitForResponse } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
 import rawConfig from './config.yaml?raw'
@@ -78,7 +78,7 @@ const QuickDrawPlugin = makePlugin<QuickDrawItem>(
       })),
       deadlineMs: item.deadline_ms,
       onReady: () => {
-        if (e2e) stage.dataset['answer'] = keyFor(item)
+        markAnswer(stage, e2e, `key:${expected === ' ' ? 'Space' : expected}`)
       },
     })
     const correct = response.key === expected

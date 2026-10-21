@@ -1,0 +1,5 @@
+# Number Line (estimation). Knobs: registry/games/number_line.yaml.
+trials: 14
+deadline_ms: 15000
+# An answer within this share of the line counts as right; the score itself is continuous.
+right_within: 0.05

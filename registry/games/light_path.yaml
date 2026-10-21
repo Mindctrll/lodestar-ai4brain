@@ -32,3 +32,4 @@ modalities:
 - touch
 acs_hooks: []
 practice_trials: 3
+available: true

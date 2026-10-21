@@ -100,20 +100,57 @@ test('Echo metrics and d-prime', () => {
   expect(echoMetrics(trials)).toMatchObject({ hits: 1, false_alarms: 1, accuracy: 0.5 })
 })
 
-test('every game builds a seeded timeline with its practice trials first', () => {
-  for (const [id, game] of Object.entries(GAMES)) {
-    const knobs = {
-      choices: 2,
-      deadline_ms: 800,
-      incongruent_ratio: 0.5,
-      shuffled_buttons: 0,
-      n: 1,
-      pace_ms: 2000,
-    }
+const SELF_CONTAINED = [
+  'quick_draw',
+  'ink_clash',
+  'echo',
+  'arrow_storm',
+  'odd_one_out',
+  'hold_it',
+  'symbol_code',
+  'switch',
+  'turn_it',
+  'number_line',
+]
+const NEEDS_CONTENT = ['souk_rush', 'pattern_gap', 'spot_the_mistake']
+
+test('every self-contained game builds a seeded timeline with its practice trials first', () => {
+  const knobs = {
+    choices: 2,
+    deadline_ms: 800,
+    incongruent_ratio: 0.5,
+    shuffled_buttons: 0,
+    n: 1,
+    pace_ms: 2000,
+    flankers: 2,
+    set_size: 8,
+    similarity: 0.2,
+    go_ratio: 0.75,
+    isi_ms: 900,
+    key_size: 6,
+    switch_rate: 0.3,
+    cue_time_ms: 500,
+    max_angle: 90,
+    range_max: 100,
+  }
+  for (const id of SELF_CONTAINED) {
+    const game = GAMES[id]
+    if (!game) throw new Error(id)
     const a = game.timeline({ spec: spec(id, knobs, 3), rng: mulberry32(9), e2e: false })
     const b = game.timeline({ spec: spec(id, knobs, 3), rng: mulberry32(9), e2e: false })
     expect(a.map((t) => t['item'])).toEqual(b.map((t) => t['item']))
     expect(a.slice(0, 3).every((t) => t['practice'] === true)).toBe(true)
     expect(a.slice(3).some((t) => t['practice'] === false)).toBe(true)
   }
+})
+
+test('content games refuse to start without server content', () => {
+  for (const id of NEEDS_CONTENT) {
+    const game = GAMES[id]
+    if (!game) throw new Error(id)
+    expect(() => game.timeline({ spec: spec(id, {}, 0), rng: mulberry32(1), e2e: false })).toThrow(
+      /server/,
+    )
+  }
+  expect(Object.keys(GAMES)).toHaveLength(15)
 })

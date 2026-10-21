@@ -9,6 +9,8 @@ export interface TrialRecord {
   response: Record<string, unknown> | null
   correct: boolean | null
   rt_ms: number | null
+  /** How many hints were shown before answering (the ACS autonomy signal). */
+  hint_level?: number
 }
 
 export interface GameContext {

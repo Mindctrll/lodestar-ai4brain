@@ -1,0 +1,4 @@
+# Arrow Storm (flanker). Knobs: registry/games/arrow_storm.yaml.
+trials: 20
+left_keys: [arrowleft, f]
+right_keys: [arrowright, j]

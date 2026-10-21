@@ -1,0 +1,3 @@
+# Spot the AI's Mistake. Knobs: registry/games/spot_the_mistake.yaml. Puzzles come from the
+# server; about 70% have one planted error confirmed by a solver (docs/plan/08).
+deadline_ms: 120000

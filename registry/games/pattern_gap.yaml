@@ -28,3 +28,4 @@ modalities:
 acs_hooks:
 - autonomy
 practice_trials: 3
+available: true
