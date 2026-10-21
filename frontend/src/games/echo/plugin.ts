@@ -98,7 +98,7 @@ export function dPrime(
 }
 
 function probit(p: number): number {
-  // Acklam's rational approximation of the inverse normal CDF.
+  // Acklam's rational approximation of the inverse Gaussian CDF (the probit function).
   const a = [
     -39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472,
     2.50662827745924,
