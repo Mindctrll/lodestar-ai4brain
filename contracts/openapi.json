@@ -735,6 +735,34 @@
         "title": "ConsentChanged",
         "type": "object"
       },
+      "ConsentNotice": {
+        "additionalProperties": false,
+        "properties": {
+          "age_minimum": {
+            "minimum": 13.0,
+            "title": "Age Minimum",
+            "type": "integer"
+          },
+          "switches": {
+            "items": {
+              "$ref": "#/components/schemas/ConsentSwitchInfo"
+            },
+            "title": "Switches",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "age_minimum",
+          "switches"
+        ],
+        "title": "ConsentNotice",
+        "type": "object"
+      },
       "ConsentPayload": {
         "additionalProperties": false,
         "properties": {
@@ -766,6 +794,77 @@
           "notice_version"
         ],
         "title": "ConsentPayload",
+        "type": "object"
+      },
+      "ConsentSwitchInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "title": "Default",
+            "type": "boolean"
+          },
+          "id": {
+            "enum": [
+              "core",
+              "cloud_ai",
+              "microphone",
+              "camera",
+              "voice_tone",
+              "deliberate_mistakes",
+              "research_export"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "plain": {
+            "description": "What the switch allows, in plain words",
+            "title": "Plain",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "required",
+          "default",
+          "plain"
+        ],
+        "title": "ConsentSwitchInfo",
+        "type": "object"
+      },
+      "ConsentView": {
+        "additionalProperties": false,
+        "properties": {
+          "age_minimum": {
+            "title": "Age Minimum",
+            "type": "integer"
+          },
+          "switches": {
+            "items": {
+              "$ref": "#/components/schemas/SwitchView"
+            },
+            "title": "Switches",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "age_minimum",
+          "switches"
+        ],
+        "title": "ConsentView",
         "type": "object"
       },
       "ContextAdded": {
@@ -829,6 +928,22 @@
           "payload"
         ],
         "title": "ContextAdded",
+        "type": "object"
+      },
+      "CoreLine": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Line",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line"
+        ],
+        "title": "CoreLine",
         "type": "object"
       },
       "CreatedUser": {
@@ -1933,6 +2048,27 @@
             "title": "Code Source",
             "type": "string"
           },
+          "consent": {
+            "anyOf": [
+              {
+                "enum": [
+                  "core",
+                  "cloud_ai",
+                  "microphone",
+                  "camera",
+                  "voice_tone",
+                  "deliberate_mistakes",
+                  "research_export"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A consent switch this game needs, e.g. planted mistakes",
+            "title": "Consent"
+          },
           "content": {
             "enum": [
               "code",
@@ -2681,6 +2817,36 @@
         "title": "LabelInput",
         "type": "object"
       },
+      "LifeContextLine": {
+        "additionalProperties": false,
+        "properties": {
+          "context_id": {
+            "format": "uuid",
+            "title": "Context Id",
+            "type": "string"
+          },
+          "end": {
+            "title": "End",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "context_id",
+          "label",
+          "start",
+          "end"
+        ],
+        "title": "LifeContextLine",
+        "type": "object"
+      },
       "LifeContextWindow": {
         "additionalProperties": false,
         "properties": {
@@ -3092,6 +3258,56 @@
         "title": "MemoryItem",
         "type": "object"
       },
+      "MemoryLine": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "enum": [
+              "episodic",
+              "facts"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "collection",
+          "text"
+        ],
+        "title": "MemoryLine",
+        "type": "object"
+      },
       "MemoryWritten": {
         "additionalProperties": false,
         "properties": {
@@ -3205,9 +3421,83 @@
         "title": "MessageInput",
         "type": "object"
       },
-      "NewUser": {
+      "MyData": {
         "additionalProperties": false,
         "properties": {
+          "core": {
+            "description": "Lines of core.md, the short profile Najma keeps",
+            "items": {
+              "type": "string"
+            },
+            "title": "Core",
+            "type": "array"
+          },
+          "life_context": {
+            "items": {
+              "$ref": "#/components/schemas/LifeContextLine"
+            },
+            "title": "Life Context",
+            "type": "array"
+          },
+          "memories": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryLine"
+            },
+            "title": "Memories",
+            "type": "array"
+          },
+          "memory_available": {
+            "title": "Memory Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "core",
+          "life_context",
+          "memories",
+          "memory_available"
+        ],
+        "title": "MyData",
+        "type": "object"
+      },
+      "NewUser": {
+        "additionalProperties": false,
+        "description": "What the first-visit screens collect (UW1): the age check, the consent switches and the\ncoach. Switches left out keep the notice's default.",
+        "properties": {
+          "age_confirmed": {
+            "description": "The user confirmed they are 18 or older",
+            "title": "Age Confirmed",
+            "type": "boolean"
+          },
+          "consent": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "core",
+                "cloud_ai",
+                "microphone",
+                "camera",
+                "voice_tone",
+                "deliberate_mistakes",
+                "research_export"
+              ]
+            },
+            "title": "Consent",
+            "type": "object"
+          },
+          "persona": {
+            "default": "zitouna",
+            "enum": [
+              "zitouna",
+              "barq",
+              "hikma",
+              "sahbi"
+            ],
+            "title": "Persona",
+            "type": "string"
+          },
           "timezone": {
             "anyOf": [
               {
@@ -3222,6 +3512,9 @@
             "title": "Timezone"
           }
         },
+        "required": [
+          "age_confirmed"
+        ],
         "title": "NewUser",
         "type": "object"
       },
@@ -3337,6 +3630,28 @@
         "title": "ProviderView",
         "type": "object"
       },
+      "Receipt": {
+        "additionalProperties": false,
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "counts",
+          "message"
+        ],
+        "title": "Receipt",
+        "type": "object"
+      },
       "Registry": {
         "additionalProperties": false,
         "properties": {
@@ -3346,6 +3661,9 @@
             },
             "title": "Batteries",
             "type": "object"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/ConsentNotice"
           },
           "dimensions": {
             "items": {
@@ -3373,7 +3691,8 @@
           "dimensions",
           "games",
           "providers",
-          "batteries"
+          "batteries",
+          "consent"
         ],
         "title": "Registry",
         "type": "object"
@@ -4114,6 +4433,63 @@
         "title": "StartSession",
         "type": "object"
       },
+      "SwitchInput": {
+        "additionalProperties": false,
+        "properties": {
+          "granted": {
+            "title": "Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "granted"
+        ],
+        "title": "SwitchInput",
+        "type": "object"
+      },
+      "SwitchView": {
+        "additionalProperties": false,
+        "properties": {
+          "granted": {
+            "title": "Granted",
+            "type": "boolean"
+          },
+          "id": {
+            "enum": [
+              "core",
+              "cloud_ai",
+              "microphone",
+              "camera",
+              "voice_tone",
+              "deliberate_mistakes",
+              "research_export"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "plain": {
+            "title": "Plain",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "plain",
+          "required",
+          "granted"
+        ],
+        "title": "SwitchView",
+        "type": "object"
+      },
       "TrialBatch": {
         "additionalProperties": false,
         "properties": {
@@ -4722,6 +5098,133 @@
         ]
       }
     },
+    "/consent": {
+      "get": {
+        "operationId": "get_consent_consent_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Consent",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/consent/{switch}": {
+      "put": {
+        "description": "Turning a switch off stops that processing at once (docs/plan/14).",
+        "operationId": "put_consent_consent__switch__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "switch",
+            "required": true,
+            "schema": {
+              "enum": [
+                "core",
+                "cloud_ai",
+                "microphone",
+                "camera",
+                "voice_tone",
+                "deliberate_mistakes",
+                "research_export"
+              ],
+              "title": "Switch",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Consent",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
     "/decisions/{decision_id}": {
       "get": {
         "description": "The card behind a [D1] citation: the question, the top candidates and their parts.",
@@ -5166,6 +5669,324 @@
         ]
       }
     },
+    "/me": {
+      "delete": {
+        "description": "Delete everything (the page asks for confirmation first) and return a receipt.",
+        "operationId": "delete_me_me_delete",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Me",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/me/core/forget": {
+      "post": {
+        "operationId": "forget_core_line_me_core_forget_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoreLine"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Forget Core Line",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/me/data": {
+      "get": {
+        "description": "What the Memory & data screen shows (UW14).",
+        "operationId": "my_data_me_data_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyData"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Data",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/me/export": {
+      "get": {
+        "description": "A download generated now; nothing is saved on the server.",
+        "operationId": "export_me_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/me/life-context/{context_id}": {
+      "delete": {
+        "description": "Removes the window from now on; rounds already scored keep the weight they had.",
+        "operationId": "forget_life_context_me_life_context__context_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "context_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Context Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Forget Life Context",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
+    "/me/memories/{collection}/{point_id}": {
+      "delete": {
+        "operationId": "forget_memory_me_memories__collection___point_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "collection",
+            "required": true,
+            "schema": {
+              "enum": [
+                "episodic",
+                "facts"
+              ],
+              "title": "Collection",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "point_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Point Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Forget Memory",
+        "tags": [
+          "data rights"
+        ]
+      }
+    },
     "/registry": {
       "get": {
         "operationId": "get_registry_registry_get",
@@ -5496,24 +6317,17 @@
     },
     "/users": {
       "post": {
-        "description": "Create a user and return their bearer token. WP2.8 adds the age check and consent.",
+        "description": "Create a user after the age check and consent, and return their bearer token.",
         "operationId": "post_user_users_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "anyOf": [
-                  {
-                    "$ref": "#/components/schemas/NewUser"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "title": "Body"
+                "$ref": "#/components/schemas/NewUser"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "201": {

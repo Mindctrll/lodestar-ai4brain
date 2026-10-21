@@ -13,7 +13,7 @@ from qdrant_client import AsyncQdrantClient
 from backend.agent.context import Services
 from backend.agent.graph import checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
-from backend.api import affect, goals, llm, registry, sessions, twin
+from backend.api import affect, goals, llm, me, registry, sessions, twin
 from backend.api.llm import llm_factory_dep
 from backend.config import Settings, get_settings
 from backend.db.engine import get_async_engine, libpq_url
@@ -82,6 +82,7 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
     app.include_router(sessions.router)
     app.include_router(affect.router)
     app.include_router(goals.router)
+    app.include_router(me.router)
     app.dependency_overrides[llm_factory_dep] = lambda: app.state.services.llm
 
     @app.get("/health")

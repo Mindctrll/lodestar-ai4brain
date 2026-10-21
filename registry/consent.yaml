@@ -1,0 +1,55 @@
+# The consent notice (docs/plan/14, "Consent (layered)"). One switch per kind of processing; the
+# screens, the API and the checks that stop processing all read this file. Change the text, bump
+# `version`: every consent.changed event records the version the user saw.
+version: "2026-10-21"
+age_minimum: 18
+switches:
+  - id: core
+    title: Core practice data
+    required: true
+    default: true
+    plain: >-
+      Your game results, your skill profile and the notes Najma keeps about you, stored on this
+      server. Najma can't work without it. To stop it, delete your data.
+  - id: cloud_ai
+    title: Cloud AI
+    required: false
+    default: false
+    plain: >-
+      Lets Najma send short, de-identified summaries (no name, no raw answers) to the AI provider
+      you pick, with your own key. The provider and where it processes data are shown before you
+      turn this on. Off means Najma uses the local model on this server.
+  - id: microphone
+    title: Microphone
+    required: false
+    default: false
+    plain: >-
+      Voice commands. Your browser's speech recognition may send the audio to its maker (for
+      Chrome, Google). Audio is not kept.
+  - id: camera
+    title: Camera
+    required: false
+    default: false
+    plain: >-
+      Coarse "looks strained" cues worked out on this device only. No images leave it or are
+      stored, and they never change your profile or scores.
+  - id: voice_tone
+    title: Voice tone
+    required: false
+    default: false
+    plain: >-
+      Speaking speed and pauses, worked out on this device, to suggest a break. Never changes
+      your profile or scores.
+  - id: deliberate_mistakes
+    title: Games with planted mistakes
+    required: false
+    default: true
+    plain: >-
+      In Spot the AI's Mistake, Najma's worked answers sometimes contain a mistake on purpose, so
+      you can practise checking AI. You're always told when a game does this.
+  - id: research_export
+    title: Research export
+    required: false
+    default: false
+    plain: >-
+      Lets the team include your anonymised results in its evaluation of Najma.

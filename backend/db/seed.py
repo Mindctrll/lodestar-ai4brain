@@ -53,7 +53,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 user_id=user_id,
                 switch=switch,
                 granted=granted,
-                notice_version="1",
+                notice_version=registry.consent.version,
                 changed_at=_ts(start, 20),
             )
         )
@@ -62,7 +62,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
             user_id=user_id,
             dim="working_memory",
             kind="range",
-            target=0.1,
+            target=15,  # the 80% range within ±15 points (UW11)
             due=today + timedelta(days=13),
         )
     )

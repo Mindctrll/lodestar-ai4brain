@@ -18,6 +18,14 @@ Each switch is logged as a `consent.changed` event with the notice version. Turn
 
 **Age:** 18+ gate in the prototype. Tunisian law requires a guardian's consent for minors, so a guardian flow is listed as future work.
 
+**As built (WP2.8).** The notice lives in `registry/consent.yaml` (text, defaults, version), so the first-visit screens, Settings and the API read the same words. Nothing is stored before the last first-visit screen: `POST /users` takes the 18+ confirmation, the switches and the coach in one call and refuses under-18s. Where each switch is enforced:
+
+- **Cloud AI:** off means the run's model selection is local even if a key is saved (`SessionRunner.context_for`). No request reaches a cloud provider, not even the key check, before it's on. Turning it off moves the selection back to local.
+- **Planted mistakes:** games marked `consent: deliberate_mistakes` in the registry are never offered or played without it.
+- **Microphone, camera, voice tone:** the browser features check them (WP2.10, WP3.5, WP3.9); nothing on the server uses them.
+
+Text sent to a hosted provider is de-identified on the way out (`backend/llm/deidentify.py`): the user's name, email addresses, phone numbers and ids are replaced. Export is `GET /me/export`. Delete is `DELETE /me`: Qdrant points, notes and checkpoint threads go first, then one Postgres cascade with the receipt. If Qdrant is down, nothing is deleted and the user can retry. A test finds every table with a `user_id` column from the database itself and checks it's empty afterwards. Retention runs with `make retention`.
+
 ## Retention
 
 | Data | Kept for |

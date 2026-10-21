@@ -12,6 +12,7 @@ from pydantic import AwareDatetime, Field, JsonValue, TypeAdapter
 from backend.contracts.acs import AcsEvent
 from backend.contracts.affect import AffectReading
 from backend.contracts.common import (
+    ConsentSwitch,
     Contract,
     DimensionId,
     Persona,
@@ -23,17 +24,6 @@ from backend.contracts.exercise import RoundResult
 from backend.contracts.llm import LlmMode
 from backend.contracts.trial import TrialEvent
 from backend.contracts.twin import DimensionState, LifeContextWindow
-
-ConsentSwitch = Literal[
-    "core",
-    "cloud_ai",
-    "microphone",
-    "camera",
-    "voice_tone",
-    "deliberate_mistakes",
-    "research_export",
-]
-
 
 # Payloads -------------------------------------------------------------------------------------
 

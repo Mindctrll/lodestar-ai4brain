@@ -1,14 +1,17 @@
 """Bring-your-own-key AI provider settings (docs/plan/02 API sketch; UW22)."""
 
 from typing import Annotated, Literal
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import Field, SecretStr
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.api.deps import Conn, CurrentUser, Engine, RegistryDep
 from backend.contracts.common import Contract, ProviderId
 from backend.contracts.llm import CredentialSummary, LlmSelection
+from backend.db.consent_store import granted_switches
 from backend.db.llm_store import (
     credential_summaries,
     delete_credential,
@@ -19,6 +22,7 @@ from backend.db.llm_store import (
 )
 from backend.llm.factory import LlmFactory
 from backend.llm.providers import KeyRejected, OutOfCredit, ProviderUnavailable, list_models
+from backend.registry.models import Registry
 
 router = APIRouter(prefix="/llm", tags=["llm"])
 
@@ -64,6 +68,15 @@ class SelectionInput(Contract):
     model: str = Field(min_length=1, max_length=200)
 
 
+async def _require_cloud_ai(engine: AsyncEngine, user_id: UUID, registry: Registry) -> None:
+    """Nothing goes to a cloud provider, not even a key check, before Cloud AI is switched on
+    (UW22: the consent screen names the provider and where it processes data)."""
+    async with engine.connect() as conn:
+        consent = await granted_switches(conn, user_id, registry.consent)
+    if "cloud_ai" not in consent:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Turn on Cloud AI first.")
+
+
 @router.get("/providers", response_model=LlmOverview)
 async def get_providers(
     user_id: CurrentUser, conn: Conn, registry: RegistryDep, factory: Factory
@@ -101,6 +114,7 @@ async def put_credential(
     provider = registry.provider(provider_id)
     if not provider.needs_key:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{provider.name} doesn't use a key.")
+    await _require_cloud_ai(engine, user_id, registry)
     if not factory.vault.available:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -158,9 +172,15 @@ async def remove_credential(
 
 @router.put("/selection", response_model=LlmSelection)
 async def put_selection(
-    body: SelectionInput, user_id: CurrentUser, engine: Engine, factory: Factory
+    body: SelectionInput,
+    user_id: CurrentUser,
+    engine: Engine,
+    registry: RegistryDep,
+    factory: Factory,
 ) -> LlmSelection:
     local_model = factory.settings.local_model
+    if body.mode == "hosted":
+        await _require_cloud_ai(engine, user_id, registry)
     async with engine.begin() as conn:
         if body.mode == "hosted":
             if await get_credential(conn, user_id, body.provider) is None:

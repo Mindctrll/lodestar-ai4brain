@@ -234,7 +234,7 @@ async def test_api_flow(aengine: AsyncEngine) -> None:
     try:
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            created = (await client.post("/users")).json()
+            created = (await client.post("/users", json={"age_confirmed": True})).json()
             headers = {"Authorization": f"Bearer {created['token']}"}
             user_id = UUID(created["user_id"])
             round_id, session_id = uuid4(), uuid4()

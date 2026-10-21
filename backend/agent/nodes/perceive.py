@@ -80,7 +80,12 @@ async def read_profile_facts(ctx: NajmaContext, state: NajmaState) -> dict[str, 
     if scored == 0 and not state.rounds and not state.onboarding:
         registry = ctx.services.registry
         battery = registry.batteries["onboarding"]
-        games = [g for g in battery.games if registry.game(g).available]
+        games = [
+            g
+            for g in battery.games
+            if registry.game(g).available
+            and registry.game(g).consent in (None, *ctx.consent)  # e.g. planted mistakes off
+        ]
         out["onboarding"] = games
         out["budget"] = state.budget.model_copy(update={"max_rounds": len(games)})
     return out

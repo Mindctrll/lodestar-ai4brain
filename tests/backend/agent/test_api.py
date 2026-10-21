@@ -66,15 +66,19 @@ async def client(
     await pool.close()
 
 
-async def _auth(client: httpx.AsyncClient) -> dict[str, str]:
-    created = (await client.post("/users")).json()
+NEW_USER: dict[str, Any] = {"age_confirmed": True}
+
+
+async def _auth(client: httpx.AsyncClient, *, cloud_ai: bool = False) -> dict[str, str]:
+    body = {**NEW_USER, "consent": {"cloud_ai": cloud_ai}}
+    created = (await client.post("/users", json=body)).json()
     return {"Authorization": f"Bearer {created['token']}"}
 
 
 async def test_saving_a_key_shows_only_last4_and_selects_the_provider(
     client: httpx.AsyncClient, fake: FakeProvider
 ) -> None:
-    headers = await _auth(client)
+    headers = await _auth(client, cloud_ai=True)
     saved = await client.put(
         "/llm/credentials/gemini", json={"api_key": GEMINI_KEY}, headers=headers
     )
@@ -96,7 +100,7 @@ async def test_saving_a_key_shows_only_last4_and_selects_the_provider(
 
 
 async def test_a_rejected_key_is_not_saved(client: httpx.AsyncClient, fake: FakeProvider) -> None:
-    headers = await _auth(client)
+    headers = await _auth(client, cloud_ai=True)
     fake.reject_keys = True
     saved = await client.put(
         "/llm/credentials/openai", json={"api_key": "sk-wrongwrongwrong"}, headers=headers
@@ -107,9 +111,21 @@ async def test_a_rejected_key_is_not_saved(client: httpx.AsyncClient, fake: Fake
 
 
 async def test_hosted_selection_needs_a_key(client: httpx.AsyncClient) -> None:
-    headers = await _auth(client)
+    headers = await _auth(client, cloud_ai=True)
     body = {"mode": "hosted", "provider": "anthropic", "model": "claude-opus-5-5"}
     assert (await client.put("/llm/selection", json=body, headers=headers)).status_code == 400
+
+
+async def test_nothing_reaches_a_cloud_provider_before_cloud_ai_is_on(
+    client: httpx.AsyncClient, fake: FakeProvider
+) -> None:
+    headers = await _auth(client)
+    saved = await client.put(
+        "/llm/credentials/gemini", json={"api_key": GEMINI_KEY}, headers=headers
+    )
+    assert saved.status_code == 409 and fake.requests == []  # not even the key check
+    body = {"mode": "hosted", "provider": "gemini", "model": "m"}
+    assert (await client.put("/llm/selection", json=body, headers=headers)).status_code == 409
 
 
 def _trials(spec: dict[str, Any], session_id: str, correct: list[bool]) -> list[dict[str, Any]]:
@@ -161,7 +177,7 @@ def test_websocket_through_the_real_lifespan(db_url: str, monkeypatch: pytest.Mo
     get_async_engine.cache_clear()
     try:
         with TestClient(create_app()) as tc:
-            created = tc.post("/users").json()
+            created = tc.post("/users", json={"age_confirmed": True}).json()
             token, user_id = created["token"], UUID(created["user_id"])
             engine = create_engine(sync_url(db_url))
             with engine.begin() as conn:  # deterministic coach: the stub model

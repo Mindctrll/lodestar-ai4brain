@@ -1,4 +1,18 @@
-import type { AgentEvent, Decision, GoalView, Registry, TrialEvent, TwinView } from './types'
+import type {
+  AgentEvent,
+  ConsentView,
+  Decision,
+  GoalView,
+  KeySaved,
+  LlmOverview,
+  LlmSelection,
+  MyData,
+  Persona,
+  Receipt,
+  Registry,
+  TrialEvent,
+  TwinView,
+} from './types'
 
 const TOKEN_KEY = 'najma.token'
 export const API_BASE = '/api'
@@ -50,10 +64,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await response.json()) as T
 }
 
-/** Make sure this browser has a user and a token (WP2.8 adds consent and the age check). */
-export async function ensureUser(): Promise<string> {
+export function hasUser(): boolean {
+  return Boolean(memoryToken ?? getToken())
+}
+
+/** The token of the user who went through the first-visit screens. */
+export function ensureUser(): Promise<string> {
   const existing = memoryToken ?? getToken()
-  if (existing) return existing
+  if (existing) return Promise.resolve(existing)
+  return Promise.reject(new Error('Finish the first-visit screens first'))
+}
+
+/** Create the user once the age check, consent and coach are chosen (UW1). */
+export async function signUp(choices: {
+  consent: Record<string, boolean>
+  persona: Persona
+}): Promise<string> {
   let timezone: string | undefined
   try {
     timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -62,11 +88,37 @@ export async function ensureUser(): Promise<string> {
   }
   const created = await request<{ user_id: string; token: string }>('/users', {
     method: 'POST',
-    body: JSON.stringify({ timezone }),
+    body: JSON.stringify({ age_confirmed: true, timezone, ...choices }),
   })
   memoryToken = created.token
   setToken(created.token)
   return created.token
+}
+
+/** After "Delete everything": forget this browser's user. */
+export function forgetUser(): void {
+  memoryToken = null
+  try {
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem('najma.session')
+  } catch {
+    // nothing stored
+  }
+}
+
+/** Download a response body as a file. */
+async function download(path: string, filename: string): Promise<void> {
+  const token = memoryToken ?? getToken()
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!response.ok) throw new ApiError(response.status, response.statusText)
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 export interface SessionStart {
@@ -92,6 +144,34 @@ export const api = {
   pending: (sessionId: string) =>
     request<{ pending: AgentEvent | null }>(`/sessions/${sessionId}/pending`),
   decision: (decisionId: string) => request<Decision>(`/decisions/${decisionId}`),
+  consent: () => request<ConsentView>('/consent'),
+  setConsent: (switchId: string, granted: boolean) =>
+    request<ConsentView>(`/consent/${switchId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ granted }),
+    }),
+  llm: () => request<LlmOverview>('/llm/providers'),
+  saveKey: (provider: string, apiKey: string) =>
+    request<KeySaved>(`/llm/credentials/${provider}`, {
+      method: 'PUT',
+      body: JSON.stringify({ api_key: apiKey }),
+    }),
+  removeKey: (provider: string) =>
+    request<undefined>(`/llm/credentials/${provider}`, { method: 'DELETE' }),
+  select: (selection: LlmSelection) =>
+    request<LlmSelection>('/llm/selection', {
+      method: 'PUT',
+      body: JSON.stringify(selection),
+    }),
+  myData: () => request<MyData>('/me/data'),
+  forgetCoreLine: (line: string) =>
+    request<undefined>('/me/core/forget', { method: 'POST', body: JSON.stringify({ line }) }),
+  forgetMemory: (collection: string, id: string) =>
+    request<undefined>(`/me/memories/${collection}/${id}`, { method: 'DELETE' }),
+  forgetLifeContext: (id: string) =>
+    request<undefined>(`/me/life-context/${id}`, { method: 'DELETE' }),
+  exportData: () => download('/me/export', 'najma-export.json'),
+  deleteEverything: () => request<Receipt>('/me', { method: 'DELETE' }),
   goals: () => request<GoalView[]>('/goals'),
   sendTrials: (trials: TrialEvent[]) =>
     request<{ accepted: number; duplicates: number }>('/events', {

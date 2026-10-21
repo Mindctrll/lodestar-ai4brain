@@ -6,7 +6,14 @@ from typing import Literal
 
 from pydantic import Field, HttpUrl, model_validator
 
-from backend.contracts.common import Contract, DimensionId, GameId, PlayMode, ProviderId
+from backend.contracts.common import (
+    ConsentSwitch,
+    Contract,
+    DimensionId,
+    GameId,
+    PlayMode,
+    ProviderId,
+)
 
 Badge = Literal["established", "moderate", "experimental"]
 SkyGroup = Literal["attention", "control", "memory", "speed", "reasoning", "language", "style"]
@@ -82,6 +89,9 @@ class Game(Contract):
     acs_hooks: list[AcsHook]
     practice_trials: int = Field(ge=0)
     available: bool = Field(default=False, description="A browser plugin exists for it")
+    consent: ConsentSwitch | None = Field(
+        default=None, description="A consent switch this game needs, e.g. planted mistakes"
+    )
     notes: str | None = None
 
     @model_validator(mode="after")
@@ -142,11 +152,38 @@ class Battery(Contract):
     games: list[GameId] = Field(min_length=1)
 
 
+class ConsentSwitchInfo(Contract):
+    id: ConsentSwitch
+    title: str
+    required: bool
+    default: bool
+    plain: str = Field(description="What the switch allows, in plain words")
+
+
+class ConsentNotice(Contract):
+    version: str
+    age_minimum: int = Field(ge=13)
+    switches: list[ConsentSwitchInfo]
+
+    @model_validator(mode="after")
+    def _complete(self) -> ConsentNotice:
+        ids = [s.id for s in self.switches]
+        if sorted(ids) != sorted(set(ids)) or not any(
+            s.id == "core" and s.required for s in self.switches
+        ):
+            raise ValueError("each switch once, and core must be required")
+        return self
+
+    def switch(self, switch_id: str) -> ConsentSwitchInfo:
+        return next(s for s in self.switches if s.id == switch_id)
+
+
 class Registry(Contract):
     dimensions: list[Dimension]
     games: list[Game]
     providers: list[LlmProvider]
     batteries: dict[str, Battery]
+    consent: ConsentNotice
 
     @model_validator(mode="after")
     def _cross_references(self) -> Registry:

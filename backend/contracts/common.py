@@ -22,6 +22,15 @@ GameId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]*$")]
 Persona = Literal["zitouna", "barq", "hikma", "sahbi"]
 Trigger = Literal["voice", "ui", "cli", "schedule", "proactive"]
 SuccessMode = Literal["chill", "balanced", "push"]
+ConsentSwitch = Literal[
+    "core",
+    "cloud_ai",
+    "microphone",
+    "camera",
+    "voice_tone",
+    "deliberate_mistakes",
+    "research_export",
+]
 PlayMode = Literal["assess", "train"]
 ProviderId = Literal[
     "anthropic",

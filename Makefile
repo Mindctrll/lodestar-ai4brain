@@ -2,16 +2,22 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
 
-up: ## build and start every service, wait until healthy
+env: ## create .env from .env.example with a fresh master key (only if .env is missing)
+	@test -f .env || python3 -c "import base64, os, re; t = open('.env.example').read(); \
+	k = base64.b64encode(os.urandom(32)).decode(); \
+	open('.env', 'w').write(re.sub(r'(?m)^NAJMA_MASTER_KEY=$$', 'NAJMA_MASTER_KEY=' + k, t)); \
+	print('Created .env with a new NAJMA_MASTER_KEY (keep it: saved API keys need it)')"
+
+up: env ## build and start every service, wait until healthy
 	$(COMPOSE) up -d --build --wait
 
-up-ollama: ## same as up, plus a containerised Ollama
+up-ollama: env ## same as up, plus a containerised Ollama
 	$(COMPOSE) --profile ollama up -d --build --wait
 
 down: ## stop every service (data volumes are kept)
@@ -62,6 +68,9 @@ pool: ## fill agent.content_pool so play never waits on an LLM
 
 rebuild-twin: ## recompute a user's profile from the event log: make rebuild-twin USER=<uuid>
 	uv run python -m backend.db.rebuild $(USER)
+
+retention: ## run the daily retention job now (old traces, checkpoints, events; docs/plan/14)
+	uv run python -m backend.ethics.retention
 
 db-shell: ## open psql inside the Postgres container
 	$(COMPOSE) exec postgres psql -U najma -d najma

@@ -41,11 +41,19 @@ WEIGHTS = {
 STALENESS_CAP_DAYS = 21.0
 
 
-def core_games_by_dim(registry: Registry) -> dict[str, list[Game]]:
-    """Core games the browser can run, by primary skill."""
+def allowed(game: Game, consent: frozenset[str] | None) -> bool:
+    """A game that needs a consent switch (planted mistakes) only runs with it on."""
+    return game.consent is None or consent is None or game.consent in consent
+
+
+def core_games_by_dim(
+    registry: Registry, consent: frozenset[str] | None = None
+) -> dict[str, list[Game]]:
+    """Core games the browser can run, by primary skill, leaving out games a switch has turned
+    off."""
     out: dict[str, list[Game]] = {}
     for game in registry.games:
-        if game.phase == "P1" and game.kind == "game" and game.available:
+        if game.phase == "P1" and game.kind == "game" and game.available and allowed(game, consent):
             for dim in game.primary_dims:
                 out.setdefault(dim, []).append(game)
     return out
@@ -191,7 +199,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     Code decides; a request from the user changes the inputs, never the rules."""
     ctx = runtime.context
     registry = ctx.services.registry
-    by_dim = core_games_by_dim(registry)
+    by_dim = core_games_by_dim(registry, ctx.consent)
     now = datetime.now(UTC)
     last_game = state.rounds[-1].game_id if state.rounds else None
     last_dims = set(registry.game(last_game).primary_dims) if last_game else set()
@@ -235,9 +243,17 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
 
     update: dict[str, Any] = {}
     requested = registry.game(intent.game_id) if intent and intent.game_id else None
+    switched_off = requested is not None and not allowed(requested, ctx.consent)
+    if switched_off:
+        requested = None
     wanted_dim = intent.dim if intent and intent.dim in by_dim else None
     force_assess = False
-    if requested is not None:
+    if switched_off and intent and intent.game_id:
+        dim = candidates[0].option
+        game = _pick(pool[dim], last_game, seed)
+        off = registry.game(intent.game_id).name
+        reason = f"{off} is switched off in your privacy settings, so here's {game.name} instead."
+    elif requested is not None:
         dim, game = requested.primary_dims[0], requested
         reason = f"You asked for {game.name}."
     elif wanted_dim is not None:

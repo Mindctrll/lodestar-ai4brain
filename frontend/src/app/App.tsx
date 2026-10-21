@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 
-import { api } from '../api/client'
-import type { Registry } from '../api/types'
+import { api, forgetUser, hasUser } from '../api/client'
+import type { Receipt, Registry } from '../api/types'
 import { GAMES } from '../games'
 import { GameFrame } from '../taskhost/GameFrame'
 import { Chat } from './Chat'
 import { Cited } from './Cited'
 import { DecisionCard } from './DecisionCard'
+import { Onboarding } from './Onboarding'
+import { Settings } from './Settings'
 import { useSession } from './useSession'
 
 function greeting(now: Date): string {
@@ -92,6 +94,26 @@ export function App() {
     useSession()
   const [registry, setRegistry] = useState<Registry | null>(null)
   const [why, setWhy] = useState<string | null>(null)
+  const [registered, setRegistered] = useState(hasUser)
+  const [view, setView] = useState<'practice' | 'settings'>('practice')
+  const [localMode, setLocalMode] = useState(false)
+  const [receipt, setReceipt] = useState<Receipt | null>(null)
+
+  const checkLlm = () => {
+    Promise.all([api.llm(), api.consent()]).then(
+      ([llm, consent]) => {
+        const cloud = consent.switches.some((s) => s.id === 'cloud_ai' && s.granted)
+        setLocalMode(llm.selection.mode !== 'hosted' || !cloud)
+      },
+      () => {
+        setLocalMode(false)
+      },
+    )
+  }
+
+  useEffect(() => {
+    if (registered) checkLlm()
+  }, [registered])
 
   useEffect(() => {
     api.registry().then(setRegistry, () => {
@@ -116,16 +138,84 @@ export function App() {
   const game = state.spec ? GAMES[state.spec.game_id] : undefined
   const now = new Date()
 
+  if (!registered) {
+    return (
+      <main className="app">
+        {receipt ? (
+          <section className="card" data-testid="receipt">
+            <h2>Everything is deleted</h2>
+            <p>{receipt.message}</p>
+            <p className="muted">Najma keeps only a receipt with these counts, not who you were.</p>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                window.location.assign('/')
+              }}
+            >
+              Start again
+            </button>
+          </section>
+        ) : (
+          <Onboarding
+            onDone={() => {
+              setRegistered(true)
+            }}
+          />
+        )}
+      </main>
+    )
+  }
+
   return (
     <main className="app">
       <header className="app__header">
         <p className="muted">
           {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+          {localMode && (
+            <>
+              {' '}
+              <span className="badge" title="Najma uses the model on this server">
+                Local mode
+              </span>
+            </>
+          )}
         </p>
         <h1>{greeting(now)}</h1>
+        <nav className="flex gap-2" aria-label="Main">
+          <button
+            type="button"
+            aria-pressed={view === 'practice'}
+            onClick={() => {
+              setView('practice')
+            }}
+          >
+            Practice
+          </button>
+          <button
+            type="button"
+            aria-pressed={view === 'settings'}
+            onClick={() => {
+              setView('settings')
+            }}
+          >
+            Settings
+          </button>
+        </nav>
       </header>
 
-      {state.phase === 'home' && (
+      {view === 'settings' && (
+        <Settings
+          onLlmChange={checkLlm}
+          onDeleted={(r) => {
+            forgetUser()
+            setReceipt(r)
+            setRegistered(false)
+          }}
+        />
+      )}
+
+      {view === 'practice' && state.phase === 'home' && (
         <section className="card">
           <h2>Najma</h2>
           <p>
@@ -138,118 +228,122 @@ export function App() {
         </section>
       )}
 
-      {state.phase === 'resumable' && state.spec && (
-        <section className="card" data-testid="resume">
-          <h2>Welcome back</h2>
-          <p>
-            You were in the middle of {GAMES[state.spec.game_id]?.name ?? state.spec.game_id}.
-            Resume or skip?
-          </p>
-          <div className="flex gap-2">
-            <button type="button" className="primary" onClick={() => void resumeSaved()}>
-              Resume
-            </button>
-            <button type="button" onClick={() => void skipSaved()}>
-              Skip
-            </button>
-          </div>
-        </section>
-      )}
-
-      {state.phase === 'starting' && state.chat.length === 0 && (
-        <p className="card">Najma is choosing your first game…</p>
-      )}
-
-      {state.phase === 'ready' && state.spec && (
-        <section className="card" data-testid="suggestion">
-          <h2>Next: {game?.name ?? state.spec.game_id}</h2>
-          {state.reason && (
-            <p className="reason">
-              {state.reason}{' '}
-              {state.reasonDecision && (
-                <button
-                  type="button"
-                  className="link"
-                  onClick={() => {
-                    setWhy(state.reasonDecision)
-                  }}
-                >
-                  Why?
-                </button>
-              )}
-            </p>
-          )}
-          {game ? (
-            <button type="button" className="primary" onClick={play}>
-              Let&apos;s go
-            </button>
-          ) : (
-            <p role="alert">This game isn&apos;t ready in the browser yet.</p>
-          )}
-        </section>
-      )}
-
-      {state.phase === 'playing' && state.spec && state.sessionId && game && (
-        <GameFrame
-          key={state.spec.round_id}
-          spec={state.spec}
-          sessionId={state.sessionId}
-          game={game}
-          skills={skillNames(state.spec.game_id)}
-          onFinish={finish}
-        />
-      )}
-
-      {(state.phase === 'scoring' || state.phase === 'after' || state.phase === 'ended') && (
-        <section className="card" data-testid="after-game">
-          <h2>{state.phase === 'ended' ? 'Session done' : 'How that went'}</h2>
-          {state.says.length === 0 && <p className="muted">Najma is looking at your round…</p>}
-          <div className="coach" data-testid="coach">
-            {state.says.map((line, i) => (
-              <p key={i}>
-                <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
+      {view === 'practice' && (
+        <>
+          {state.phase === 'resumable' && state.spec && (
+            <section className="card" data-testid="resume">
+              <h2>Welcome back</h2>
+              <p>
+                You were in the middle of {GAMES[state.spec.game_id]?.name ?? state.spec.game_id}.
+                Resume or skip?
               </p>
-            ))}
-          </div>
-          {state.sessionId && state.says.length > 0 && (
-            <AfterGameLabels
-              key={state.lastRoundId ?? 'none'}
+              <div className="flex gap-2">
+                <button type="button" className="primary" onClick={() => void resumeSaved()}>
+                  Resume
+                </button>
+                <button type="button" onClick={() => void skipSaved()}>
+                  Skip
+                </button>
+              </div>
+            </section>
+          )}
+
+          {state.phase === 'starting' && state.chat.length === 0 && (
+            <p className="card">Najma is choosing your first game…</p>
+          )}
+
+          {state.phase === 'ready' && state.spec && (
+            <section className="card" data-testid="suggestion">
+              <h2>Next: {game?.name ?? state.spec.game_id}</h2>
+              {state.reason && (
+                <p className="reason">
+                  {state.reason}{' '}
+                  {state.reasonDecision && (
+                    <button
+                      type="button"
+                      className="link"
+                      onClick={() => {
+                        setWhy(state.reasonDecision)
+                      }}
+                    >
+                      Why?
+                    </button>
+                  )}
+                </p>
+              )}
+              {game ? (
+                <button type="button" className="primary" onClick={play}>
+                  Let&apos;s go
+                </button>
+              ) : (
+                <p role="alert">This game isn&apos;t ready in the browser yet.</p>
+              )}
+            </section>
+          )}
+
+          {state.phase === 'playing' && state.spec && state.sessionId && game && (
+            <GameFrame
+              key={state.spec.round_id}
+              spec={state.spec}
               sessionId={state.sessionId}
-              roundId={state.lastRoundId}
-              monitor={state.lastMonitor}
+              game={game}
+              skills={skillNames(state.spec.game_id)}
+              onFinish={finish}
             />
           )}
-          {state.phase === 'after' && state.spec && (
-            <button type="button" className="primary" onClick={play}>
-              Next game
-            </button>
+
+          {(state.phase === 'scoring' || state.phase === 'after' || state.phase === 'ended') && (
+            <section className="card" data-testid="after-game">
+              <h2>{state.phase === 'ended' ? 'Session done' : 'How that went'}</h2>
+              {state.says.length === 0 && <p className="muted">Najma is looking at your round…</p>}
+              <div className="coach" data-testid="coach">
+                {state.says.map((line, i) => (
+                  <p key={i}>
+                    <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
+                  </p>
+                ))}
+              </div>
+              {state.sessionId && state.says.length > 0 && (
+                <AfterGameLabels
+                  key={state.lastRoundId ?? 'none'}
+                  sessionId={state.sessionId}
+                  roundId={state.lastRoundId}
+                  monitor={state.lastMonitor}
+                />
+              )}
+              {state.phase === 'after' && state.spec && (
+                <button type="button" className="primary" onClick={play}>
+                  Next game
+                </button>
+              )}
+              {state.phase === 'ended' && (
+                <button type="button" className="primary" onClick={() => void start()}>
+                  Start another session
+                </button>
+              )}
+            </section>
           )}
-          {state.phase === 'ended' && (
-            <button type="button" className="primary" onClick={() => void start()}>
-              Start another session
-            </button>
+
+          {why && (
+            <DecisionCard
+              decisionId={why}
+              name={optionName}
+              onClose={() => {
+                setWhy(null)
+              }}
+            />
           )}
-        </section>
-      )}
 
-      {why && (
-        <DecisionCard
-          decisionId={why}
-          name={optionName}
-          onClose={() => {
-            setWhy(null)
-          }}
-        />
-      )}
+          {!['playing', 'resumable', 'error'].includes(state.phase) && (
+            <Chat state={state} send={send} answer={answer} nextGame={nextGame} onWhy={setWhy} />
+          )}
 
-      {!['playing', 'resumable', 'error'].includes(state.phase) && (
-        <Chat state={state} send={send} answer={answer} nextGame={nextGame} onWhy={setWhy} />
-      )}
-
-      {state.phase === 'error' && (
-        <p role="alert" className="card">
-          Couldn&apos;t reach Najma: {state.error}
-        </p>
+          {state.phase === 'error' && (
+            <p role="alert" className="card">
+              Couldn&apos;t reach Najma: {state.error}
+            </p>
+          )}
+        </>
       )}
     </main>
   )

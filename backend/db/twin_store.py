@@ -90,8 +90,13 @@ async def create_user(
     display_name: str | None = None,
     persona: str = "zitouna",
     timezone: str | None = None,
+    age_confirmed: bool = False,
 ) -> tuple[UUID, str]:
-    values: dict[str, str | None] = {"display_name": display_name, "persona": persona}
+    values: dict[str, str | bool | None] = {
+        "display_name": display_name,
+        "persona": persona,
+        "age_confirmed": age_confirmed,
+    }
     if timezone:
         values["timezone"] = timezone
     user_id: UUID = (

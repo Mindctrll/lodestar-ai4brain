@@ -38,6 +38,43 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/consent': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Consent */
+    get: operations['get_consent_consent_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/consent/{switch}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Put Consent
+     * @description Turning a switch off stops that processing at once (docs/plan/14).
+     */
+    put: operations['put_consent_consent__switch__put']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/decisions/{decision_id}': {
     parameters: {
       query?: never
@@ -161,6 +198,120 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Delete Me
+     * @description Delete everything (the page asks for confirmation first) and return a receipt.
+     */
+    delete: operations['delete_me_me_delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/core/forget': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Forget Core Line */
+    post: operations['forget_core_line_me_core_forget_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/data': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * My Data
+     * @description What the Memory & data screen shows (UW14).
+     */
+    get: operations['my_data_me_data_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/export': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Export
+     * @description A download generated now; nothing is saved on the server.
+     */
+    get: operations['export_me_export_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/life-context/{context_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Forget Life Context
+     * @description Removes the window from now on; rounds already scored keep the weight they had.
+     */
+    delete: operations['forget_life_context_me_life_context__context_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/memories/{collection}/{point_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Forget Memory */
+    delete: operations['forget_memory_me_memories__collection___point_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/registry': {
     parameters: {
       query?: never
@@ -274,7 +425,7 @@ export interface paths {
     put?: never
     /**
      * Post User
-     * @description Create a user and return their bearer token. WP2.8 adds the age check and consent.
+     * @description Create a user after the age check and consent, and return their bearer token.
      */
     post: operations['post_user_users_post']
     delete?: never
@@ -639,6 +790,15 @@ export interface components {
        */
       user_id: string
     }
+    /** ConsentNotice */
+    ConsentNotice: {
+      /** Age Minimum */
+      age_minimum: number
+      /** Switches */
+      switches: components['schemas']['ConsentSwitchInfo'][]
+      /** Version */
+      version: string
+    }
     /** ConsentPayload */
     ConsentPayload: {
       /** Granted */
@@ -657,6 +817,41 @@ export interface components {
         | 'voice_tone'
         | 'deliberate_mistakes'
         | 'research_export'
+    }
+    /** ConsentSwitchInfo */
+    ConsentSwitchInfo: {
+      /** Default */
+      default: boolean
+      /**
+       * Id
+       * @enum {string}
+       */
+      id:
+        | 'core'
+        | 'cloud_ai'
+        | 'microphone'
+        | 'camera'
+        | 'voice_tone'
+        | 'deliberate_mistakes'
+        | 'research_export'
+      /**
+       * Plain
+       * @description What the switch allows, in plain words
+       */
+      plain: string
+      /** Required */
+      required: boolean
+      /** Title */
+      title: string
+    }
+    /** ConsentView */
+    ConsentView: {
+      /** Age Minimum */
+      age_minimum: number
+      /** Switches */
+      switches: components['schemas']['SwitchView'][]
+      /** Version */
+      version: string
     }
     /** ContextAdded */
     ContextAdded: {
@@ -692,6 +887,11 @@ export interface components {
        * Format: uuid
        */
       user_id: string
+    }
+    /** CoreLine */
+    CoreLine: {
+      /** Line */
+      line: string
     }
     /** CreatedUser */
     CreatedUser: {
@@ -1210,6 +1410,21 @@ export interface components {
       /** Code Source */
       code_source: string
       /**
+       * Consent
+       * @description A consent switch this game needs, e.g. planted mistakes
+       */
+      consent?:
+        | (
+            | 'core'
+            | 'cloud_ai'
+            | 'microphone'
+            | 'camera'
+            | 'voice_tone'
+            | 'deliberate_mistakes'
+            | 'research_export'
+          )
+        | null
+      /**
        * Content
        * @enum {string}
        */
@@ -1532,6 +1747,20 @@ export interface components {
       /** Value */
       value: string
     }
+    /** LifeContextLine */
+    LifeContextLine: {
+      /**
+       * Context Id
+       * Format: uuid
+       */
+      context_id: string
+      /** End */
+      end: string
+      /** Label */
+      label: string
+      /** Start */
+      start: string
+    }
     /** LifeContextWindow */
     LifeContextWindow: {
       /**
@@ -1736,6 +1965,22 @@ export interface components {
       /** Text */
       text: string
     }
+    /** MemoryLine */
+    MemoryLine: {
+      /**
+       * Collection
+       * @enum {string}
+       */
+      collection: 'episodic' | 'facts'
+      /** Created At */
+      created_at?: string | null
+      /** Id */
+      id: string
+      /** Kind */
+      kind?: string | null
+      /** Text */
+      text: string
+    }
     /** MemoryWritten */
     MemoryWritten: {
       /**
@@ -1793,8 +2038,41 @@ export interface components {
       /** Text */
       text: string
     }
-    /** NewUser */
+    /** MyData */
+    MyData: {
+      /**
+       * Core
+       * @description Lines of core.md, the short profile Najma keeps
+       */
+      core: string[]
+      /** Life Context */
+      life_context: components['schemas']['LifeContextLine'][]
+      /** Memories */
+      memories: components['schemas']['MemoryLine'][]
+      /** Memory Available */
+      memory_available: boolean
+    }
+    /**
+     * NewUser
+     * @description What the first-visit screens collect (UW1): the age check, the consent switches and the
+     *     coach. Switches left out keep the notice's default.
+     */
     NewUser: {
+      /**
+       * Age Confirmed
+       * @description The user confirmed they are 18 or older
+       */
+      age_confirmed: boolean
+      /** Consent */
+      consent?: {
+        [key: string]: boolean
+      }
+      /**
+       * Persona
+       * @default zitouna
+       * @enum {string}
+       */
+      persona: 'zitouna' | 'barq' | 'hikma' | 'sahbi'
       /**
        * Timezone
        * @description IANA time zone from the browser, for 'today'
@@ -1866,12 +2144,22 @@ export interface components {
       /** Notes */
       notes: string | null
     }
+    /** Receipt */
+    Receipt: {
+      /** Counts */
+      counts: {
+        [key: string]: number
+      }
+      /** Message */
+      message: string
+    }
     /** Registry */
     Registry: {
       /** Batteries */
       batteries: {
         [key: string]: components['schemas']['Battery']
       }
+      consent: components['schemas']['ConsentNotice']
       /** Dimensions */
       dimensions: components['schemas']['Dimension'][]
       /** Games */
@@ -2252,6 +2540,34 @@ export interface components {
        */
       trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
     }
+    /** SwitchInput */
+    SwitchInput: {
+      /** Granted */
+      granted: boolean
+    }
+    /** SwitchView */
+    SwitchView: {
+      /** Granted */
+      granted: boolean
+      /**
+       * Id
+       * @enum {string}
+       */
+      id:
+        | 'core'
+        | 'cloud_ai'
+        | 'microphone'
+        | 'camera'
+        | 'voice_tone'
+        | 'deliberate_mistakes'
+        | 'research_export'
+      /** Plain */
+      plain: string
+      /** Required */
+      required: boolean
+      /** Title */
+      title: string
+    }
     /** TrialBatch */
     TrialBatch: {
       /** Trials */
@@ -2570,6 +2886,81 @@ export interface operations {
       }
     }
   }
+  get_consent_consent_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ConsentView']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  put_consent_consent__switch__put: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        switch:
+          | 'core'
+          | 'cloud_ai'
+          | 'microphone'
+          | 'camera'
+          | 'voice_tone'
+          | 'deliberate_mistakes'
+          | 'research_export'
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SwitchInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ConsentView']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   get_decision_decisions__decision_id__get: {
     parameters: {
       query?: never
@@ -2845,6 +3236,195 @@ export interface operations {
       }
     }
   }
+  delete_me_me_delete: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Receipt']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  forget_core_line_me_core_forget_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CoreLine']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  my_data_me_data_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MyData']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  export_me_export_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': unknown
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  forget_life_context_me_life_context__context_id__delete: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        context_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  forget_memory_me_memories__collection___point_id__delete: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        collection: 'episodic' | 'facts'
+        point_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   get_registry_registry_get: {
     parameters: {
       query?: never
@@ -3047,9 +3627,9 @@ export interface operations {
       path?: never
       cookie?: never
     }
-    requestBody?: {
+    requestBody: {
       content: {
-        'application/json': components['schemas']['NewUser'] | null
+        'application/json': components['schemas']['NewUser']
       }
     }
     responses: {

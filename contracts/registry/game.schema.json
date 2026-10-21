@@ -59,6 +59,28 @@
       "title": "Code Source",
       "type": "string"
     },
+    "consent": {
+      "anyOf": [
+        {
+          "enum": [
+            "core",
+            "cloud_ai",
+            "microphone",
+            "camera",
+            "voice_tone",
+            "deliberate_mistakes",
+            "research_export"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A consent switch this game needs, e.g. planted mistakes",
+      "title": "Consent"
+    },
     "content": {
       "enum": [
         "code",

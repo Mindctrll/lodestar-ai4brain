@@ -23,6 +23,7 @@ def load_registry_from(root: Path) -> Registry:
             "games": games,
             "providers": _read(root / "llm_providers.yaml"),
             "batteries": _read(root / "batteries.yaml"),
+            "consent": _read(root / "consent.yaml"),
         }
     )
 

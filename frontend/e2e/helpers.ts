@@ -12,11 +12,23 @@ export interface SentTrial {
   response: Record<string, unknown> | null
 }
 
-/** Turn on the test flag (stimuli expose their expected answer) and record every trial sent. */
-export async function prepare(page: Page): Promise<SentTrial[]> {
+/** Turn on the test flag (stimuli expose their expected answer) and record every trial sent.
+ * Unless `firstVisit` is set, a user who already went through the first-visit screens (18+,
+ * default consent) is signed in. */
+export async function prepare(
+  page: Page,
+  { firstVisit = false }: { firstVisit?: boolean } = {},
+): Promise<SentTrial[]> {
   await page.addInitScript(() => {
     ;(window as unknown as { __NAJMA_E2E__: boolean }).__NAJMA_E2E__ = true
   })
+  if (!firstVisit) {
+    const created = await page.request.post('/api/users', { data: { age_confirmed: true } })
+    const { token } = (await created.json()) as { token: string }
+    await page.addInitScript((t: string) => {
+      if (!localStorage.getItem('najma.token')) localStorage.setItem('najma.token', t)
+    }, token)
+  }
   const sent: SentTrial[] = []
   page.on('request', (request: Request) => {
     if (request.method() === 'POST' && request.url().endsWith('/api/events')) {

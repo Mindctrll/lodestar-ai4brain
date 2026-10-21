@@ -11,6 +11,13 @@ export type Game = Schemas['Game']
 export type Decision = Schemas['Decision']
 export type GoalView = Schemas['GoalView']
 export type FactsPacket = Schemas['FactsPacket']
+export type ConsentView = Schemas['ConsentView']
+export type LlmOverview = Schemas['LlmOverview']
+export type LlmSelection = Schemas['LlmSelection']
+export type KeySaved = Schemas['KeySaved']
+export type MyData = Schemas['MyData']
+export type Receipt = Schemas['Receipt']
+export type Persona = 'zitouna' | 'barq' | 'hikma' | 'sahbi'
 
 /** A write Najma wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
 export interface ConfirmRequest {

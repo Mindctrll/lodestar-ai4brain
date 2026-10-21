@@ -14,6 +14,7 @@ from backend.agent.graph import checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
 from backend.config import Settings, get_settings
 from backend.db import tables as t
+from backend.db.consent_store import set_consent
 from backend.db.engine import libpq_url, sync_url
 from backend.db.twin_store import create_user
 from backend.llm.factory import LlmFactory
@@ -68,6 +69,14 @@ async def make_runner(db_url: str, aengine: AsyncEngine) -> AsyncIterator[Runner
     yield build
     for pool in pools:
         await pool.close()
+
+
+async def grant(engine: AsyncEngine, user_id: UUID, *switches: str, granted: bool = True) -> None:
+    """Set consent switches as the consent screen would."""
+    notice = load_registry().consent
+    async with engine.begin() as conn:
+        for switch in switches:
+            await set_consent(conn, user_id, notice, switch, granted)
 
 
 async def new_user(engine: AsyncEngine, mode: str = "stub", persona: str = "zitouna") -> UUID:

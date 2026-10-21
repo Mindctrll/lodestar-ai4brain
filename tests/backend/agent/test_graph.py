@@ -19,7 +19,7 @@ from backend.db import tables as t
 from backend.db.llm_store import save_credential, set_selection
 from backend.db.twin_store import record_trials
 from backend.llm.vault import Vault
-from tests.backend.agent.conftest import MASTER_KEY, RunnerFactory, new_user
+from tests.backend.agent.conftest import MASTER_KEY, RunnerFactory, grant, new_user
 
 
 async def collect(
@@ -176,6 +176,7 @@ async def test_canary_key_never_leaks(
     canary = f"sk-canary-{uuid4().hex}"
     runner = await make_runner(base_overrides={"openai": "http://127.0.0.1:9/v1"})
     user_id = await new_user(aengine)
+    await grant(aengine, user_id, "cloud_ai")
     async with aengine.begin() as conn:
         sealed = Vault(MASTER_KEY).seal(user_id, "openai", canary)
         await save_credential(conn, user_id, "openai", sealed, "ok")
@@ -186,7 +187,8 @@ async def test_canary_key_never_leaks(
         session_id = await runner.create_session(user_id, "ui")
         spec = interrupt_of(await collect(runner, user_id, session_id))
         events = await play(runner, aengine, user_id, session_id, spec, [True] * 10)
-    assert any(e["kind"] == "degraded" for e in events)  # the fake endpoint is unreachable
+    # The hosted rung was tried with the key (its fake endpoint is unreachable).
+    assert any(e["kind"] == "degraded" and e["from"] == "openai" for e in events)
     assert canary not in caplog.text and canary not in str(events)
     async with aengine.connect() as conn:
         for query in (

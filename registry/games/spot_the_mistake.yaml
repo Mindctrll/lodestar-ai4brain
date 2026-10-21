@@ -29,4 +29,5 @@ acs_hooks:
 - verification
 practice_trials: 3
 available: true
+consent: deliberate_mistakes
 notes: 70% of items carry one planted error, confirmed by the solver. Disclosed at consent.

@@ -20,7 +20,9 @@ from backend.acs.events import BREAK_MINUTES, Observation
 from backend.agent.context import NajmaContext, Services
 from backend.agent.state import NajmaState
 from backend.contracts.events import SessionStarted, SessionStartedPayload
+from backend.contracts.llm import LlmSelection
 from backend.db import tables as t
+from backend.db.consent_store import granted_switches
 from backend.db.llm_store import get_selection
 from backend.db.twin_store import append_event, record_acs
 
@@ -120,14 +122,10 @@ class SessionRunner:
     async def context_for(self, user_id: UUID, session_id: UUID, seed: int = 0) -> NajmaContext:
         async with self.services.engine.connect() as conn:
             selection = await get_selection(conn, user_id, self.local_model)
-            consent = frozenset(
-                r.switch
-                for r in await conn.execute(
-                    select(t.consent.c.switch).where(
-                        t.consent.c.user_id == user_id, t.consent.c.granted.is_(True)
-                    )
-                )
-            )
+            consent = await granted_switches(conn, user_id, self.services.registry.consent)
+        if selection.mode == "hosted" and "cloud_ai" not in consent:
+            # Turning Cloud AI off stops it at once, even if a key is still saved (docs/plan/14).
+            selection = LlmSelection(mode="local", provider="ollama", model=self.local_model)
         return NajmaContext(
             user_id=user_id,
             session_id=session_id,

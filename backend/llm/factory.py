@@ -15,11 +15,14 @@ from uuid import UUID
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.config import Settings
 from backend.contracts.llm import LlmSelection
+from backend.db import tables as t
 from backend.db.llm_store import get_credential, set_credential_status
+from backend.llm.deidentify import scrub_messages
 from backend.llm.providers import build_chat_model
 from backend.llm.stub import Responder, StubChatModel
 from backend.llm.vault import Vault
@@ -60,6 +63,13 @@ class _Rung:
     provider: str
     model: str
     chat: BaseChatModel
+    # Hosted rungs only see de-identified text: the user's name is replaced (docs/plan/14).
+    hide_names: tuple[str, ...] | None = None
+
+    def outbound(self, messages: Sequence[BaseMessage]) -> list[BaseMessage]:
+        if self.hide_names is None:
+            return list(messages)
+        return scrub_messages(messages, self.hide_names)
 
 
 def _status_for(exc: BaseException) -> str | None:
@@ -135,7 +145,14 @@ class LlmFactory:
                 key = self.vault.open(user_id, selection.provider, stored.ciphertext, stored.nonce)
                 provider = self.registry.provider(selection.provider)
                 chat = build_chat_model(provider, selection.model, key, self.base_for(provider.id))
-                rungs.append(_Rung(provider.id, selection.model, chat))
+                async with self.engine.connect() as conn:
+                    name = (
+                        await conn.execute(
+                            select(t.users.c.display_name).where(t.users.c.user_id == user_id)
+                        )
+                    ).scalar_one_or_none()
+                hide = (name,) if name else ()
+                rungs.append(_Rung(provider.id, selection.model, chat, hide_names=hide))
         rungs.append(self._local())
         return rungs
 
@@ -169,7 +186,7 @@ class LlmFactory:
         self, user_id: UUID, selection: LlmSelection, messages: Sequence[BaseMessage]
     ) -> LlmReply:
         async def call(rung: _Rung) -> str:
-            reply = await rung.chat.ainvoke(list(messages))
+            reply = await rung.chat.ainvoke(rung.outbound(messages))
             return reply.text if hasattr(reply, "text") else str(reply.content)
 
         text, rung, degraded = await self._walk(user_id, selection, call)
@@ -189,7 +206,7 @@ class LlmFactory:
             caps = self.registry.provider(rung.provider).capabilities
             method = caps.structured_method
             runnable = rung.chat.with_structured_output(schema, method=method)
-            value = await runnable.ainvoke(list(messages))
+            value = await runnable.ainvoke(rung.outbound(messages))
             return value if isinstance(value, schema) else schema.model_validate(value)
 
         value, rung, degraded = await self._walk(user_id, selection, call)
