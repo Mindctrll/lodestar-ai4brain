@@ -1,0 +1,4 @@
+# Off Beat (anisochrony detection). Knobs: registry/games/off_beat.yaml.
+trials: 16
+beat_ms: 600 # thresholds are about steady between 300 and 900 ms (Ehrlé & Samson, 2005)
+deadline_ms: 4000

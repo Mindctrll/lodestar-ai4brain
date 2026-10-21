@@ -1,0 +1,35 @@
+# Off Beat (WP4.4 extensibility drill; docs/plan/05, "As built (WP4.4)")
+id: off_beat
+name: Off Beat
+kind: game
+# P1 puts it in the agent's default pool (core_games_by_dim): a skill is picked by the policy only
+# through a P1 game. It isn't in the onboarding battery.
+phase: P1
+dims:
+  timing: 1.0
+origin: classic
+paradigm: Anisochrony detection (Ehrlé & Samson, 2005)
+code_source: own
+does: See and hear a steady beat, then say whether the last beat came on time
+scoring: binary
+duration_s: 90
+metrics:
+- accuracy
+- hit_rate
+- false_alarm_rate
+knobs:
+  shift_pct:
+    easy: 30
+    hard: 6
+    unit: '% of the beat'
+  beats:
+    easy: 6
+    hard: 4
+level_map: linear
+content: code
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 3
+available: true

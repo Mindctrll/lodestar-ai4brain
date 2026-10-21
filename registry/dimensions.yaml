@@ -1,4 +1,4 @@
-# The 16 skills Najma measures (docs/plan/05). Source of truth for the UI, the scorer and the agent.
+# The skills Najma measures (docs/plan/05: the plan's 16, plus any added since). Source of truth for the UI, the scorer and the agent.
 # Which games measure a skill, and how strongly, lives in each game's file (registry/games/*.yaml).
 # `group` places the skill's constellation in the night sky (docs/plan/13).
 
@@ -217,3 +217,19 @@
   sources:
     - https://doi.org/10.3758/s13428-020-01453-w  # Beaty & Johnson 2021, SemDis scoring
     - https://doi.org/10.1016/j.tsc.2023.101356  # Organisciak et al. 2023, LLM scoring of uses
+
+# Added in the WP4.4 extensibility drill (docs/plan/05, "As built (WP4.4)").
+- id: timing
+  name: Rhythm and timing
+  plain: Feeling a steady beat
+  badge: experimental
+  in_overall: false
+  group: speed
+  framework: [CHC:Ga, CHC:U8, anisochrony_detection]
+  main_metric: Accuracy telling on-beat from off-beat, by size of the shift
+  biases: [musical training, sound off or hard to hear, screen and device timing jitter]
+  note: New and not yet checked against other measures, so it never enters an overall score.
+  sources:
+    - https://doi.org/10.1016/j.bandc.2004.09.014  # Ehrlé & Samson (2005), anisochrony
+    - https://doi.org/10.3758/BF03206433  # Repp (2005), tapping review
+    - https://doi.org/10.3758/s13423-012-0371-2  # Repp & Su (2013), tapping review 2006-2012

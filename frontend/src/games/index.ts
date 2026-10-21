@@ -21,6 +21,7 @@ import { game as mazeEscape } from './maze_escape/plugin'
 import { game as nameTags } from './name_tags/plugin'
 import { game as nightGuard } from './night_guard/plugin'
 import { game as numberLine } from './number_line/plugin'
+import { game as offBeat } from './off_beat/plugin'
 import { game as oddOneOut } from './odd_one_out/plugin'
 import { game as patternGap } from './pattern_gap/plugin'
 import { game as quickDraw } from './quick_draw/plugin'
@@ -93,5 +94,7 @@ export const GAMES: Record<string, GameModule> = Object.fromEntries(
     foldAndPunch,
     cardGamble,
     unusualUses,
+    // Extensibility drill (WP4.4)
+    offBeat,
   ].map((g) => [g.id, g]),
 )

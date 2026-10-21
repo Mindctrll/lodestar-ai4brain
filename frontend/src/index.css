@@ -1406,3 +1406,16 @@ button.danger {
   min-height: 1.5rem;
   color: var(--color-muted);
 }
+
+/* Off Beat */
+.ob-dot {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 0.25rem solid var(--color-ink);
+  transition: transform 0.05s;
+}
+.ob-dot.is-on {
+  background: var(--color-accent);
+  transform: scale(1.25);
+}
