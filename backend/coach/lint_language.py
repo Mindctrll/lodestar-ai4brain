@@ -11,6 +11,7 @@ SCAN_ROOTS = (
     Path("backend/generation/prompts"),
     Path("backend/coach/templates"),
     Path("backend/coach/personas"),
+    Path("docs/generated"),
 )
 SUFFIXES = {".ts", ".tsx", ".md", ".txt", ".yaml", ".yml", ".json", ".html"}
 

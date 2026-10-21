@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env cli ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env cli docs ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
@@ -92,6 +92,9 @@ retention: ## run the daily retention job now (old traces, checkpoints, events; 
 
 db-shell: ## open psql inside the Postgres container
 	$(COMPOSE) exec postgres psql -U najma -d najma
+
+docs: ## regenerate docs/generated/ (skill pages, ACS, data policy, model cards) from the registry and code
+	uv run python -m backend.docs_gen
 
 contracts: ## regenerate OpenAPI, registry schemas and TypeScript types
 	uv run python -m backend.contracts.export

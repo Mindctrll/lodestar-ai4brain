@@ -24,7 +24,9 @@
   framework: [CHC:Gs]
   main_metric: Hits, false alarms, d-prime, RT variability
   biases: [boredom, noisy room]
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.1080/17470214808416738  # Mackworth 1948, the breakdown of vigilance
+    - https://doi.org/10.1016/S0028-3932(97)00015-8  # Robertson et al. 1997, the SART
 
 - id: divided_attention
   name: Divided attention
@@ -51,6 +53,8 @@
   biases: [reading fluency with English colour words]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
+    - https://doi.org/10.1006/cogp.1999.0734  # Miyake et al. 2000, executive functions
+    - https://doi.org/10.3758/s13428-017-0935-1  # Hedge et al. 2018, the reliability paradox
 
 - id: working_memory
   name: Working memory
@@ -64,6 +68,7 @@
   biases: [chunking strategy, practice gains on n-back]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
+    - https://doi.org/10.1006/cogp.1999.0734  # Miyake et al. 2000, executive functions
 
 - id: short_term_memory
   name: Short-term memory
@@ -101,7 +106,9 @@
   main_metric: Switch cost, perseverative errors
   forecast_family: 3  # Lumosity master game: Brain Shift (docs/plan/10)
   biases: [card sort loses meaning on repeat once the trick is known]
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.1006/cogp.1999.0734  # Miyake et al. 2000, executive functions
+    - https://doi.org/10.1016/S1364-6613(03)00028-7  # Monsell 2003, task switching
 
 - id: planning
   name: Planning
@@ -113,7 +120,9 @@
   main_metric: Percent optimal solutions, planning time, extra moves
   forecast_family: 29  # Lumosity master game: Route to Sprout (docs/plan/10)
   biases: [trial-and-error strategies]
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.1098/rstb.1982.0082  # Shallice 1982, the Tower of London
+    - https://doi.org/10.1080/713755681  # Ward & Allport 1997, five-disc Tower of London
 
 - id: reasoning
   name: Reasoning
@@ -152,7 +161,9 @@
   forecast_family: 13  # Lumosity master game: Word Bubbles (docs/plan/10)
   biases: [the English-only rule disadvantages Arabic and French speakers]
   note: Tasks are in English, which puts Arabic and French speakers at a disadvantage.
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.1016/j.intell.2008.08.004  # McGrew 2009, CHC theory (Gc, Gr)
+    - https://doi.org/10.1037/0894-4105.11.1.138  # Troyer et al. 1997, verbal fluency
 
 - id: numerical_thinking
   name: Numerical thinking
@@ -178,7 +189,9 @@
   main_metric: Adjusted pumps, advantageous choices
   biases: [learning the task vs risk preference]
   note: Shown as a style, not as better or worse.
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.1037/1076-898X.8.2.75  # Lejuez et al. 2002, the BART
+    - https://doi.org/10.1016/0010-0277(94)90018-3  # Bechara et al. 1994, the gambling task
 
 - id: accuracy_awareness
   name: Self-awareness of accuracy
@@ -189,7 +202,8 @@
   framework: [metacognition]
   main_metric: Calibration error, Brier score
   biases: [needs many answers, linked to accuracy]
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.3389/fnhum.2014.00443  # Fleming & Lau 2014, how to measure metacognition
 
 - id: creativity
   name: Creativity
@@ -200,4 +214,6 @@
   framework: [AUT]
   main_metric: Fluency, originality (AI-rated)
   biases: [AI rater bias, validity unproven]
-  sources: []  # filled and checked in WP4.3
+  sources:
+    - https://doi.org/10.3758/s13428-020-01453-w  # Beaty & Johnson 2021, SemDis scoring
+    - https://doi.org/10.1016/j.tsc.2023.101356  # Organisciak et al. 2023, LLM scoring of uses

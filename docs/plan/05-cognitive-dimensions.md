@@ -68,6 +68,8 @@ Classic tasks are built to show group effects, not to rank individuals. Hedge, P
 5. **Biases and confounds:** language, device, practice, culture.
 6. **Evidence badge** and sources.
 
+**As built (WP4.3).** `make docs` (`backend/docs_gen.py`) writes one page per dimension to `docs/generated/dimensions/<id>.md`, plus `acs.md`, `data-policy.md`, `model-cards.md` and a `README.md` index, all from the registry and code constants (loadings, reliabilities, cleaning thresholds, σ settings, ACS weights, consent switches, retention periods). Nothing is filled in by hand: a page that needs more text gets it from the registry. The generator stops and lists every missing field (a dimension with no sources, a game with no paradigm, a model card without "Limits" or "Must not be used for"), and `tests/backend/test_docs_gen.py` fails if a page is out of date, so a new dimension needs `make docs` in the same change. `make lint-language` scans the generated pages. Every dimension now cites checked sources (DOIs resolved through Crossref). One finding from the code: with the per-round process noise, practice alone can't bring the 80% range below about ±19 points in the middle of the scale, so the "rounds to reach ±10" asked for above isn't reachable; the pages say how many rounds reach ±20 and where the floor is.
+
 ## Registry format
 
 Which games measure a dimension, and how strongly, is written once, in each game's file (`dims: {working_memory: 1.0, short_term_memory: 0.5}`, see `06`). The loader derives each dimension's task list from there, so the two can't disagree.
