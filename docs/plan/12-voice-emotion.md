@@ -9,6 +9,13 @@
 | Text to speech | Browser SpeechSynthesis | **Kokoro-82M via kokoro-js** (Apache-2.0, runs in the browser, about 300 MB one-time download) | One voice and rate per persona |
 | Voice coaching (bonus) | Coach replies are spoken | Najma talks you through games ("ready… go") and reads results | Captions always on screen |
 
+**As built (WP2.10).**
+- **Tap to talk:** the orb on Home, or Alt+V. A first tap asks for the microphone switch in place.
+- **Two ways to listen**, chosen in Settings → Voice. "Your browser" uses Web Speech, and the screen says Chrome sends the audio to Google. "Private" records with an AudioWorklet, converts to 16 kHz mono WAV in the browser, and `POST /voice/transcribe` runs faster-whisper base.en on the server: about 0.4 s for a short request on CPU, model baked into the image. The audio is never stored. Because the browser sends WAV, the server needs no audio codecs; PyAV 19 no longer works with faster-whisper 1.2.1's decoder anyway.
+- **Speaking:** replies use the browser's voices, with one rate and pitch per coach. Once someone talks to Najma, the replies are spoken too, or always if "Speak Najma's replies" is on. Citations like [F1] are left out of speech, and every spoken line is on screen.
+- **Themed requests:** a themed request goes to a game that takes themes (`themable` in the registry, Market List today). "Give me a memory game about football" gives "Football memory, coming up: Market List" with the curated football words.
+- **Test:** the e2e test plays `tests/fixtures/voice/*.wav` (synthesised with Kokoro-82M) through Chromium's fake microphone.
+
 Audio is discarded after transcription. Transcripts are kept 30 days unless the user pins them (`14`).
 
 ## Frustration and fatigue: the main path (no camera, no mic)

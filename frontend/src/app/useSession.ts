@@ -165,7 +165,7 @@ export function useSession() {
   }, [])
 
   const start = useCallback(
-    async (message?: string) => {
+    async (message?: string, trigger: 'ui' | 'voice' = 'ui') => {
       setState({
         ...INITIAL,
         phase: 'starting',
@@ -174,7 +174,7 @@ export function useSession() {
       })
       try {
         const token = await ensureUser()
-        const started = await api.startSession('ui', message)
+        const started = await api.startSession(trigger, message)
         for (const event of started.events) handle(event)
         remember(started.session_id)
         await attach(started.session_id, token)
@@ -192,11 +192,11 @@ export function useSession() {
 
   /** Say something to Najma: starts a session if there isn't a live one. */
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, trigger: 'ui' | 'voice' = 'ui') => {
       const message = text.trim()
       if (!message) return
       if (!state.sessionId || state.phase === 'ended' || state.phase === 'home') {
-        await start(message)
+        await start(message, trigger)
         return
       }
       setState((s) => ({

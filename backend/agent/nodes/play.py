@@ -90,6 +90,19 @@ def _length(game: Game) -> str:
     return f"{s // 60}-minute" if s % 60 == 0 else f"{s}-second"
 
 
+def _themed_game(registry: Registry, pool: dict[str, list[Game]], intent: Any) -> Game | None:
+    """UW4, "a memory game about football": a game that can take the theme, from the skill
+    asked for or its group in the sky (memory: working or short-term), else any."""
+    if intent is None or not intent.theme:
+        return None
+    games = [g for options in pool.values() for g in options if g.themable]
+    if intent.dim:
+        group = registry.dimension(intent.dim).group
+        near = [g for g in games if registry.dimension(g.primary_dims[0]).group == group]
+        games = near or games
+    return games[0] if games else None
+
+
 async def _abandon(ctx: NajmaContext, round_id: Any) -> None:
     """A new pick replaces a game that was waiting ("not memory today"): it's never scored."""
     async with ctx.services.engine.begin() as conn:
@@ -243,6 +256,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
 
     update: dict[str, Any] = {}
     requested = registry.game(intent.game_id) if intent and intent.game_id else None
+    themed = _themed_game(registry, pool, intent) if requested is None else None
     switched_off = requested is not None and not allowed(requested, ctx.consent)
     if switched_off:
         requested = None
@@ -256,6 +270,10 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     elif requested is not None:
         dim, game = requested.primary_dims[0], requested
         reason = f"You asked for {game.name}."
+    elif themed is not None and intent is not None and intent.theme:
+        dim, game = themed.primary_dims[0], themed
+        kind = registry.dimension(intent.dim).group if intent.dim else "game"
+        reason = f"{intent.theme.capitalize()} {kind}, coming up: {game.name}."
     elif wanted_dim is not None:
         dim = wanted_dim
         game = _pick(pool.get(dim, by_dim[dim]), last_game, seed)

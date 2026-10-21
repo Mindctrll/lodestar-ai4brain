@@ -920,3 +920,46 @@ button.danger {
     grid-template-columns: 1fr;
   }
 }
+
+/* Voice: tap-to-talk orb with captions (docs/plan/12) */
+.orb-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0;
+}
+.orb {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: none;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: radial-gradient(circle at 35% 30%, #9cb8f5, var(--color-accent) 60%, #1b3fa0);
+  box-shadow: 0 6px 18px rgba(47, 111, 237, 0.35);
+}
+.orb--listening {
+  background: radial-gradient(circle at 35% 30%, #ffe3a8, #f0a03c 60%, #b5651d);
+  box-shadow: 0 0 0 6px rgba(240, 160, 60, 0.25);
+}
+.orb--transcribing {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orb--listening {
+    animation: orb-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes orb-pulse {
+    50% {
+      box-shadow: 0 0 0 12px rgba(240, 160, 60, 0.12);
+    }
+  }
+}
+.orb__text {
+  min-width: 0;
+  flex: 1;
+}
+.orb__caption {
+  font-size: 1.05rem;
+  min-height: 1.4em;
+}

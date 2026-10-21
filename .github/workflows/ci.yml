@@ -35,7 +35,7 @@ jobs:
         with:
           path: /home/runner/.cache/fastembed
           key: fastembed-bge-small-en-v1.5-bm25
-      - run: uv sync --frozen --python 3.14
+      - run: uv sync --frozen --python 3.14 --extra whisper
       - run: make lint-backend lint-language test-backend
       - run: make sim N=200
 
@@ -63,7 +63,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: uv sync --frozen --python 3.14
+      - run: uv sync --frozen --python 3.14 --extra whisper
       - run: npm ci --prefix frontend
       - run: make contracts
       - run: git diff --exit-code

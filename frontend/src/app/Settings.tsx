@@ -2,8 +2,15 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ApiError, api } from '../api/client'
 import type { ConsentView, LlmOverview, MyData, Receipt } from '../api/types'
+import {
+  browserRecognitionAvailable,
+  setSpeechEngine,
+  speechEngine,
+  type SpeechEngine,
+} from '../voice/speech'
+import { canSpeak, speakReplies } from '../voice/tts'
 
-type Tab = 'privacy' | 'ai' | 'data'
+type Tab = 'privacy' | 'voice' | 'ai' | 'data'
 
 function message(e: unknown): string {
   return e instanceof ApiError || e instanceof Error ? e.message : String(e)
@@ -469,16 +476,94 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
   )
 }
 
+/** How Najma listens and speaks (docs/plan/12). */
+function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
+  const [engine, setEngine] = useState<SpeechEngine>(speechEngine)
+  const [speakOn, setSpeakOn] = useState(speakReplies)
+  return (
+    <div data-testid="voice-settings">
+      <h3>Listening</h3>
+      <ul className="switches">
+        <li>
+          <label className="switch">
+            <input
+              type="radio"
+              name="engine"
+              checked={engine === 'browser'}
+              disabled={!browserRecognitionAvailable()}
+              onChange={() => {
+                setSpeechEngine('browser')
+                setEngine('browser')
+              }}
+            />
+            <span>
+              <strong>Your browser</strong>
+              <br />
+              <span className="muted">
+                Fast. Chrome sends the audio to Google to turn it into text.
+                {!browserRecognitionAvailable() && ' Not available in this browser.'}
+              </span>
+            </span>
+          </label>
+        </li>
+        <li>
+          <label className="switch">
+            <input
+              type="radio"
+              name="engine"
+              checked={engine === 'private'}
+              onChange={() => {
+                setSpeechEngine('private')
+                setEngine('private')
+              }}
+            />
+            <span>
+              <strong>Private</strong>
+              <br />
+              <span className="muted">
+                Turned into text on Najma&apos;s server; the audio is not kept. English only for
+                now.
+              </span>
+            </span>
+          </label>
+        </li>
+      </ul>
+      <h3>Speaking</h3>
+      <label className="switch">
+        <input
+          type="checkbox"
+          checked={speakOn}
+          disabled={!canSpeak()}
+          onChange={(e) => {
+            setSpeakOn(e.target.checked)
+            onChange(e.target.checked)
+          }}
+        />
+        <span>
+          <strong>Speak Najma&apos;s replies</strong>
+          <br />
+          <span className="muted">
+            In your coach&apos;s voice. Everything spoken is also shown as text.
+          </span>
+        </span>
+      </label>
+    </div>
+  )
+}
+
 export function Settings({
   onLlmChange,
+  onVoiceChange,
   onDeleted,
 }: {
   onLlmChange: () => void
+  onVoiceChange: (speak: boolean) => void
   onDeleted: (receipt: Receipt) => void
 }) {
   const [tab, setTab] = useState<Tab>('privacy')
   const tabs: [Tab, string][] = [
     ['privacy', 'Privacy'],
+    ['voice', 'Voice'],
     ['ai', 'AI provider'],
     ['data', 'Memory & data'],
   ]
@@ -501,6 +586,7 @@ export function Settings({
         ))}
       </div>
       {tab === 'privacy' && <Privacy />}
+      {tab === 'voice' && <Voice onChange={onVoiceChange} />}
       {tab === 'ai' && <Provider onChange={onLlmChange} />}
       {tab === 'data' && <Data onDeleted={onDeleted} />}
     </section>

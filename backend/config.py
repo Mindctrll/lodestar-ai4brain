@@ -21,6 +21,7 @@ class Settings(BaseModel, frozen=True):
     operator_llm_model: str | None
     memory_dir: str
     registry_dir: str
+    whisper_model: str = "base.en"
 
 
 def _optional(name: str) -> str | None:
@@ -48,4 +49,5 @@ def get_settings() -> Settings:
         operator_llm_model=_optional("NAJMA_OPERATOR_LLM_MODEL"),
         memory_dir=os.environ.get("NAJMA_MEMORY_DIR", "memory"),
         registry_dir=os.environ.get("NAJMA_REGISTRY_DIR", "registry"),
+        whisper_model=os.environ.get("NAJMA_WHISPER_MODEL", "base.en"),
     )

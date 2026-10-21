@@ -24,6 +24,7 @@ export type AcsView = Schemas['AcsView']
 export type TraceRow = Schemas['TraceRow']
 export type DimensionView = Schemas['DimensionView']
 export type Dimension = Schemas['Dimension']
+export type MeView = Schemas['MeView']
 
 /** A write Najma wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
 export interface ConfirmRequest {

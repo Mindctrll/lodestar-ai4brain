@@ -2355,6 +2355,12 @@
             ],
             "description": "Knob tuned inside the game",
             "title": "Staircase"
+          },
+          "themable": {
+            "default": false,
+            "description": "Its content can follow any theme the user asks for (UW4)",
+            "title": "Themable",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3371,6 +3377,30 @@
           "model"
         ],
         "title": "LlmSelectionPayload",
+        "type": "object"
+      },
+      "MeView": {
+        "additionalProperties": false,
+        "properties": {
+          "persona": {
+            "title": "Persona",
+            "type": "string"
+          },
+          "success_mode": {
+            "title": "Success Mode",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "persona",
+          "success_mode",
+          "timezone"
+        ],
+        "title": "MeView",
         "type": "object"
       },
       "MemoryHit": {
@@ -4909,6 +4939,30 @@
         "title": "TraceRow",
         "type": "object"
       },
+      "Transcript": {
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "title": "Engine",
+            "type": "string"
+          },
+          "seconds": {
+            "title": "Seconds",
+            "type": "number"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "engine",
+          "seconds"
+        ],
+        "title": "Transcript",
+        "type": "object"
+      },
       "TrialBatch": {
         "additionalProperties": false,
         "properties": {
@@ -6210,6 +6264,54 @@
         "tags": [
           "data rights"
         ]
+      },
+      "get": {
+        "description": "The coach, difficulty mode and time zone (the voice uses the coach's rate and pitch).",
+        "operationId": "me_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "data rights"
+        ]
       }
     },
     "/me/core/forget": {
@@ -7027,6 +7129,55 @@
         "summary": "Post User",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/voice/transcribe": {
+      "post": {
+        "operationId": "post_transcribe_voice_transcribe_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transcript"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Transcribe",
+        "tags": [
+          "voice"
         ]
       }
     }

@@ -239,6 +239,12 @@
       "default": null,
       "description": "Knob tuned inside the game",
       "title": "Staircase"
+    },
+    "themable": {
+      "default": false,
+      "description": "Its content can follow any theme the user asks for (UW4)",
+      "title": "Themable",
+      "type": "boolean"
     }
   },
   "required": [

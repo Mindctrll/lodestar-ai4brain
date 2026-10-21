@@ -9,6 +9,10 @@ import { Goals } from '../dashboard/Goals'
 import { NightSky } from '../dashboard/NightSky'
 import { SkillPage } from '../dashboard/SkillPage'
 import { useDashboard } from '../dashboard/useDashboard'
+import type { Persona } from '../api/types'
+import { setSpeakReplies, speakReplies, stopSpeaking } from '../voice/tts'
+import { Orb } from '../voice/Orb'
+import { useSpeakReplies } from '../voice/useSpeakReplies'
 import { DecisionCard } from './DecisionCard'
 import { Onboarding } from './Onboarding'
 import { Practice } from './Practice'
@@ -43,6 +47,10 @@ export function App() {
   const [localMode, setLocalMode] = useState(false)
   const [receipt, setReceipt] = useState<Receipt | null>(null)
   const dash = useDashboard(registered)
+  const [persona, setPersona] = useState<Persona>('zitouna')
+  // Voice in, voice out: once someone talks to Najma, replies are spoken too (and always shown).
+  const [voiceUsed, setVoiceUsed] = useState(false)
+  useSpeakReplies(session.state, persona, voiceUsed || speakReplies())
   const { registry, twin, progress, forecast, goals, acs, decisions } = dash
 
   const checkLlm = () => {
@@ -58,7 +66,14 @@ export function App() {
   }
 
   useEffect(() => {
-    if (registered) checkLlm()
+    if (!registered) return
+    checkLlm()
+    api.me().then(
+      (me) => {
+        setPersona(me.persona as Persona)
+      },
+      () => undefined,
+    )
   }, [registered])
 
   /** A decision option ("working_memory" or "working_memory:echo") in plain words. */
@@ -168,6 +183,14 @@ export function App() {
         {view === 'home' && (
           <div className="grid grid--home">
             <div className="grid__main">
+              {!playing && (
+                <Orb
+                  onTranscript={(text) => {
+                    setVoiceUsed(true)
+                    void session.send(text, 'voice')
+                  }}
+                />
+              )}
               <Practice session={session} registry={registry} setWhy={setWhy} />
             </div>
             {!playing && (
@@ -291,6 +314,13 @@ export function App() {
 
         {view === 'settings' && (
           <Settings
+            onVoiceChange={(speak) => {
+              setSpeakReplies(speak)
+              if (!speak) {
+                setVoiceUsed(false)
+                stopSpeaking()
+              }
+            }}
             onLlmChange={checkLlm}
             onDeleted={(r) => {
               forgetUser()

@@ -61,6 +61,12 @@ class MyData(Contract):
     memory_available: bool
 
 
+class MeView(Contract):
+    persona: str
+    success_mode: str
+    timezone: str
+
+
 class Receipt(Contract):
     counts: dict[str, int]
     message: str
@@ -82,6 +88,19 @@ def consent_view(notice: ConsentNotice, state: dict[str, bool]) -> ConsentView:
             for s in notice.switches
         ],
     )
+
+
+@router.get("/me", response_model=MeView)
+async def me(user_id: CurrentUser, conn: Conn) -> MeView:
+    """The coach, difficulty mode and time zone (the voice uses the coach's rate and pitch)."""
+    row = (
+        await conn.execute(
+            select(t.users.c.persona, t.users.c.success_mode, t.users.c.timezone).where(
+                t.users.c.user_id == user_id
+            )
+        )
+    ).one()
+    return MeView(persona=row.persona, success_mode=row.success_mode, timezone=row.timezone)
 
 
 @router.get("/consent", response_model=ConsentView)

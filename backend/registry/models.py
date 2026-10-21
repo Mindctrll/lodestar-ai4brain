@@ -95,6 +95,9 @@ class Game(Contract):
     consent: ConsentSwitch | None = Field(
         default=None, description="A consent switch this game needs, e.g. planted mistakes"
     )
+    themable: bool = Field(
+        default=False, description="Its content can follow any theme the user asks for (UW4)"
+    )
     notes: str | None = None
 
     @model_validator(mode="after")

@@ -226,7 +226,11 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get?: never
+    /**
+     * Me
+     * @description The coach, difficulty mode and time zone (the voice uses the coach's rate and pitch).
+     */
+    get: operations['me_me_get']
     put?: never
     post?: never
     /**
@@ -503,6 +507,23 @@ export interface paths {
      * @description Create a user after the age check and consent, and return their bearer token.
      */
     post: operations['post_user_users_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/voice/transcribe': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Post Transcribe */
+    post: operations['post_transcribe_voice_transcribe_post']
     delete?: never
     options?: never
     head?: never
@@ -1626,6 +1647,12 @@ export interface components {
        * @description Knob tuned inside the game
        */
       staircase?: string | null
+      /**
+       * Themable
+       * @description Its content can follow any theme the user asks for (UW4)
+       * @default false
+       */
+      themable: boolean
     }
     /** GoalPayload */
     GoalPayload: {
@@ -2086,6 +2113,15 @@ export interface components {
         | 'openrouter'
         | 'ollama'
         | 'stub'
+    }
+    /** MeView */
+    MeView: {
+      /** Persona */
+      persona: string
+      /** Success Mode */
+      success_mode: string
+      /** Timezone */
+      timezone: string
     }
     /** MemoryHit */
     MemoryHit: {
@@ -2795,6 +2831,15 @@ export interface components {
        */
       ts: string
     }
+    /** Transcript */
+    Transcript: {
+      /** Engine */
+      engine: string
+      /** Seconds */
+      seconds: number
+      /** Text */
+      text: string
+    }
     /** TrialBatch */
     TrialBatch: {
       /** Trials */
@@ -3498,6 +3543,37 @@ export interface operations {
       }
     }
   }
+  me_me_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MeView']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   delete_me_me_delete: {
     parameters: {
       query?: never
@@ -3999,6 +4075,37 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['CreatedUser']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  post_transcribe_voice_transcribe_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Transcript']
         }
       }
       /** @description Validation Error */
