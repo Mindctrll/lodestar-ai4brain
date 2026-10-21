@@ -18,9 +18,12 @@ from backend.contracts.session import Intent
 
 # Requests for a diagnosis or a judgement about a condition (UW13).
 DIAGNOSIS = re.compile(
-    r"\b(do i have|have i got|am i|could i have|is it|diagnos\w*|test me for|tell me if i have)\b"
+    r"\b(do i have|have i got|am i|could i have|is it|test me for|tell me if i have)\b"
     r".{0,60}\b(adhd|add|autis\w*|dyslexi\w*|dyscalculi\w*|dementia|alzheimer\w*|depress\w*|"
-    r"anxiety|ocd|bipolar|disorder|condition|deficit|disab\w*|brain damage|something wrong)",
+    r"anxiety|ocd|bipolar|disorder|condition|deficit|disab\w*|brain damage|something wrong)"
+    r"|\bdiagnos\w*"
+    r"|\bsomething (is )?wrong with (me|my)\b"
+    r"|\b(could|might|can) (it|this|that) be (a |an )?[\w-]*\s*(condition|disorder|disease)\b",
     re.IGNORECASE,
 )
 CRISIS = re.compile(

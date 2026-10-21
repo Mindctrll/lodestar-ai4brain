@@ -8,12 +8,12 @@ from dataclasses import dataclass
 
 # (pattern, suggested replacement). Patterns are matched case-insensitively on word boundaries.
 BANNED: tuple[tuple[str, str], ...] = (
-    (r"deficits?", "growth area"),
+    (r"deficits?|deficienc(y|ies)", "growth area"),
     (r"impairments?|impaired", "practice area"),
-    (r"disorders?", "practice area"),
+    (r"disorder\w*", "practice area"),
     (r"dysfunctions?|dysfunctional", "practice area"),
     (r"diagnos(?:is|es|e|ed|ing|tic)", "profile"),
-    (r"symptoms?", "pattern"),
+    (r"symptom\w*", "pattern"),
     (r"treatments?", "practice"),
     (r"therap(?:y|ies|eutic)", "practice"),
     (r"adhd", "(don't name conditions)"),
@@ -23,9 +23,19 @@ BANNED: tuple[tuple[str, str], ...] = (
     (r"depression|anxiety\s+disorder", "(don't name conditions)"),
     (r"iq", "skill estimate"),
     (r"brain\s+age|mental\s+age", "skill estimate"),
-    (r"abnormal(?:ly)?", "outside the typical range"),
+    (r"abnormal\w*", "outside the typical range"),
     (r"normal", "typical range"),
     (r"your\s+brain\s+is", "your results show"),
+    (
+        r"(attention|memory|focus|learning|concentration)\s+(problems?|issues?|difficult(y|ies))",
+        "practice area",
+    ),
+    (r"something\s+(is\s+)?wrong\s+with\s+(you|your)", "(don't judge the person)"),
+    (
+        r"cognitive\s+(decline|impairment)|brain\s+damage|mental\s+(illness|health\s+condition)",
+        "(not mentioned)",
+    ),
+    (r"patients?|clinical(ly)?|disabilit(y|ies)", "(not mentioned)"),
 )
 
 ALLOW_PRAGMA = "lint-language: allow"

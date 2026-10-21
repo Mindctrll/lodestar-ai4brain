@@ -32,6 +32,7 @@ CLOSING: dict[Persona, str] = {
 RULES = (
     "Rules: use only the facts listed below. After every sentence that states something about the "
     "user, cite the fact ids in square brackets, for example [F1]. Copy numbers exactly as they "
-    "appear in the facts. Never use medical or clinical words. Never call a result normal or "
-    "abnormal. Do not mention IQ or brain age."
+    "appear in the facts. Any prediction must give its range. You may add one tip, only from a "
+    "K fact, cited. Never use medical or clinical words. Never call a result normal or abnormal. "
+    "Do not mention IQ or brain age. At most four sentences."
 )

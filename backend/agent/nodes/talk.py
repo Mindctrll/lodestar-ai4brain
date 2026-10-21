@@ -18,8 +18,15 @@ from backend.agent.state import NajmaState
 from backend.agent.telemetry import emit, traced
 from backend.coach.personas import CLOSING, RULES, STYLE
 from backend.coach.verify import verify
+from backend.contracts.common import Persona
 from backend.contracts.events import SessionEnded, SessionEndedPayload
-from backend.contracts.facts import CoachReply, Fact, FactsPacket
+from backend.contracts.facts import (
+    CoachReply,
+    Fact,
+    FactsPacket,
+    KnowledgeItem,
+    MemoryItem,
+)
 from backend.db import tables as t
 from backend.db.twin_store import append_event
 from backend.llm.factory import NoModelAvailable
@@ -69,7 +76,22 @@ async def reflect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
     plan_decisions = [d for d in state.decisions if d.node == "plan_next"]
     if plan_decisions:
         add(plan_decisions[-1].reason, decision=True, prefix="D")
-    return {"facts": FactsPacket(facts=facts)}
+    knowledge: list[KnowledgeItem] = []
+    memory = ctx.services.memory
+    if memory is not None and summary is not None and summary.changes:
+        dim = summary.changes[0].dim
+        try:
+            tips = await memory.search_knowledge(registry.dimension(dim).plain, dim=dim, limit=1)
+        except Exception:  # Qdrant down: coach without a tip
+            tips = []
+        knowledge = [
+            KnowledgeItem(
+                id="K1", text=tip.text, source=tip.source, evidence_level=tip.evidence_level
+            )
+            for tip in tips
+        ]
+    memories = [MemoryItem(id=f"M{i + 1}", text=m.text) for i, m in enumerate(state.memories[:2])]
+    return {"facts": FactsPacket(facts=facts, knowledge=knowledge, memories=memories)}
 
 
 def template_reply(packet: FactsPacket, persona: str) -> str:
@@ -80,36 +102,84 @@ def template_reply(packet: FactsPacket, persona: str) -> str:
     return " ".join(s for s in sentences if s)
 
 
-@traced("coach")
-async def coach(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    ctx = runtime.context
-    packet = state.facts or FactsPacket()
+MAX_REPAIRS = 2
+
+
+async def draft_verified(
+    ctx: NajmaContext,
+    packet: FactsPacket,
+    persona: Persona,
+    instruction: str,
+) -> tuple[str, CoachReply, list[str]]:
+    """Draft with the LLM, verify, repair up to twice, else a template built only from facts.
+    Nothing reaches the user before it passes (docs/plan/09)."""
     names = [d.name for d in ctx.services.registry.dimensions]
-    listing = "\n".join(f"{f.id}: {f.text}" for f in packet.facts)
-    messages = [
-        SystemMessage(f"{STYLE[state.persona]}\n{RULES}\n\nFacts:\n{listing}"),
-        HumanMessage("Write the short message shown after this game."),
+    items: list[Fact | KnowledgeItem | MemoryItem] = [
+        *packet.facts,
+        *packet.knowledge,
+        *packet.memories,
+    ]
+    listing = "\n".join(f"{i.id}: {i.text}" for i in items)
+    messages: list[Any] = [
+        SystemMessage(f"{STYLE[persona]}\n{RULES}\n\nFacts:\n{listing}"),
+        HumanMessage(instruction),
     ]
     degraded: list[str] = []
-    text: str | None = None
-    try:
-        reply = await ctx.services.llm.generate(ctx.user_id, ctx.llm, messages)
-        text, degraded = reply.text.strip(), list(reply.degraded)
-    except NoModelAvailable as exc:
-        degraded = exc.degraded
-    first_ok = text is not None and verify(text, packet, names).ok
-    used_template = not first_ok
-    final = text if first_ok and text else template_reply(packet, state.persona)
-    result = verify(final, packet, names)
-    for sentence in _SENTENCE.split(final):
-        emit({"kind": "say", "text": sentence, "node": "coach"})
+    final: str | None = None
+    first_ok = False
+    repairs = 0
+    for attempt in range(1 + MAX_REPAIRS):
+        try:
+            reply = await ctx.services.llm.generate(ctx.user_id, ctx.llm, messages)
+        except NoModelAvailable as exc:
+            degraded = exc.degraded
+            break
+        degraded = list(reply.degraded)
+        text = reply.text.strip()
+        verdict = verify(text, packet, names, persona)
+        if verdict.ok:
+            final, first_ok, repairs = text, attempt == 0, attempt
+            break
+        messages += [
+            AIMessage(text),
+            HumanMessage(
+                "That message broke these rules:\n- "
+                + "\n- ".join(verdict.violations[:8])
+                + "\nRewrite it so every rule holds. Only the message."
+            ),
+        ]
+        repairs = attempt + 1
+    used_template = final is None
+    if final is None:
+        final = template_reply(packet, persona)
+        repairs = min(repairs, MAX_REPAIRS)
+    result = verify(final, packet, names, persona)
     reply_model = CoachReply(
         text=final,
         cited_ids=result.cited,
-        persona=state.persona,
+        persona=persona,
         first_draft_passed=first_ok,
-        repairs=0,
+        repairs=repairs,
         used_template=used_template,
+    )
+    return final, reply_model, degraded
+
+
+@traced("coach")
+async def coach(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    packet = state.facts or FactsPacket()
+    final, reply_model, degraded = await draft_verified(
+        runtime.context, packet, state.persona, "Write the short message shown after this game."
+    )
+    for sentence in _SENTENCE.split(final):
+        emit({"kind": "say", "text": sentence, "node": "coach"})
+    emit(
+        {
+            "kind": "coach",
+            "first_draft_passed": reply_model.first_draft_passed,
+            "repairs": reply_model.repairs,
+            "used_template": reply_model.used_template,
+        }
     )
     return {"reply": reply_model, "messages": [AIMessage(final)], "degraded": degraded}
 

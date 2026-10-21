@@ -1,0 +1,204 @@
+# Red-team list for the clinical-language filter (docs/plan/09). `make lint-language`
+# fails if any `bad` line passes or any `good` line is flagged.
+bad:
+- A deficiency is not something these games measure.
+- A deficit is not something these games measure.
+- A diagnosis is not something these games measure.
+- A disability is not something these games measure.
+- A mental illness is not something these games measure.
+- ADHD is not something these games measure.
+- Abnormal is not something these games measure.
+- Alzheimer's is not something these games measure.
+- An impairment is not something these games measure.
+- Attention problems is not something these games measure.
+- Clinically is not something these games measure.
+- Cognitive decline is not something these games measure.
+- Disordered is not something these games measure.
+- Dysfunction is not something these games measure.
+- Dyslexic is not something these games measure.
+- Focus difficulties is not something these games measure.
+- Impaired is not something these games measure.
+- Memory issues is not something these games measure.
+- Mental age is not something these games measure.
+- Nothing here points to Alzheimer's.
+- Nothing here points to OCD.
+- Nothing here points to a diagnosis.
+- Nothing here points to a disorder.
+- Nothing here points to a mental illness.
+- Nothing here points to abnormal.
+- Nothing here points to an abnormality.
+- Nothing here points to autistic.
+- Nothing here points to clinical.
+- Nothing here points to clinically.
+- Nothing here points to dementia.
+- Nothing here points to depression.
+- Nothing here points to diagnostic.
+- Nothing here points to dysfunction.
+- Nothing here points to dyslexia.
+- Nothing here points to impaired.
+- Nothing here points to learning difficulties.
+- Nothing here points to mental age.
+- Nothing here points to patients.
+- Nothing here points to schizophrenia.
+- Nothing here points to symptomatic.
+- Nothing here points to therapeutic.
+- Nothing here points to therapy.
+- Nothing here points to your IQ.
+- Schizophrenia is not something these games measure.
+- Therapy is not something these games measure.
+- This pattern looks like Alzheimer's [F1].
+- This pattern looks like PTSD [F1].
+- This pattern looks like a deficit [F1].
+- This pattern looks like a diagnosis [F1].
+- This pattern looks like an impairment [F1].
+- This pattern looks like bipolar [F1].
+- This pattern looks like brain age [F1].
+- This pattern looks like brain damage [F1].
+- This pattern looks like diagnostic [F1].
+- This pattern looks like dysfunction [F1].
+- This pattern looks like focus difficulties [F1].
+- This pattern looks like impaired [F1].
+- This pattern looks like mental age [F1].
+- This pattern looks like normal [F1].
+- This pattern looks like patients [F1].
+- This pattern looks like schizophrenia [F1].
+- This pattern looks like therapeutic [F1].
+- This pattern looks like therapy [F1].
+- This pattern looks like treatment [F1].
+- This pattern looks like your IQ [F1].
+- We can't rule out PTSD from one round.
+- We can't rule out a deficiency from one round.
+- We can't rule out a disability from one round.
+- We can't rule out abnormal from one round.
+- We can't rule out an abnormality from one round.
+- We can't rule out an impairment from one round.
+- We can't rule out autism from one round.
+- We can't rule out autistic from one round.
+- We can't rule out bipolar from one round.
+- We can't rule out brain damage from one round.
+- We can't rule out clinical from one round.
+- We can't rule out clinically from one round.
+- We can't rule out cognitive decline from one round.
+- We can't rule out deficits from one round.
+- We can't rule out dementia from one round.
+- We can't rule out diagnosed from one round.
+- We can't rule out diagnostic from one round.
+- We can't rule out dysfunction from one round.
+- We can't rule out dyslexic from one round.
+- We can't rule out focus difficulties from one round.
+- We can't rule out impaired from one round.
+- We can't rule out memory issues from one round.
+- We can't rule out mental age from one round.
+- We can't rule out normal from one round.
+- We can't rule out patients from one round.
+- We can't rule out schizophrenia from one round.
+- We can't rule out symptomatic from one round.
+- We can't rule out therapeutic from one round.
+- We can't rule out therapy from one round.
+- We can't rule out treatment from one round.
+- We can't rule out your IQ from one round.
+- Your IQ is not something these games measure.
+- Your results suggest OCD.
+- Your results suggest PTSD.
+- Your results suggest a deficit.
+- Your results suggest a diagnosis.
+- Your results suggest a disorder.
+- Your results suggest abnormal.
+- Your results suggest an abnormality.
+- Your results suggest an impairment.
+- Your results suggest attention problems.
+- Your results suggest autistic.
+- Your results suggest brain damage.
+- Your results suggest cognitive decline.
+- Your results suggest dementia.
+- Your results suggest diagnostic.
+- Your results suggest disordered.
+- Your results suggest dyslexic.
+- Your results suggest memory issues.
+- Your results suggest mental age.
+- Your results suggest normal.
+- Your results suggest schizophrenia.
+- Your results suggest symptomatic.
+- Your results suggest therapy.
+- Your results suggest your IQ.
+good:
+- Working memory estimate 54% (80% range 41-66%) [F1].
+- 'Najma: Working memory estimate 54% (80% range 41-66%) [F1].'
+- You got 9 of 11 orders right [F3].
+- 'Najma: You got 9 of 11 orders right [F3].'
+- Your memory estimate rose a little [F2].
+- 'Najma: Your memory estimate rose a little [F2].'
+- I'm more sure about your focus now [F1].
+- 'Najma: I''m more sure about your focus now [F1].'
+- That one was tough. Let's do something lighter.
+- 'Najma: That one was tough. Let''s do something lighter.'
+- Take a two-minute break, then try again.
+- 'Najma: Take a two-minute break, then try again.'
+- Grouping items into chunks can help with longer lists [K1].
+- 'Najma: Grouping items into chunks can help with longer lists [K1].'
+- Nice catch on step three.
+- 'Najma: Nice catch on step three.'
+- You added one more correct answer than last time [F2].
+- 'Najma: You added one more correct answer than last time [F2].'
+- Your answers were steady today [F1].
+- 'Najma: Your answers were steady today [F1].'
+- Patience pays off in Echo; keep a steady rhythm.
+- 'Najma: Patience pays off in Echo; keep a steady rhythm.'
+- Treat yourself to a short walk before the next round.
+- 'Najma: Treat yourself to a short walk before the next round.'
+- We normalize scores so games can be compared.
+- 'Najma: We normalize scores so games can be compared.'
+- Your results show steady practice [F1].
+- 'Najma: Your results show steady practice [F1].'
+- This is within the typical range for this game [F1].
+- 'Najma: This is within the typical range for this game [F1].'
+- Your reasoning estimate is a growth area for now [F2].
+- 'Najma: Your reasoning estimate is a growth area for now [F2].'
+- Let's address one skill at a time.
+- 'Najma: Let''s address one skill at a time.'
+- The order of the shapes changed in each row.
+- 'Najma: The order of the shapes changed in each row.'
+- Your average answer time dropped while accuracy held [F4].
+- 'Najma: Your average answer time dropped while accuracy held [F4].'
+- Speed and accuracy moved together today [F3].
+- 'Najma: Speed and accuracy moved together today [F3].'
+- Spacing practice over a few days tends to stick better [K1].
+- 'Najma: Spacing practice over a few days tends to stick better [K1].'
+- Sleep helps practice settle in [K1].
+- 'Najma: Sleep helps practice settle in [K1].'
+- 'Barq says: two more rounds, you''ve got this.'
+- 'Najma: Barq says: two more rounds, you''ve got this.'
+- 'Hikma: estimate 62%, likely 48-74% [F1].'
+- 'Najma: Hikma: estimate 62%, likely 48-74% [F1].'
+- Sahbi here, behi, that was a good round [F1].
+- 'Najma: Sahbi here, behi, that was a good round [F1].'
+- 'Zitouna: one step at a time.'
+- 'Najma: Zitouna: one step at a time.'
+- Your Stroop effect shrank from 120 to 90 ms [F2].
+- 'Najma: Your Stroop effect shrank from 120 to 90 ms [F2].'
+- Your search got faster with more items [F1].
+- 'Najma: Your search got faster with more items [F1].'
+- I'm still learning about your planning skill [F1].
+- 'Najma: I''m still learning about your planning skill [F1].'
+- This round counted less because of your exam week [F5].
+- 'Najma: This round counted less because of your exam week [F5].'
+- You flagged the planted error correctly [F1].
+- 'Najma: You flagged the planted error correctly [F1].'
+- You accepted a correct solution, which counts too [F2].
+- 'Najma: You accepted a correct solution, which counts too [F2].'
+- Try slowing down slightly when errors climb [K1].
+- 'Najma: Try slowing down slightly when errors climb [K1].'
+- Your estimate is still blurry, more rounds will sharpen it [F1].
+- 'Najma: Your estimate is still blurry, more rounds will sharpen it [F1].'
+- Your goal is to bring the range within plus or minus 5 [F1].
+- 'Najma: Your goal is to bring the range within plus or minus 5 [F1].'
+- The forecast is a range, likely 55-70% [F2].
+- 'Najma: The forecast is a range, likely 55-70% [F2].'
+- Your progress this week shows in the curve [F2].
+- 'Najma: Your progress this week shows in the curve [F2].'
+- Practise what you want to get better at.
+- 'Najma: Practise what you want to get better at.'
+- Your focus games went best in the evening [F11].
+- 'Najma: Your focus games went best in the evening [F11].'
+- That's only 9 sessions, so I'm not sure yet [F12].
+- 'Najma: That''s only 9 sessions, so I''m not sure yet [F12].'
