@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from langgraph.runtime import Runtime
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from backend.agent.context import NajmaContext
 from backend.agent.state import NajmaState
@@ -45,10 +45,52 @@ async def read_twin_snapshot(ctx: NajmaContext, now: datetime | None = None) -> 
     return TwinSnapshot(user_id=ctx.user_id, as_of=now, dims=dims)
 
 
+async def read_profile_facts(ctx: NajmaContext, state: NajmaState) -> dict[str, Any]:
+    """Goals, the time away since the last session, and the warm-up battery for a new user."""
+    async with ctx.services.engine.connect() as conn:
+        goals = (
+            (
+                await conn.execute(
+                    select(t.goals.c.dim).where(
+                        t.goals.c.user_id == ctx.user_id, t.goals.c.status == "active"
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        scored = (
+            await conn.execute(
+                select(func.count())
+                .select_from(t.rounds)
+                .where(t.rounds.c.user_id == ctx.user_id, t.rounds.c.scored_at.is_not(None))
+            )
+        ).scalar_one()
+        last = (
+            await conn.execute(
+                select(func.max(t.sessions.c.started_at)).where(
+                    t.sessions.c.user_id == ctx.user_id,
+                    t.sessions.c.session_id != ctx.session_id,
+                )
+            )
+        ).scalar_one_or_none()
+    out: dict[str, Any] = {"goal_dims": sorted(set(goals))}
+    if last is not None:
+        out["away_days"] = (datetime.now(UTC) - last).total_seconds() / 86_400
+    if scored == 0 and not state.rounds and not state.onboarding:
+        registry = ctx.services.registry
+        battery = registry.batteries["onboarding"]
+        games = [g for g in battery.games if registry.game(g).available]
+        out["onboarding"] = games
+        out["budget"] = state.budget.model_copy(update={"max_rounds": len(games)})
+    return out
+
+
 @traced("load_twin")
 async def load_twin(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
     async def work() -> dict[str, Any]:
-        return {"twin": await read_twin_snapshot(runtime.context)}
+        twin = await read_twin_snapshot(runtime.context)
+        return {"twin": twin, **await read_profile_facts(runtime.context, state)}
 
     return await _guarded("load_twin", work())
 

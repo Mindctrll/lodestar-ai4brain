@@ -58,6 +58,11 @@ class NajmaState(BaseModel):
 
     last_round: RoundSummary | None = None
     verdict: Verdict | None = None
+    onboarding: list[str] = Field(
+        default_factory=list, description="Warm-up battery games still to play (UW1)"
+    )
+    goal_dims: list[str] = Field(default_factory=list, description="Skills with an active goal")
+    away_days: float | None = Field(default=None, description="Days since the last session")
 
     # control
     started_at: datetime | None = None

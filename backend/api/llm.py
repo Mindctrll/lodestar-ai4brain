@@ -6,7 +6,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import Field, SecretStr
 
-from backend.api.deps import Conn, CurrentUser, RegistryDep
+from backend.api.deps import Conn, CurrentUser, Engine, RegistryDep
 from backend.contracts.common import Contract, ProviderId
 from backend.contracts.llm import CredentialSummary, LlmSelection
 from backend.db.llm_store import (
@@ -94,7 +94,7 @@ async def put_credential(
     provider_id: ProviderId,
     body: KeyInput,
     user_id: CurrentUser,
-    conn: Conn,
+    engine: Engine,
     registry: RegistryDep,
     factory: Factory,
 ) -> KeySaved:
@@ -130,10 +130,10 @@ async def put_credential(
     else:
         model = models[0]
     sealed = factory.vault.seal(user_id, provider_id, api_key)
-    await save_credential(conn, user_id, provider_id, sealed, "ok")
-    await set_selection(
-        conn, user_id, LlmSelection(mode="hosted", provider=provider_id, model=model)
-    )
+    async with engine.begin() as conn:
+        await save_credential(conn, user_id, provider_id, sealed, "ok")
+        selection = LlmSelection(mode="hosted", provider=provider_id, model=model)
+        await set_selection(conn, user_id, selection)
     return KeySaved(
         credential=CredentialSummary(provider=provider_id, key_last4=sealed.last4, status="ok"),
         models=models,
@@ -143,28 +143,32 @@ async def put_credential(
 
 @router.delete("/credentials/{provider_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_credential(
-    provider_id: ProviderId, user_id: CurrentUser, conn: Conn, factory: Factory
+    provider_id: ProviderId, user_id: CurrentUser, engine: Engine, factory: Factory
 ) -> Response:
-    if not await delete_credential(conn, user_id, provider_id):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "No key saved for that provider.")
-    current = await get_selection(conn, user_id, factory.settings.local_model)
-    if current.mode == "hosted" and current.provider == provider_id:
-        local = LlmSelection(mode="local", provider="ollama", model=factory.settings.local_model)
-        await set_selection(conn, user_id, local)
+    local_model = factory.settings.local_model
+    async with engine.begin() as conn:
+        if not await delete_credential(conn, user_id, provider_id):
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "No key saved for that provider.")
+        current = await get_selection(conn, user_id, local_model)
+        if current.mode == "hosted" and current.provider == provider_id:
+            local = LlmSelection(mode="local", provider="ollama", model=local_model)
+            await set_selection(conn, user_id, local)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/selection", response_model=LlmSelection)
 async def put_selection(
-    body: SelectionInput, user_id: CurrentUser, conn: Conn, factory: Factory
+    body: SelectionInput, user_id: CurrentUser, engine: Engine, factory: Factory
 ) -> LlmSelection:
-    if body.mode == "hosted":
-        if await get_credential(conn, user_id, body.provider) is None:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Add a key for that provider first.")
-        selection = LlmSelection(mode="hosted", provider=body.provider, model=body.model)
-    else:
-        selection = LlmSelection(
-            mode="local", provider="ollama", model=factory.settings.local_model
-        )
-    await set_selection(conn, user_id, selection)
-    return await get_selection(conn, user_id, factory.settings.local_model)
+    local_model = factory.settings.local_model
+    async with engine.begin() as conn:
+        if body.mode == "hosted":
+            if await get_credential(conn, user_id, body.provider) is None:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST, "Add a key for that provider first."
+                )
+            selection = LlmSelection(mode="hosted", provider=body.provider, model=body.model)
+        else:
+            selection = LlmSelection(mode="local", provider="ollama", model=local_model)
+        await set_selection(conn, user_id, selection)
+        return await get_selection(conn, user_id, local_model)

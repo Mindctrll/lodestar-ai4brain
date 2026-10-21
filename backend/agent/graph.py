@@ -111,8 +111,12 @@ def _contract_types() -> list[tuple[str, str]]:
 def checkpointer(pool: Any) -> BaseCheckpointSaver[Any]:
     """The Postgres checkpointer, with our state types allowlisted."""
     from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
-    return AsyncPostgresSaver(pool).with_allowlist(_contract_types())
+    # The default allows every type with a warning (to be blocked in a later version), so the
+    # allowlist is given explicitly.
+    serde = JsonPlusSerializer(allowed_msgpack_modules=_contract_types())
+    return AsyncPostgresSaver(pool, serde=serde)
 
 
 def compile_graph(

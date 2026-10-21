@@ -74,13 +74,17 @@ async def test_full_session_with_the_stub_llm(
     nodes_done = {e["node"] for e in events if e["kind"] == "node" and e["status"] == "done"}
     assert {"load_twin", "recall_memory", "read_affect", "read_context", "forecast"} <= nodes_done
 
-    for round_no in range(3):
+    rounds = 0
+    while True:  # a new user plays the six-game warm-up (UW1)
         events = await play(runner, aengine, user_id, session_id, spec, [True] * 9 + [False] * 3)
+        rounds += 1
         says = [e["text"] for e in events if e["kind"] == "say"]
         assert says, "every round gets an after-game message"
         assert any("[F" in s for s in says)  # cites facts
-        if round_no < 2:
-            spec = interrupt_of(events)
+        if not any(e["kind"] == "interrupt" for e in events):
+            break
+        spec = interrupt_of(events)
+    assert rounds == 6
     assert any(e["kind"] == "session" and e["status"] == "ended" for e in events)
     assert events[-1] == {"kind": "done", "waiting": False}
 
@@ -95,7 +99,7 @@ async def test_full_session_with_the_stub_llm(
         status = (await conn.execute(
             select(t.sessions.c.status).where(t.sessions.c.session_id == session_id)
         )).scalar_one()  # fmt: skip
-    assert n_dims >= 3 and all(reasons) and len(reasons) == 6 and status == "ended"
+    assert n_dims >= 6 and all(reasons) and len(reasons) == 12 and status == "ended"
 
 
 async def test_paused_session_survives_a_server_restart(

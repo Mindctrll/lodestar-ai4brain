@@ -24,7 +24,10 @@ def registry_dep() -> Registry:
 async def conn_dep(
     engine: Annotated[AsyncEngine, Depends(engine_dep)],
 ) -> AsyncIterator[AsyncConnection]:
-    async with engine.begin() as conn:
+    """A read connection. Writes open their own transaction inside the handler
+    (`async with engine.begin()`), because a yield dependency's exit code can run after the
+    response is sent: a client could act on a reply before its write was committed."""
+    async with engine.connect() as conn:
         yield conn
 
 

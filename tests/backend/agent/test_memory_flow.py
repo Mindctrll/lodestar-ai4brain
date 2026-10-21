@@ -61,10 +61,11 @@ async def test_session_remembers_and_consolidates(
 
     events = await collect(runner, user_id, session_id, message="let's play")
     spec = interrupt_of(events)
-    for round_no in range(3):
+    while True:
         events = await play(runner, aengine, user_id, session_id, spec, [True] * 10)
-        if round_no < 2:
-            spec = interrupt_of(events)
+        if not any(e["kind"] == "interrupt" for e in events):
+            break
+        spec = interrupt_of(events)
     assert not any(e["kind"] == "degraded" and e["what"] == "memory" for e in events)
     journal = notes.read_journal(user_id, datetime.now(UTC).date()) or ""
     assert "Session on" in journal and "played" in journal

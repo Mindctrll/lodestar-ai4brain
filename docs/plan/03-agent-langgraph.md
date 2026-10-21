@@ -139,6 +139,8 @@ Mode decides the success target: **Assess** aims at 60–70% (more informative),
 
 The LLM can suggest overrides ("the user said they want reasoning today"). These enter as `goal_weight` changes, never as direct picks, so the policy stays in charge.
 
+**As built (WP2.3).** A named game or skill ("play Echo", "a memory game") is honoured for one pick. A new user first plays the onboarding battery (`registry/batteries.yaml`, Quick Draw first) in Assess mode. After 14 or more days away the first three picks are in Assess mode with a "welcome back" reason (UW15). Active goals set `goal_weight`. `bandit_gain` and `plan_priority` are 0 until WP3.3 and WP3.2, and still appear in every breakdown. Only games whose browser plugin exists (`available: true`) are offered.
+
 ### The pause: how a game is played
 
 ```python
@@ -153,7 +155,8 @@ The browser resumes with `graph.invoke(Command(resume=results), config)`. Inside
 
 | Condition | Route | Example reason shown |
 |---|---|---|
-| frustration_p > 0.7 or 2 stopped games | `plan_next` in ease mode, or `reflect` with a break suggestion | "You hit several misses in a row. Let's do something lighter." |
+| frustration_p > 0.7 or 2 stopped games | `plan_next` in ease mode (Chill target), or a break after two stopped games | "That one looked tough. Let's do something lighter." |
+| answers slowing (late RT z > 1.5 vs the session's start) with more errors | end | "Your answers are slowing down compared with the start. Good place to stop." |
 | minutes > fatigue point from the ML model | `reflect` | "Your speed usually drops after about 14 minutes. Good place to stop." |
 | rounds ≥ budget | `reflect` | — |
 | otherwise | `plan_next` | — |

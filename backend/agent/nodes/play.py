@@ -14,6 +14,7 @@ from backend.agent.context import NajmaContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.state import NajmaState
 from backend.agent.telemetry import record_decision, traced
+from backend.contracts.affect import AffectReading
 from backend.contracts.decision import Candidate, Decision
 from backend.contracts.exercise import ExerciseSpec, RoundResult
 from backend.contracts.session import RoundSummary, SessionPlan, Verdict
@@ -60,8 +61,19 @@ def _days_since(belief: Belief, now: datetime) -> float | None:
     return (now - belief.last_practised).total_seconds() / 86_400
 
 
+CHECKUP_AFTER_DAYS = 14.0  # UW15: after a long break, measure before training
+CHECKUP_ROUNDS = 3
+
+
+def _pick(options: list[Game], last_game: str | None, seed: int) -> Game:
+    choices = [g for g in options if g.id != last_game] or options
+    return random.Random(seed).choice(choices)
+
+
 @traced("plan_next")
 async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    """Choose the next skill and game with a utility whose parts are all shown (docs/plan/03).
+    Code decides; a request from the user changes the inputs, never the rules."""
     ctx = runtime.context
     registry = ctx.services.registry
     by_dim = core_games_by_dim(registry)
@@ -70,10 +82,8 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     last_dims = set(registry.game(last_game).primary_dims) if last_game else set()
     fatigue = state.affect.fatigue_p if state.affect else 0.0
     intent = state.intent
+    seed = ctx.seed + len(state.rounds)
 
-    requested: Game | None = None
-    if intent and intent.game_id:
-        requested = registry.game(intent.game_id)
     candidates: list[Candidate] = []
     for dim, games in by_dim.items():
         belief = _belief(state, dim)
@@ -81,9 +91,9 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         parts = {
             "uncertainty": belief.sigma / SIGMA_START,
             "staleness": 1.0 if days is None else min(days / STALENESS_CAP_DAYS, 1.0),
-            "goal_weight": 0.0,
-            "plan_priority": 0.0,
-            "bandit_gain": 0.0,
+            "goal_weight": 1.0 if dim in state.goal_dims else 0.0,
+            "plan_priority": 0.0,  # personal experiments, WP3.2
+            "bandit_gain": 0.0,  # best-next-game bandit, WP3.3
             "fatigue_penalty": fatigue * (1.0 if max(g.duration_s for g in games) > 90 else 0.5),
             "repetition": 1.0 if dim in last_dims else 0.0,
         }
@@ -91,36 +101,54 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         candidates.append(Candidate(option=dim, score=round(score, 4), breakdown=parts))
     candidates.sort(key=lambda c: c.score, reverse=True)
 
+    update: dict[str, Any] = {}
+    requested = registry.game(intent.game_id) if intent and intent.game_id else None
     wanted_dim = intent.dim if intent and intent.dim in by_dim else None
+    force_assess = False
     if requested is not None:
-        dim = requested.primary_dims[0]
-        game = requested
+        dim, game = requested.primary_dims[0], requested
         reason = f"You asked for {game.name}."
     elif wanted_dim is not None:
         dim = wanted_dim
-        options = [g for g in by_dim[dim] if g.id != last_game] or by_dim[dim]
-        game = random.Random(ctx.seed + len(state.rounds)).choice(options)
+        game = _pick(by_dim[dim], last_game, seed)
         reason = f"You asked for {registry.dimension(dim).name.lower()}."
+    elif state.onboarding:
+        game = registry.game(state.onboarding[0])
+        dim = game.primary_dims[0]
+        total = len(state.onboarding) + len(state.rounds)
+        reason = (
+            f"Warm-up game {len(state.rounds) + 1} of {total}: {game.name}. "
+            "Nothing here is a test you can fail."
+        )
+        update["onboarding"] = state.onboarding[1:]
+        force_assess = True
     else:
         dim = candidates[0].option
-        options = [g for g in by_dim[dim] if g.id != last_game] or by_dim[dim]
-        game = random.Random(ctx.seed + len(state.rounds)).choice(options)
+        game = _pick(by_dim[dim], last_game, seed)
         belief = _belief(state, dim)
         name = registry.dimension(dim).name
         days = _days_since(belief, now)
         if belief.n == 0:
             reason = f"{name} is a skill I haven't measured yet."
+        elif dim in state.goal_dims:
+            reason = f"{name} is part of your goal, and it's the skill I'd learn most from now."
         else:
             when = "today" if days is not None and days < 1 else f"{days:.0f} days ago"
             reason = (
                 f"{name} is the skill I'm least sure about right now, "
                 f"and you last practised it {when}."
             )
+        away = state.away_days
+        if away is not None and away >= CHECKUP_AFTER_DAYS and len(state.rounds) < CHECKUP_ROUNDS:
+            force_assess = True
+            reason = (
+                f"Welcome back. It's been {away:.0f} days, so I'm less sure about you than "
+                f"before. A quick check-up: {name.lower()} first."
+            )
 
     belief = _belief(state, dim)
     success_mode = "chill" if state.verdict == "ease" else state.success_mode
-    mode = choose_mode(belief, success_mode)
-    target = TARGET_P[mode]
+    mode = "assess" if force_assess else choose_mode(belief, success_mode)
     decision = Decision(
         decision_id=uuid4(),
         node="plan_next",
@@ -136,9 +164,11 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         game_id=game.id,
         mode="assess" if mode == "assess" else "train",
         success_mode=success_mode,
-        target_p=target,
+        target_p=TARGET_P[mode],
+        goal_weights={d: 1.0 for d in state.goal_dims},
     )
     return {
+        **update,
         "decisions": [decision],
         "plan": plan,
         "exercise": None,
@@ -246,25 +276,72 @@ async def score_update(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
     return {"last_round": summary, "twin": await read_twin_snapshot(ctx)}
 
 
+FATIGUE_Z = 1.5  # docs/plan/10: a sustained rise past 1.5 SD against the session's start
+FRUSTRATION_P = 0.7
+
+
+async def session_fatigue(ctx: NajmaContext) -> float:
+    """P1 rule: compare the latest answers with the first ones in this session. Slower answers
+    (z > 1.5) together with more errors suggest fatigue. Behaviour only (docs/plan/12)."""
+    async with ctx.services.engine.connect() as conn:
+        rows = (
+            await conn.execute(
+                select(t.trials.c.rt_ms, t.trials.c.correct)
+                .where(
+                    t.trials.c.session_id == ctx.session_id,
+                    t.trials.c.practice.is_(False),
+                    t.trials.c.rt_ms.is_not(None),
+                )
+                .order_by(t.trials.c.ts)
+            )
+        ).all()
+    if len(rows) < 24:
+        return 0.0
+    third = len(rows) // 3
+    early, late = rows[:third], rows[-third:]
+    rts = [float(r.rt_ms) for r in early]
+    mean = sum(rts) / len(rts)
+    sd = (sum((x - mean) ** 2 for x in rts) / max(1, len(rts) - 1)) ** 0.5 or 1.0
+    z = (sum(float(r.rt_ms) for r in late) / len(late) - mean) / sd
+    errors_early = sum(r.correct is False for r in early) / len(early)
+    errors_late = sum(r.correct is False for r in late) / len(late)
+    return 0.8 if z > FATIGUE_Z and errors_late > errors_early else min(0.5, max(0.0, z / 4))
+
+
 @traced("monitor")
 async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+    """Continue, ease off, suggest a break, or stop (docs/plan/03, monitor routing)."""
     now = datetime.now(UTC)
     rounds = state.rounds
     last = rounds[-1] if rounds else None
     stopped = sum(1 for r in rounds if r.status == "stopped")
-    frustrated = last is not None and (
-        last.stop_reason == "frustration"
-        or last.status == "eased"
-        or (state.last_round is not None and (state.last_round.accuracy or 1.0) < 0.4)
+    low_accuracy = state.last_round is not None and (state.last_round.accuracy or 1.0) < 0.4
+    frustration = 0.0
+    if last is not None:
+        if last.stop_reason == "frustration" or last.status == "eased":
+            frustration = 0.8
+        elif last.status == "stopped" or low_accuracy:
+            frustration = 0.6
+    if stopped >= 2:
+        frustration = max(frustration, 0.8)
+    fatigue = await session_fatigue(runtime.context)
+    affect = AffectReading(
+        frustration_p=frustration,
+        fatigue_p=fatigue,
+        sources=["behaviour"],
+        behaviour_weight=1.0,
     )
     minutes = (now - state.started_at).total_seconds() / 60 if state.started_at else 0.0
     budget = state.budget
     verdict: Verdict
-    if frustrated or stopped >= 2:
-        if len(rounds) < budget.max_rounds:
+    if frustration > FRUSTRATION_P or stopped >= 2:
+        if len(rounds) < budget.max_rounds and stopped < 2:
             verdict, reason = "ease", "That one looked tough. Let's do something lighter."
         else:
             verdict, reason = "break", "That one looked tough. A short break would help."
+    elif fatigue >= 0.8:
+        verdict = "end"
+        reason = "Your answers are slowing down compared with the start. Good place to stop."
     elif budget.fatigue_point_min and minutes > budget.fatigue_point_min:
         verdict = "end"
         reason = (
@@ -273,6 +350,8 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
         )
     elif len(rounds) >= budget.max_rounds:
         verdict, reason = "end", f"That's {len(rounds)} rounds. Nice session."
+    elif budget.max_minutes and minutes > budget.max_minutes:
+        verdict, reason = "end", "That's enough for today. Nice session."
     else:
         verdict, reason = "continue", "Ready for the next round."
     decision = Decision(
@@ -281,7 +360,7 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
         at=now,
         question="Continue, ease off, take a break or stop?",
         candidates=[
-            Candidate(option=v, score=float(v == verdict))
+            Candidate(option=v, score=float(v == verdict), breakdown={})
             for v in ("continue", "ease", "break", "end")
         ],
         chosen=verdict,
@@ -289,4 +368,4 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
         evidence=[str(last.round_id)] if last else [],
     )
     await record_decision(runtime.context, decision)
-    return {"verdict": verdict, "decisions": [decision]}
+    return {"verdict": verdict, "decisions": [decision], "affect": affect}

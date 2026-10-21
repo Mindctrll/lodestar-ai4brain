@@ -22,7 +22,7 @@ p = logistic( (μ − b) / sqrt(1 + π·σ²/8) )
 - Timed games, deadline *d*, response time *t*, correct *x* ∈ {0, 1}, using the high-speed-high-stakes rule:
   `S_raw = (2x − 1) · (1 − t/d)` in [−1, 1], then `S = (S_raw + 1) / 2`.
   Fast and right scores high; fast and wrong scores low; slow answers count little either way. This discourages guessing.
-  **Rescaled before the update.** The raw score is shrunk toward 0.5 by slowness, so feeding it straight into a model of P(correct) pulls μ toward the item and difficulty targeting slides until users succeed almost always. We rescale it against a reference pace of half the deadline: `S = clip(0.5 + (S_hshs − 0.5) / 0.5, 0, 1)`. Right within the reference pace is a full success, wrong within it a full failure, and slower answers count partly, down to 0.5 at the deadline (`backend/scoring/hshs.py`).
+  **As used in the update.** The raw score is shrunk toward 0.5 by slowness, so feeding it into a model of P(correct) pulls μ toward the item and difficulty targeting slides until users succeed almost always; partial credit for slow answers has the same problem in a milder form (simulator coverage fell to 0.65). So the update treats a timed answer as a success when it is right within the reference pace (half the deadline) and a failure otherwise. Fast guesses still cost, and the deadline knob sets the pace a level asks for (`backend/scoring/hshs.py`).
 - Span games (Corsi, digit span): one S per sequence.
 
 **Update after each scored response** (one Kalman / Laplace step for a logistic model):
@@ -49,7 +49,7 @@ I   = p · (1 − p)                      # information in this answer
 
 q starts at 0.002 per day (σ grows noticeably after about 3 weeks), and we try to fit it to Kumar et al. (2022), who studied relearning after breaks in 39,157 Lumosity users. This is the "blurry star" effect in the Brain Twin.
 
-**Within-session process noise.** Answers in one session aren't independent (the user warms up, tires, learns the task), so treating every trial as fresh evidence makes σ shrink too fast: about 5 answers take σ from 1.5 to 0.8, and 100 answers take it to about 0.2. Before each round we add process noise, `σ² ← σ² + q_round` (start at q_round = 0.02). WP1.2 tunes `q_round`, `q` and the per-trial weight on the simulator until the 80% ranges contain the true value 75–85% of the time.
+**Within-session process noise.** Answers in one session aren't independent (the user warms up, tires, learns the task), so treating every trial as fresh evidence makes σ shrink too fast: about 5 answers take σ from 1.5 to 0.8, and 100 answers take it to about 0.2. Before each round we add process noise, `σ² ← σ² + q_round` (q_round = 0.035 after tuning in WP1.2–2.3). WP1.2 tunes `q_round`, `q` and the per-trial weight on the simulator until the 80% ranges contain the true value 75–85% of the time.
 
 **Starting values:** μ = 0 (population average), σ_start = 1.5. The 5-minute onboarding brings the **core skills** (the dimensions the onboarding battery measures with a primary loading) to about σ ≈ 0.8.
 

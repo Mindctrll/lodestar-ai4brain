@@ -37,14 +37,19 @@ def answer(
     if user.trial_noise:
         theta += float(rng.normal(0, user.trial_noise))
     p = logistic(theta - b)
-    correct = bool(rng.random() < p) if rng.random() > user.lapse else bool(rng.random() < 0.5)
+    if rng.random() < user.lapse:
+        return SimAnswer(bool(rng.random() < 0.5), float(rng.uniform(250, 1200)))
 
     if deadline_ms:
-        # Timed games: answers come at a fraction of the deadline, slower when the item is hard
-        # for this user, mostly within the on-pace window that HSHS rewards.
-        median_fraction = 0.22 + 0.2 * (1.0 - p)
-        tau = median_fraction * math.exp(float(rng.normal(0, 0.25)))
-        rt = min(tau, 1.0) * deadline_ms
-    else:
-        rt = BASE_RT_MS * math.exp(-0.15 * theta + float(rng.normal(0, 0.3)))
+        # Timed games measure pace: answers are almost always right, and ability shows as
+        # answering within the on-pace window (half the deadline) that the rescaled
+        # high-speed-high-stakes score rewards, so P(on pace) = logistic(theta - b).
+        correct = bool(rng.random() < 0.95)
+        on_pace = rng.random() < p
+        share = rng.uniform(0.2, 0.48) if on_pace else rng.uniform(0.52, 0.97)
+        rt = max(180.0, share * deadline_ms)
+        return SimAnswer(correct, rt + user.device_lag_ms)
+
+    correct = bool(rng.random() < p)
+    rt = BASE_RT_MS * math.exp(-0.15 * theta + float(rng.normal(0, 0.3)))
     return SimAnswer(correct, max(rt, 160.0) + user.device_lag_ms)

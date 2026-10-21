@@ -22,10 +22,10 @@ def test_hshs_rewards_fast_right_and_punishes_fast_wrong() -> None:
     assert hshs_score(True, 1000, 1000) == hshs_score(False, 1000, 1000) == 0.5
 
 
-def test_hshs_success_scale() -> None:
+def test_hshs_success_is_right_within_pace() -> None:
     assert hshs_success(True, 400, 1000) == 1.0  # right, on pace
     assert hshs_success(False, 400, 1000) == 0.0  # wrong, on pace
-    assert 0.5 < hshs_success(True, 800, 1000) < 1.0  # right but slow counts partly
+    assert hshs_success(True, 800, 1000) == 0.0  # right but too slow for this level
 
 
 def test_staircase_2_down_1_up_converges_near_71_percent() -> None:

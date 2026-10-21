@@ -12,7 +12,7 @@ MU_START = 0.0
 # Staleness drift per day without practice (sigma grows noticeably after about 3 weeks).
 Q_PER_DAY = 0.002
 # Process noise added before each round: answers within a session aren't independent.
-Q_ROUND = 0.02
+Q_ROUND = 0.035
 # Item difficulties only learn from users whose skill is already well known.
 ITEM_LEARNING_SIGMA_MAX = 0.6
 ITEM_LEARNING_RATE = 0.02

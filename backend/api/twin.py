@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
-from backend.api.deps import Conn, CurrentUser
+from backend.api.deps import Conn, CurrentUser, Engine
 from backend.contracts.common import Contract
 from backend.contracts.trial import TrialEvent
 from backend.contracts.views import CreatedUser, IngestResult, TwinView
@@ -19,16 +19,18 @@ class TrialBatch(Contract):
 @router.post(
     "/users", response_model=CreatedUser, status_code=status.HTTP_201_CREATED, tags=["users"]
 )
-async def post_user(conn: Conn) -> CreatedUser:
+async def post_user(engine: Engine) -> CreatedUser:
     """Create a user and return their bearer token. WP2.8 adds the age check and consent."""
-    user_id, token = await create_user(conn)
+    async with engine.begin() as conn:
+        user_id, token = await create_user(conn)
     return CreatedUser(user_id=user_id, token=token)
 
 
 @router.post("/events", response_model=IngestResult, tags=["events"])
-async def post_events(batch: TrialBatch, user_id: CurrentUser, conn: Conn) -> IngestResult:
+async def post_events(batch: TrialBatch, user_id: CurrentUser, engine: Engine) -> IngestResult:
     try:
-        return await record_trials(conn, user_id, batch.trials)
+        async with engine.begin() as conn:
+            return await record_trials(conn, user_id, batch.trials)
     except RoundNotFound as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Unknown round {exc}") from exc
     except ForeignRound as exc:

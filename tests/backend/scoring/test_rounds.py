@@ -92,7 +92,7 @@ def test_hshs_game_uses_deadline_from_knobs(registry: Registry) -> None:
         _trials("arrow_storm", [True], rt=1500)[0],
     )
     assert observed_score(game, fast) == 1.0
-    assert observed_score(game, slow) is not None and observed_score(game, slow) < 1.0  # type: ignore[operator]
+    assert observed_score(game, slow) == 0.0  # right but slower than this level's pace
 
 
 def test_anticipations_are_dropped(registry: Registry) -> None:
