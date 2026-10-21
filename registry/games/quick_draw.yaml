@@ -17,6 +17,10 @@ knobs:
   choices:
     easy: 1
     hard: 4
+  deadline_ms:
+    easy: 1200
+    hard: 450
+    unit: ms
 level_map: linear
 content: code
 modalities:
@@ -24,4 +28,5 @@ modalities:
 - touch
 acs_hooks: []
 practice_trials: 3
+available: true
 notes: Also measures the device-lag baseline at onboarding.

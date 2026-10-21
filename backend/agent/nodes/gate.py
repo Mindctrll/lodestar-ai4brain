@@ -105,9 +105,36 @@ def classify(text: str, trigger: str) -> Intent:
     return Intent(kind="chat", text=text)
 
 
+# Words people use for a skill, mapped to the dimension Najma trains for it.
+SKILL_WORDS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\bmemory\b", re.I), "working_memory"),
+    (re.compile(r"\b(speed|fast|quick|reaction)\b", re.I), "processing_speed"),
+    (re.compile(r"\b(focus|attention)\b", re.I), "selective_attention"),
+    (re.compile(r"\b(self[- ]control|impulse|stroop)\b", re.I), "inhibition"),
+    (re.compile(r"\b(logic|reasoning|puzzle)\b", re.I), "reasoning"),
+    (re.compile(r"\b(maths?|numbers?)\b", re.I), "numerical_thinking"),
+]
+
+
+def with_targets(intent: Intent, text: str, registry: Any) -> Intent:
+    """Fill in a game the user named, or the skill they asked for."""
+    if intent.kind != "play" or not text:
+        return intent
+    lowered = text.lower()
+    for game in registry.games:
+        if game.available and game.name.lower() in lowered:
+            return intent.model_copy(update={"game_id": game.id})
+    for pattern, dim in SKILL_WORDS:
+        if pattern.search(text):
+            return intent.model_copy(update={"dim": dim})
+    return intent
+
+
 @traced("route_intent")
 async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    return {"intent": classify(last_text(state), state.trigger), "verdict": None}
+    text = last_text(state)
+    intent = with_targets(classify(text, state.trigger), text, runtime.context.services.registry)
+    return {"intent": intent, "verdict": None}
 
 
 def after_route(state: NajmaState) -> str:

@@ -1678,6 +1678,12 @@
             "title": "Acs Hooks",
             "type": "array"
           },
+          "available": {
+            "default": false,
+            "description": "A browser plugin exists for it",
+            "title": "Available",
+            "type": "boolean"
+          },
           "code_source": {
             "title": "Code Source",
             "type": "string"
@@ -3464,6 +3470,19 @@
       "StartSession": {
         "additionalProperties": false,
         "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the user said to start, if anything",
+            "title": "Message"
+          },
           "trigger": {
             "default": "ui",
             "enum": [

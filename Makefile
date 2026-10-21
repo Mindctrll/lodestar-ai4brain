@@ -71,5 +71,5 @@ N ?= 200
 sim: ## simulate N users (default 200), write docs/figures, fail if a target is missed
 	uv run python -m simulator --users $(N)
 
-e2e: ## run end-to-end tests (WP1.3)
-	@echo "End-to-end tests arrive in WP1.3." && exit 1
+e2e: ## run Playwright end-to-end tests against the running stack (make up first)
+	$(FRONTEND) run e2e

@@ -1,0 +1,10 @@
+# Ink Clash (Stroop). Knobs: registry/games/ink_clash.yaml.
+trials: 16
+keys: [d, f, j, k]
+# Each colour has a name label and a pattern, so the task never relies on colour alone except where
+# colour is the task itself (docs/plan/06). Hex values are dark enough to read on white.
+colours:
+  - { name: red, hex: '#c81e1e' }
+  - { name: blue, hex: '#1d4ed8' }
+  - { name: green, hex: '#15803d' }
+  - { name: yellow, hex: '#a16207' }

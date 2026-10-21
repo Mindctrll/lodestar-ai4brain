@@ -49,6 +49,12 @@
       "title": "Acs Hooks",
       "type": "array"
     },
+    "available": {
+      "default": false,
+      "description": "A browser plugin exists for it",
+      "title": "Available",
+      "type": "boolean"
+    },
     "code_source": {
       "title": "Code Source",
       "type": "string"

@@ -7,10 +7,181 @@
   --color-ink: #16161a;
   --color-muted: #6b6b76;
   --color-accent: #2f6fed;
+  --color-line: #e6e6ea;
   --color-sky: #0b1026;
+  --color-right: #15803d;
+  --color-wrong: #b42318;
 }
 
 body {
   background-color: var(--color-surface);
   color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.app {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+.app__header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+.muted {
+  color: var(--color-muted);
+}
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.reason {
+  margin: 0.5rem 0 1rem;
+}
+.coach p {
+  margin: 0.25rem 0;
+}
+button {
+  border: 1px solid var(--color-line);
+  border-radius: 0.6rem;
+  padding: 0.55rem 1rem;
+  background: var(--color-card);
+  cursor: pointer;
+}
+button.primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+  margin-top: 0.75rem;
+}
+button:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Game frame (docs/plan/06) */
+.game-frame {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+.game-frame__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.game-frame__header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.chips {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+.chips li {
+  font-size: 0.8rem;
+  background: var(--color-surface);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+}
+.game-frame__intro {
+  padding: 1.25rem;
+}
+.game-frame__footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--color-line);
+}
+.najma-taskhost {
+  min-height: 18rem;
+  display: grid;
+  place-items: center;
+}
+.najma-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+}
+.najma-feedback {
+  font-weight: 600;
+}
+.najma-feedback.is-right {
+  color: var(--color-right);
+}
+.najma-feedback.is-wrong {
+  color: var(--color-wrong);
+}
+
+/* Quick Draw */
+.qd-row {
+  display: flex;
+  gap: 1rem;
+}
+.qd-box {
+  width: 5.5rem;
+  height: 5.5rem;
+  position: relative;
+  font-size: 2.5rem;
+}
+.qd-key {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+/* Ink Clash */
+.ic-word {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.ic-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ic-button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: capitalize;
+}
+.ic-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+/* Echo */
+.echo-letter {
+  font-size: 4rem;
+  font-weight: 700;
+  min-height: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

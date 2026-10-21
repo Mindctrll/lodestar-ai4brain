@@ -1023,6 +1023,12 @@ export interface components {
     Game: {
       /** Acs Hooks */
       acs_hooks: ('verification' | 'autonomy' | 'iteration' | 'clarification' | 'responsible_use')[]
+      /**
+       * Available
+       * @description A browser plugin exists for it
+       * @default false
+       */
+      available: boolean
       /** Code Source */
       code_source: string
       /**
@@ -1883,6 +1889,11 @@ export interface components {
     }
     /** StartSession */
     StartSession: {
+      /**
+       * Message
+       * @description What the user said to start, if anything
+       */
+      message?: string | null
       /**
        * Trigger
        * @default ui

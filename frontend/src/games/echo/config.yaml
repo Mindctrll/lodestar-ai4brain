@@ -1,0 +1,6 @@
+# Echo (n-back). Knobs: registry/games/echo.yaml.
+items_after_warmup: 18
+target_rate: 0.3
+show_ms: 500
+match_key: ' '
+letters: [B, C, D, F, G, H, J, K, L, M, N, P, R, S, T, V, W, X, Z]

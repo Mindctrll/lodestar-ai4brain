@@ -61,7 +61,7 @@ Phase = build group (see `16`): **P1** = core set, built in waves 1–2 (WP1.3, 
 
 | Game | Skill(s) | What you do | Metrics | Knobs | Origin | Phase |
 |---|---|---|---|---|---|---|
-| Quick Draw (simple/choice RT) | Processing speed | Tap as soon as the target appears (1 or 4 choices) | Median RT | Choices | Classic; also the device-lag baseline | **P1** |
+| Quick Draw (simple/choice RT) | Processing speed | Tap as soon as the target appears (1 or 4 choices) | Median RT | Choices, deadline | Classic; also the device-lag baseline | **P1** |
 | Symbol Code (digit-symbol) | Processing speed | Match symbols to a key, fast | Items/min | Key size, time | Classic (PEBL has one) | **P1** |
 | Twins (pattern comparison) | Processing speed | Same or different? | Items/min, accuracy | Complexity | Classic | P2 |
 | Connect (trail A) | Processing speed | Join 1→25 in order | Time | Count, layout | Classic | P2 |
@@ -110,6 +110,8 @@ Quick Draw, Ink Clash, Arrow Storm, Odd One Out, Hold It, Echo, Light Path, Mark
 Night Guard (sustained attention) is a P2 game because a good vigilance test needs about 3 minutes, which is too long for the onboarding battery.
 
 ## Game YAML
+
+A game is offered by the agent only when `available: true`, which means its browser plugin exists in `frontend/src/games/<game-id>/` (a test keeps the two lists in sync). How to add one: `frontend/src/taskhost/README.md`.
 
 ```yaml
 # registry/games/souk_rush.yaml

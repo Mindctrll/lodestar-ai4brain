@@ -1,0 +1,6 @@
+# Quick Draw (simple and choice reaction time). Difficulty knobs come from
+# registry/games/quick_draw.yaml; this file holds the browser-side settings.
+trials: 12
+keys: [d, f, j, k]
+single_key: ' '
+foreperiod_ms: [600, 1500]

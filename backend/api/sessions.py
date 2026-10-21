@@ -36,6 +36,9 @@ Runner = Annotated[SessionRunner, Depends(runner_dep)]
 
 class StartSession(Contract):
     trigger: Trigger = "ui"
+    message: str | None = Field(
+        default=None, max_length=2000, description="What the user said to start, if anything"
+    )
 
 
 class SessionEvents(Contract):
@@ -64,7 +67,7 @@ async def _collect(
 @router.post("", response_model=SessionEvents, status_code=status.HTTP_201_CREATED)
 async def start_session(body: StartSession, user_id: CurrentUser, runner: Runner) -> SessionEvents:
     session_id = await runner.create_session(user_id, body.trigger)
-    return await _collect(runner, user_id, session_id)
+    return await _collect(runner, user_id, session_id, message=body.message)
 
 
 @router.post("/{session_id}/resume", response_model=SessionEvents)

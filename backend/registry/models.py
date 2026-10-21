@@ -81,6 +81,7 @@ class Game(Contract):
     modalities: list[Modality]
     acs_hooks: list[AcsHook]
     practice_trials: int = Field(ge=0)
+    available: bool = Field(default=False, description="A browser plugin exists for it")
     notes: str | None = None
 
     @model_validator(mode="after")

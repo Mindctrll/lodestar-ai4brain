@@ -38,9 +38,10 @@ STALENESS_CAP_DAYS = 21.0
 
 
 def core_games_by_dim(registry: Registry) -> dict[str, list[Game]]:
+    """Core games the browser can run, by primary skill."""
     out: dict[str, list[Game]] = {}
     for game in registry.games:
-        if game.phase == "P1" and game.kind == "game":
+        if game.phase == "P1" and game.kind == "game" and game.available:
             for dim in game.primary_dims:
                 out.setdefault(dim, []).append(game)
     return out
@@ -90,10 +91,16 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         candidates.append(Candidate(option=dim, score=round(score, 4), breakdown=parts))
     candidates.sort(key=lambda c: c.score, reverse=True)
 
+    wanted_dim = intent.dim if intent and intent.dim in by_dim else None
     if requested is not None:
         dim = requested.primary_dims[0]
         game = requested
         reason = f"You asked for {game.name}."
+    elif wanted_dim is not None:
+        dim = wanted_dim
+        options = [g for g in by_dim[dim] if g.id != last_game] or by_dim[dim]
+        game = random.Random(ctx.seed + len(state.rounds)).choice(options)
+        reason = f"You asked for {registry.dimension(dim).name.lower()}."
     else:
         dim = candidates[0].option
         options = [g for g in by_dim[dim] if g.id != last_game] or by_dim[dim]
@@ -135,8 +142,8 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         "decisions": [decision],
         "plan": plan,
         "exercise": None,
-        # A game the user asked for is honoured once, not for the rest of the session.
-        "intent": intent.model_copy(update={"game_id": None}) if intent else None,
+        # A game or skill the user asked for is honoured once, not for the whole session.
+        "intent": intent.model_copy(update={"game_id": None, "dim": None}) if intent else None,
     }
 
 
