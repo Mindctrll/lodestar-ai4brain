@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, Field, JsonValue
 
+from backend.contracts.affect import BehaviourSignals
 from backend.contracts.common import Contract, GameId, Level, PlayMode, Probability
 
 
@@ -45,3 +46,6 @@ class RoundResult(Contract):
     final_level: Level
     started_at: AwareDatetime
     ended_at: AwareDatetime
+    behaviour: BehaviourSignals | None = Field(
+        default=None, description="Play signals summarised by the browser (docs/plan/12)"
+    )

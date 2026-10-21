@@ -17,6 +17,73 @@ function askFromUrl(): string | undefined {
   return ask?.trim() ? ask.trim() : undefined
 }
 
+function AfterGameLabels({
+  sessionId,
+  roundId,
+  monitor,
+}: {
+  sessionId: string
+  roundId: string | null
+  monitor: { decisionId: string; chosen: string } | null
+}) {
+  const [mood, setMood] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(false)
+  const send = (kind: 'mood' | 'was_i_right', value: string, extra: object) => {
+    void api.label({ session_id: sessionId, kind, value, ...extra }).catch(() => undefined)
+  }
+  const guessed = monitor && (monitor.chosen === 'ease' || monitor.chosen === 'break')
+  return (
+    <div className="labels">
+      <p className="muted">How did that feel?</p>
+      <div className="mood" role="group" aria-label="Mood">
+        {(
+          [
+            ['good', '😀 Good'],
+            ['ok', '😐 OK'],
+            ['tough', '😣 Tough'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={mood === value}
+            disabled={mood !== null}
+            onClick={() => {
+              setMood(value)
+              send('mood', value, roundId ? { round_id: roundId } : {})
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {guessed && !answered && (
+        <p className="was-i-right">
+          I thought that one was hard for you. Was I right?{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setAnswered(true)
+              send('was_i_right', 'yes', { decision_id: monitor.decisionId })
+            }}
+          >
+            Yes
+          </button>{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setAnswered(true)
+              send('was_i_right', 'no', { decision_id: monitor.decisionId })
+            }}
+          >
+            No
+          </button>
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function App() {
   const { state, start, play, finish, resumeSaved, skipSaved } = useSession()
   const [registry, setRegistry] = useState<Registry | null>(null)
@@ -112,6 +179,14 @@ export function App() {
               <p key={i}>{text}</p>
             ))}
           </div>
+          {state.sessionId && state.says.length > 0 && (
+            <AfterGameLabels
+              key={state.lastRoundId ?? 'none'}
+              sessionId={state.sessionId}
+              roundId={state.lastRoundId}
+              monitor={state.lastMonitor}
+            />
+          )}
           {state.phase === 'after' && state.spec && (
             <button type="button" className="primary" onClick={play}>
               Next game

@@ -10,16 +10,18 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import func, select
 
+from backend.agent.affect import estimate
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.state import NajmaState
 from backend.agent.telemetry import record_decision, traced
 from backend.contracts.affect import AffectReading
 from backend.contracts.decision import Candidate, Decision
+from backend.contracts.events import AffectEstimated
 from backend.contracts.exercise import ExerciseSpec, RoundResult
 from backend.contracts.session import RoundSummary, SessionPlan, Verdict
 from backend.db import tables as t
-from backend.db.twin_store import score_round_tx, start_round
+from backend.db.twin_store import append_event, score_round_tx, start_round
 from backend.registry.models import Game, Registry
 from backend.scoring.kalman_elo import SIGMA_START, Belief
 from backend.scoring.levels import TARGET_P, b_for_level, choose_mode, knobs_for, next_level
@@ -308,6 +310,15 @@ async def session_fatigue(ctx: NajmaContext) -> float:
     return 0.8 if z > FATIGUE_Z and errors_late > errors_early else min(0.5, max(0.0, z / 4))
 
 
+async def _log_affect(ctx: NajmaContext, affect: AffectReading, now: datetime) -> None:
+    """affect.estimated goes to the event log only; nothing reads it into the profile."""
+    async with ctx.services.engine.begin() as conn:
+        await append_event(
+            conn,
+            AffectEstimated(user_id=ctx.user_id, session_id=ctx.session_id, ts=now, payload=affect),
+        )
+
+
 @traced("monitor")
 async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
     """Continue, ease off, suggest a break, or stop (docs/plan/03, monitor routing)."""
@@ -315,22 +326,10 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
     rounds = state.rounds
     last = rounds[-1] if rounds else None
     stopped = sum(1 for r in rounds if r.status == "stopped")
-    low_accuracy = state.last_round is not None and (state.last_round.accuracy or 1.0) < 0.4
-    frustration = 0.0
-    if last is not None:
-        if last.stop_reason == "frustration" or last.status == "eased":
-            frustration = 0.8
-        elif last.status == "stopped" or low_accuracy:
-            frustration = 0.6
-    if stopped >= 2:
-        frustration = max(frustration, 0.8)
-    fatigue = await session_fatigue(runtime.context)
-    affect = AffectReading(
-        frustration_p=frustration,
-        fatigue_p=fatigue,
-        sources=["behaviour"],
-        behaviour_weight=1.0,
-    )
+    accuracy = state.last_round.accuracy if state.last_round else None
+    affect = estimate(last, accuracy, await session_fatigue(runtime.context))
+    frustration, fatigue = affect.frustration_p, affect.fatigue_p
+    await _log_affect(runtime.context, affect, now)
     minutes = (now - state.started_at).total_seconds() / 60 if state.started_at else 0.0
     budget = state.budget
     verdict: Verdict

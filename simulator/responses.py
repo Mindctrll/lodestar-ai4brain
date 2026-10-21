@@ -11,6 +11,7 @@ from backend.scoring.kalman_elo import logistic
 from simulator.population import SimUser
 
 BASE_RT_MS = 900.0
+TILT = 0.6  # a frustration-prone user loses this much ability per miss in a row
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ def answer(
     deadline_ms: float | None,
     fatigue: float,
     rng: np.random.Generator,
+    miss_run: int = 0,
 ) -> SimAnswer:
     if user.kind == "cheater":
         return SimAnswer(True, float(rng.uniform(60, 140)))
@@ -34,6 +36,8 @@ def answer(
         return SimAnswer(bool(rng.random() < 0.5), float(rng.uniform(160, 380)))
 
     theta = user.theta(primary_dim) - fatigue
+    if user.kind == "frustration_prone":
+        theta -= TILT * miss_run  # misses snowball
     if user.trial_noise:
         theta += float(rng.normal(0, user.trial_noise))
     p = logistic(theta - b)

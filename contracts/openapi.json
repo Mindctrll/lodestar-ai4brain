@@ -288,6 +288,120 @@
         "title": "AffectEstimated",
         "type": "object"
       },
+      "AffectLabelPayload": {
+        "additionalProperties": false,
+        "description": "A label from the user: a one-tap mood after a round, or \"Was I right?\" about a guess.",
+        "properties": {
+          "decision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decision Id"
+          },
+          "kind": {
+            "enum": [
+              "mood",
+              "was_i_right"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "round_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Round Id"
+          },
+          "value": {
+            "maxLength": 20,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "title": "AffectLabelPayload",
+        "type": "object"
+      },
+      "AffectLabelled": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/AffectLabelPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "affect.labelled",
+            "default": "affect.labelled",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "AffectLabelled",
+        "type": "object"
+      },
       "AffectReading": {
         "additionalProperties": false,
         "properties": {
@@ -1203,6 +1317,7 @@
           "mapping": {
             "acs.observed": "#/components/schemas/AcsObserved",
             "affect.estimated": "#/components/schemas/AffectEstimated",
+            "affect.labelled": "#/components/schemas/AffectLabelled",
             "consent.changed": "#/components/schemas/ConsentChanged",
             "context.added": "#/components/schemas/ContextAdded",
             "data.exported": "#/components/schemas/DataExported",
@@ -1239,6 +1354,9 @@
           },
           {
             "$ref": "#/components/schemas/AffectEstimated"
+          },
+          {
+            "$ref": "#/components/schemas/AffectLabelled"
           },
           {
             "$ref": "#/components/schemas/ContextAdded"
@@ -2351,6 +2469,59 @@
         "title": "KnowledgeItem",
         "type": "object"
       },
+      "LabelInput": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Id"
+          },
+          "kind": {
+            "enum": [
+              "mood",
+              "was_i_right"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "round_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Id"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "kind",
+          "value"
+        ],
+        "title": "LabelInput",
+        "type": "object"
+      },
       "LifeContextWindow": {
         "additionalProperties": false,
         "properties": {
@@ -3110,6 +3281,18 @@
         "additionalProperties": false,
         "description": "Resume value after a game. Trials themselves arrive through POST /events.",
         "properties": {
+          "behaviour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BehaviourSignals"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Play signals summarised by the browser (docs/plan/12)"
+          },
           "ended_at": {
             "format": "date-time",
             "title": "Ended At",
@@ -4172,6 +4355,58 @@
         "summary": "Get Acs",
         "tags": [
           "twin"
+        ]
+      }
+    },
+    "/affect/labels": {
+      "post": {
+        "operationId": "post_label_affect_labels_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Label",
+        "tags": [
+          "affect"
         ]
       }
     },

@@ -21,6 +21,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/affect/labels': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Post Label */
+    post: operations['post_label_affect_labels_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/events': {
     parameters: {
       query?: never
@@ -363,6 +380,64 @@ export interface components {
        * @enum {string}
        */
       type: 'affect.estimated'
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
+    /**
+     * AffectLabelPayload
+     * @description A label from the user: a one-tap mood after a round, or "Was I right?" about a guess.
+     */
+    AffectLabelPayload: {
+      /**
+       * Decision Id
+       * @default null
+       */
+      decision_id: string | null
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'mood' | 'was_i_right'
+      /**
+       * Round Id
+       * @default null
+       */
+      round_id: string | null
+      /** Value */
+      value: string
+    }
+    /** AffectLabelled */
+    AffectLabelled: {
+      /**
+       * Event Id
+       * @description Assigned by Postgres (uuidv7)
+       * @default null
+       */
+      event_id: string | null
+      payload: components['schemas']['AffectLabelPayload']
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Session Id
+       * @default null
+       */
+      session_id: string | null
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'affect.labelled'
       /**
        * User Id
        * Format: uuid
@@ -816,6 +891,7 @@ export interface components {
       | components['schemas']['TwinUpdated']
       | components['schemas']['AcsObserved']
       | components['schemas']['AffectEstimated']
+      | components['schemas']['AffectLabelled']
       | components['schemas']['ContextAdded']
       | components['schemas']['GoalSet']
       | components['schemas']['ExperimentStarted']
@@ -1321,6 +1397,25 @@ export interface components {
       /** Text */
       text: string
     }
+    /** LabelInput */
+    LabelInput: {
+      /** Decision Id */
+      decision_id?: string | null
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'mood' | 'was_i_right'
+      /** Round Id */
+      round_id?: string | null
+      /**
+       * Session Id
+       * Format: uuid
+       */
+      session_id: string
+      /** Value */
+      value: string
+    }
     /** LifeContextWindow */
     LifeContextWindow: {
       /**
@@ -1707,6 +1802,11 @@ export interface components {
      * @description Resume value after a game. Trials themselves arrive through POST /events.
      */
     RoundResult: {
+      /**
+       * @description Play signals summarised by the browser (docs/plan/12)
+       * @default null
+       */
+      behaviour: components['schemas']['BehaviourSignals'] | null
       /**
        * Ended At
        * Format: date-time
@@ -2239,6 +2339,39 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AcsView']
         }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  post_label_affect_labels_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LabelInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       /** @description Validation Error */
       422: {

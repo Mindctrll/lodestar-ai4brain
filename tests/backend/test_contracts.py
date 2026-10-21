@@ -19,7 +19,7 @@ NOW = datetime(2026, 10, 21, 20, 0, tzinfo=UTC)
 # docs/plan/04, "Event types" (experiment.* expanded).
 PLAN_EVENT_TYPES = {
     "session.started", "trial.recorded", "round.completed", "twin.updated", "acs.observed",
-    "affect.estimated", "context.added", "goal.set", "experiment.started",
+    "affect.estimated", "affect.labelled", "context.added", "goal.set", "experiment.started",
     "experiment.session_logged", "experiment.completed", "consent.changed", "memory.written",
     "session.ended", "data.exported", "twin.snapshot", "llm.selection_changed",
 }  # fmt: skip

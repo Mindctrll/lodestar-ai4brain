@@ -36,7 +36,7 @@ def interrupt_of(events: list[dict[str, Any]]) -> dict[str, Any]:
 
 async def play(
     runner: SessionRunner, engine: AsyncEngine, user_id: UUID, session_id: UUID,
-    spec: dict[str, Any], results: list[bool],
+    spec: dict[str, Any], results: list[bool], **extra: Any,
 ) -> list[dict[str, Any]]:  # fmt: skip
     """What the browser does: stream trials to /events, then resume the graph."""
     round_id = UUID(spec["round_id"])
@@ -55,6 +55,7 @@ async def play(
         "round_id": str(round_id), "game_id": spec["game_id"], "status": "completed",
         "trial_count": len(results), "final_level": spec["level"],
         "started_at": start.isoformat(), "ended_at": (start + timedelta(minutes=1)).isoformat(),
+        **extra,
     }  # fmt: skip
     return await collect(runner, user_id, session_id, resume=result)
 

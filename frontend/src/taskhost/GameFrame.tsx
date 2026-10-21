@@ -17,6 +17,7 @@ interface Props {
 export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: Props) {
   const [started, setStarted] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [struggling, setStruggling] = useState(false)
   const [progress, setProgress] = useState<[number, number]>([0, 0])
   const controls = useRef<TaskControls | null>(null)
 
@@ -66,8 +67,42 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
           onProgress={(done, total) => {
             setProgress([done, total])
           }}
+          onStruggle={() => {
+            controls.current?.pause()
+            setStruggling(true)
+          }}
           controlsRef={controls}
         />
+      )}
+
+      {struggling && (
+        <div
+          className="game-frame__offer"
+          role="dialog"
+          aria-label="Easier?"
+          data-testid="easier-offer"
+        >
+          <p>That looked tough. Want it a bit easier?</p>
+          <button
+            type="button"
+            className="primary"
+            onClick={() => {
+              setStruggling(false)
+              controls.current?.stop('eased')
+            }}
+          >
+            Yes, easier
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setStruggling(false)
+              controls.current?.resume()
+            }}
+          >
+            Keep going
+          </button>
+        </div>
       )}
 
       {started && (

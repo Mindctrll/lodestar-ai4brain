@@ -400,3 +400,30 @@ button:focus-visible {
 .nl-stop {
   right: 0;
 }
+
+/* Affect: the easier offer and after-game labels (docs/plan/12) */
+.game-frame__offer {
+  margin: 0 1.25rem 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.game-frame__offer button.primary {
+  margin-top: 0;
+}
+.labels {
+  margin-top: 1rem;
+}
+.mood {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+.mood button[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: white;
+}

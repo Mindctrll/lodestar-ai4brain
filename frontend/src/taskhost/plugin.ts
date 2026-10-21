@@ -65,10 +65,10 @@ export function makePlugin<I>(
 
     async trial(display: HTMLElement, trial: Record<string, unknown>): Promise<void> {
       const index = String(trial['trial_index'])
-      display.innerHTML = `<div class="najma-stage" data-testid="stage" data-trial="${index}"></div>`
+      const practice = trial['practice'] === true
+      display.innerHTML = `<div class="najma-stage" data-testid="stage" data-trial="${index}" data-practice="${String(practice)}"></div>`
       const stage = display.querySelector<HTMLElement>('.najma-stage')
       if (!stage) throw new Error('stage missing')
-      const practice = trial['practice'] === true
       const outcome = await run({
         jsPsych: this.jsPsych,
         stage,

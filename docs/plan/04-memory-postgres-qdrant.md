@@ -80,7 +80,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 ### Event types
 
-`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key).
+`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `affect.labelled` (mood check, "Was I right?"), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key).
 
 ## Dashboard queries come straight from SQL
 

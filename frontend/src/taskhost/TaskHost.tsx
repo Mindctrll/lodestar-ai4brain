@@ -1,6 +1,7 @@
 import { initJsPsych, type JsPsych } from 'jspsych'
 import { useEffect, useMemo, useRef } from 'react'
 
+import { currentMissStreak, STRUGGLE_STREAK, summarise } from '../affect/signals'
 import { api } from '../api/client'
 import type { ExerciseSpec, RoundResult, TrialEvent } from '../api/types'
 import { mulberry32 } from '../lib/rng'
@@ -15,6 +16,8 @@ interface Props {
   game: GameModule
   onFinish: (result: RoundResult) => void
   onProgress?: (done: number, total: number) => void
+  /** Called once when the user misses several in a row: the frame offers an easier game. */
+  onStruggle?: () => void
   send?: (trials: TrialEvent[]) => Promise<unknown>
   /** Imperative controls for the game frame's buttons. */
   controlsRef?: React.RefObject<TaskControls | null>
@@ -51,6 +54,7 @@ export function TaskHost({
   game,
   onFinish,
   onProgress,
+  onStruggle,
   send,
   controlsRef,
 }: Props) {
@@ -69,9 +73,9 @@ export function TaskHost({
   }, [spec, game])
   // Callbacks change identity on every parent render; keep the latest ones in a ref so the
   // timeline isn't torn down and restarted each time.
-  const callbacks = useRef({ onFinish, onProgress, send })
+  const callbacks = useRef({ onFinish, onProgress, onStruggle, send })
   useEffect(() => {
-    callbacks.current = { onFinish, onProgress, send }
+    callbacks.current = { onFinish, onProgress, onStruggle, send }
   })
 
   useEffect(() => {
@@ -84,6 +88,15 @@ export function TaskHost({
     let finished = false
     let disposed = false
     let steps = 0
+    let rapidTaps = 0
+    let lastTap = 0
+    let offered = false
+    const onTap = () => {
+      const now = performance.now()
+      if (now - lastTap < 250) rapidTaps += 1
+      lastTap = now
+    }
+    element.addEventListener('pointerdown', onTap)
 
     const finish = async () => {
       if (finished) return
@@ -97,6 +110,7 @@ export function TaskHost({
         stop_reason: status === 'stopped' ? 'user' : null,
         trial_count: scored.length,
         metrics: game.metrics(records),
+        behaviour: summarise(spec.game_id, records, rapidTaps, status),
         final_level: spec.level,
         started_at: started.toISOString(),
         ended_at: new Date().toISOString(),
@@ -116,6 +130,10 @@ export function TaskHost({
         }
         steps += 1
         callbacks.current.onProgress?.(steps, total)
+        if (!offered && currentMissStreak(records) >= STRUGGLE_STREAK) {
+          offered = true
+          callbacks.current.onStruggle?.()
+        }
       },
       on_finish: () => void finish(),
     })
@@ -142,6 +160,7 @@ export function TaskHost({
       // paused at `play`, so the round can be resumed later (UW6).
       finished = true
       disposed = true
+      element.removeEventListener('pointerdown', onTap)
       if (controlsRef) controlsRef.current = null
       // Stop listening: an aborted timeline must not answer keys meant for its successor.
       jsPsych.pluginAPI.cancelAllKeyboardResponses()

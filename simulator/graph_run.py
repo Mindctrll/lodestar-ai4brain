@@ -2,7 +2,8 @@
 
 Unlike `simulator.run`, which calls the scoring engine directly, this drives the whole loop:
 sessions are created, the graph plans and pauses, simulated answers go through the same trial
-ingestion as the browser, and the graph is resumed with the round result.
+ingestion as the browser, and the graph is resumed with the round result and the behaviour
+signals the browser would send (WP2.9).
 """
 
 import asyncio
@@ -16,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.agent.runner import SessionRunner
+from backend.contracts.affect import BehaviourSignals
 from backend.contracts.trial import TrialEvent
 from backend.db import tables as t
 from backend.db.twin_store import create_user, record_trials
@@ -33,6 +35,7 @@ class PlayedRound:
     mode: str
     target_p: float
     score: float | None = None
+    verdict: str | None = None  # monitor's call after the round
 
 
 @dataclass
@@ -40,6 +43,18 @@ class GraphRun:
     user: SimUser
     user_id: UUID
     rounds: list[PlayedRound] = field(default_factory=list)
+
+
+def behaviour(user: SimUser, correct: list[bool]) -> BehaviourSignals:
+    """What the browser would see: miss streaks, and rushed taps from a frustration-prone user
+    after a miss."""
+    run = longest = rushed = 0
+    for i, c in enumerate(correct):
+        run = 0 if c else run + 1
+        longest = max(longest, run)
+        if user.kind == "frustration_prone" and not c and i > 0 and not correct[i - 1]:
+            rushed += 1
+    return BehaviourSignals(error_streak=longest, rapid_taps=rushed)
 
 
 def _interrupt(events: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -64,8 +79,10 @@ async def _play(
     deadline = spec["knobs"].get("deadline_ms") if game.scoring == "hshs" else None
     start = datetime.now(UTC)
     trials = []
+    miss_run = 0
     for i in range(TRIALS):
-        a = answer(run.user, game, primary, spec["difficulty_b"], deadline, 0.0, rng)
+        a = answer(run.user, game, primary, spec["difficulty_b"], deadline, 0.0, rng, miss_run)
+        miss_run = 0 if a.correct else miss_run + 1
         trials.append(
             TrialEvent(
                 trial_id=uuid4(),
@@ -85,7 +102,9 @@ async def _play(
     for dim, loading in game.dims.items():
         if dim in run.user.gain:
             run.user.practise(dim, loading)
-    run.rounds.append(PlayedRound(UUID(spec["round_id"]), game.id, spec["mode"], spec["target_p"]))
+    played = PlayedRound(UUID(spec["round_id"]), game.id, spec["mode"], spec["target_p"])
+    run.rounds.append(played)
+    signals = behaviour(run.user, [bool(tr.correct) for tr in trials])
     result = {
         "round_id": spec["round_id"],
         "game_id": game.id,
@@ -94,8 +113,13 @@ async def _play(
         "final_level": spec["level"],
         "started_at": start.isoformat(),
         "ended_at": (start + timedelta(minutes=1)).isoformat(),
+        "behaviour": signals.model_dump(mode="json"),
     }
-    return [e async for e in runner.run(run.user_id, session_id, resume=result)]
+    events = [e async for e in runner.run(run.user_id, session_id, resume=result)]
+    played.verdict = next(
+        (e["chosen"] for e in events if e["kind"] == "decision" and e["node"] == "monitor"), None
+    )
+    return events
 
 
 async def simulate_through_graph(
@@ -135,6 +159,12 @@ async def simulate_through_graph(
             r.score = scores.get(r.round_id)
         runs.append(run)
     return runs
+
+
+def ease_rate(runs: list[GraphRun], kind: str) -> float:
+    """Share of rounds after which Najma eased off or suggested a break, for one user type."""
+    verdicts = [r.verdict for run in runs if run.user.kind == kind for r in run.rounds]
+    return sum(v in ("ease", "break") for v in verdicts) / len(verdicts) if verdicts else 0.0
 
 
 def balanced_success(runs: list[GraphRun]) -> tuple[float, int]:

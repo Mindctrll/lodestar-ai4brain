@@ -91,6 +91,15 @@ class MemoryWrittenPayload(Contract):
     importance: float
 
 
+class AffectLabelPayload(Contract):
+    """A label from the user: a one-tap mood after a round, or "Was I right?" about a guess."""
+
+    kind: Literal["mood", "was_i_right"]
+    value: str = Field(max_length=20)
+    round_id: UUID | None = None
+    decision_id: UUID | None = None
+
+
 class SessionEndedPayload(Contract):
     reason: Literal["budget", "fatigue", "user", "break", "error"]
     rounds: int = Field(ge=0)
@@ -164,6 +173,11 @@ class AffectEstimated(_Envelope):
     payload: AffectReading
 
 
+class AffectLabelled(_Envelope):
+    type: Literal["affect.labelled"] = "affect.labelled"
+    payload: AffectLabelPayload
+
+
 class ContextAdded(_Envelope):
     type: Literal["context.added"] = "context.added"
     payload: LifeContextWindow
@@ -226,6 +240,7 @@ Event = Annotated[
     | TwinUpdated
     | AcsObserved
     | AffectEstimated
+    | AffectLabelled
     | ContextAdded
     | GoalSet
     | ExperimentStarted

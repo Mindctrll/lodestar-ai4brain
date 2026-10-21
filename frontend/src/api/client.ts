@@ -73,6 +73,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ trigger, message: message ?? null }),
     }),
+  label: (body: {
+    session_id: string
+    kind: 'mood' | 'was_i_right'
+    value: string
+    round_id?: string
+    decision_id?: string
+  }) => request<undefined>('/affect/labels', { method: 'POST', body: JSON.stringify(body) }),
   pending: (sessionId: string) =>
     request<{ pending: AgentEvent | null }>(`/sessions/${sessionId}/pending`),
   sendTrials: (trials: TrialEvent[]) =>

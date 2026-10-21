@@ -1,4 +1,4 @@
-import { expect, type Page, type Request } from '@playwright/test'
+import { expect, type Locator, type Page, type Request } from '@playwright/test'
 
 export interface SentTrial {
   round_id: string
@@ -56,14 +56,22 @@ async function perform(page: Page, answer: string): Promise<void> {
   }
 }
 
+export interface PlayOptions {
+  /** Let every scored step run out instead of answering (practice is still answered). */
+  missScored?: boolean
+  /** Stop playing as soon as this shows up. */
+  until?: Locator
+}
+
 /** Play the current game by reading each step's expected answer and giving it. */
-export async function playCurrentGame(page: Page): Promise<void> {
+export async function playCurrentGame(page: Page, options: PlayOptions = {}): Promise<void> {
   await page.getByRole('button', { name: /Let's go|Next game/ }).click()
   await page.getByRole('button', { name: 'Start' }).click()
   const after = page.getByTestId('after-game')
   let last = ''
   for (;;) {
     if (await after.isVisible()) return
+    if (options.until && (await options.until.isVisible())) return
     // The next step we haven't answered yet, once it is listening for an answer.
     const stage = page.locator(`[data-testid="stage"][data-answer]:not([data-trial="${last}"])`)
     try {
@@ -71,11 +79,13 @@ export async function playCurrentGame(page: Page): Promise<void> {
     } catch {
       continue
     }
-    const [answer, trial] = await Promise.all([
+    const [answer, trial, practice] = await Promise.all([
       stage.getAttribute('data-answer'),
       stage.getAttribute('data-trial'),
+      stage.getAttribute('data-practice'),
     ])
-    await perform(page, answer ?? 'none')
+    const miss = options.missScored === true && practice !== 'true'
+    await perform(page, miss ? 'none' : (answer ?? 'none'))
     last = trial ?? ''
   }
 }

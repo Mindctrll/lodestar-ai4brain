@@ -15,6 +15,9 @@ export interface SessionState {
   says: string[]
   timeline: AgentEvent[]
   error: string | null
+  lastRoundId: string | null
+  /** Najma's last call on how to go on, so the user can say whether it was right. */
+  lastMonitor: { decisionId: string; chosen: string } | null
 }
 
 const INITIAL: SessionState = {
@@ -25,6 +28,8 @@ const INITIAL: SessionState = {
   says: [],
   timeline: [],
   error: null,
+  lastRoundId: null,
+  lastMonitor: null,
 }
 
 const SESSION_KEY = 'najma.session'
@@ -56,6 +61,8 @@ export function useSession() {
       const next = { ...s, timeline: [...s.timeline.slice(-199), event] }
       switch (event.kind) {
         case 'decision':
+          if (event.node === 'monitor')
+            return { ...next, lastMonitor: { decisionId: event.decision_id, chosen: event.chosen } }
           return event.node === 'plan_next' ? { ...next, reason: event.reason } : next
         case 'say':
           return { ...next, says: [...s.says, event.text] }
@@ -153,6 +160,7 @@ export function useSession() {
       final_level: spec.level,
       started_at: now,
       ended_at: now,
+      behaviour: null,
     })
   }, [attach, state.sessionId, state.spec])
 
@@ -161,7 +169,14 @@ export function useSession() {
   }, [])
 
   const finish = useCallback((result: RoundResult) => {
-    setState((s) => ({ ...s, phase: 'scoring', says: [], spec: null }))
+    setState((s) => ({
+      ...s,
+      phase: 'scoring',
+      says: [],
+      spec: null,
+      lastRoundId: result.round_id,
+      lastMonitor: null,
+    }))
     void socket.current?.resume(result)
   }, [])
 

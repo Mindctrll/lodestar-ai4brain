@@ -10,7 +10,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette.websockets import WebSocketDisconnect
 
@@ -199,3 +199,31 @@ def test_websocket_through_the_real_lifespan(db_url: str, monkeypatch: pytest.Mo
     finally:
         get_settings.cache_clear()
         get_async_engine.cache_clear()
+
+
+async def test_affect_labels_go_to_the_event_log(
+    client: httpx.AsyncClient, aengine: AsyncEngine
+) -> None:
+    headers = await _auth(client)
+    started = (await client.post("/sessions", json={"trigger": "ui"}, headers=headers)).json()
+    session_id = started["session_id"]
+    body = {"session_id": session_id, "kind": "mood", "value": "tough"}
+    assert (await client.post("/affect/labels", json=body, headers=headers)).status_code == 204
+    bad = {**body, "value": "furious"}
+    assert (await client.post("/affect/labels", json=bad, headers=headers)).status_code == 422
+    other = await _auth(client)  # someone else's session
+    assert (await client.post("/affect/labels", json=body, headers=other)).status_code == 404
+    async with aengine.connect() as conn:
+        rows = (
+            (
+                await conn.execute(
+                    select(t.events.c.payload).where(
+                        t.events.c.session_id == UUID(session_id),
+                        t.events.c.type == "affect.labelled",
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert [r["value"] for r in rows] == ["tough"]
