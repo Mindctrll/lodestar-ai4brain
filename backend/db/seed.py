@@ -229,6 +229,7 @@ def main() -> None:
             token = issue_token(conn, user_id)
             print(f"TOKEN={token}")
             print(f"Sign in as {DEMO_NAME}: http://localhost:5173/?signin={token}")
+            print(f"Or in a terminal: bin/najma login --code {token}")
 
 
 if __name__ == "__main__":

@@ -33,6 +33,10 @@ _IN_N = re.compile(r"\bin (\d{1,3}|a|one|two|three|four) (day|week|month)s?\b", 
 _PAST_N = re.compile(r"\b(?:last|past) (\d{1,3}) (day|week|month)s?\b", re.I)
 _WORD_N = {"a": 1, "one": 1, "two": 2, "three": 3, "four": 4}
 _UNIT_DAYS = {"day": 1, "week": 7, "month": 30}
+# "±5", "+/- 5", "plus or minus 5", "within 5 points" (but not "within 2 weeks")
+_TARGET = re.compile(
+    r"(?:±|\+/-|\+-|plus or minus|within)\s*(\d{1,2})\b(?!\s*(?:day|week|month|year)s?\b)", re.I
+)
 
 
 def local_tz(name: str | None) -> ZoneInfo:
@@ -94,6 +98,12 @@ def due_date(text: str, today: date, exam_day: date | None = None) -> date:
     if re.search(r"\b(before|by) (my |the )?exams?\b", lowered) and exam_day and exam_day > today:
         return exam_day
     return today + timedelta(days=GOAL_DAYS_DEFAULT)
+
+
+def goal_target(text: str) -> int | None:
+    """The range the user asked for, in percentage points, if they named one (UW19)."""
+    m = _TARGET.search(text)
+    return int(m.group(1)) if m and int(m.group(1)) > 0 else None
 
 
 def history_days(text: str) -> int:

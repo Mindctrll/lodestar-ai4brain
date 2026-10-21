@@ -254,6 +254,8 @@ Text-friendly games (Digits Back, Quick Maths, Logic Lock) can be played in the 
 
 **Test `uw19_cli`:** chat, profile view and goal setting work through the CLI and match the web app's data.
 
+**As built (WP3.6).** `bin/najma` (or `make cli ARGS=...`): `login` (the code from Settings > Terminal), `chat`, `play [game]`, `profile [skill]`, `goals`, `goal SKILL --within N --by DATE`, `why`. In chat, "show my profile" prints the table under Najma's answer, and a goal is set only after a yes. Market List and Spot the AI's Mistake play in the terminal (registry `terminal: true`), with the browser plugins' scoring; any other game opens in the browser at `/?session=<id>`, which picks up the same session. Digits Back, Quick Maths and Logic Lock get their text versions with the games themselves (WP3.1). Tests: `tests/backend/agent/test_mcp_cli.py` (including the real command against a real server) and `frontend/e2e/cli.spec.ts`.
+
 ---
 
 ## UW20 · Change coach or difficulty mode

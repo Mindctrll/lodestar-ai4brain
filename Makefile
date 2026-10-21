@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env cli practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
@@ -62,6 +62,9 @@ migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postg
 
 seed: ## add the demo user (Amira) with three weeks of practice; prints a sign-in link
 	uv run python -m backend.db.seed --token
+
+cli: ## the najma CLI against the running app, e.g. make cli ARGS="chat" (or use bin/najma)
+	uv run python -m cli $(ARGS)
 
 pool: ## fill agent.content_pool so play never waits on an LLM
 	uv run python -m backend.generation.pool

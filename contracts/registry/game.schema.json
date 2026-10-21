@@ -240,6 +240,12 @@
       "description": "Knob tuned inside the game",
       "title": "Staircase"
     },
+    "terminal": {
+      "default": false,
+      "description": "A text version exists, so the CLI can play it (UW19)",
+      "title": "Terminal",
+      "type": "boolean"
+    },
     "themable": {
       "default": false,
       "description": "Its content can follow any theme the user asks for (UW4)",

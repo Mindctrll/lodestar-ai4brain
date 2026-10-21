@@ -50,6 +50,11 @@ function setToken(token: string): void {
 
 let memoryToken: string | null = null
 
+/** The code `najma login` asks for: this browser's sign-in token (UW19). */
+export function signInCode(): string | null {
+  return memoryToken ?? getToken()
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = memoryToken ?? getToken()
   const headers = new Headers(init.headers)

@@ -119,6 +119,11 @@ class SessionRunner:
             raise SessionNotFound(str(session_id))
         return row.trigger, row.persona, row.success_mode
 
+    async def persona(self, user_id: UUID, session_id: UUID) -> str:
+        """The coach of a session. Raises SessionNotFound if it isn't this user's session."""
+        _, persona, _ = await self._session(user_id, session_id)
+        return persona
+
     async def context_for(self, user_id: UUID, session_id: UUID, seed: int = 0) -> NajmaContext:
         async with self.services.engine.connect() as conn:
             selection = await get_selection(conn, user_id, self.local_model)

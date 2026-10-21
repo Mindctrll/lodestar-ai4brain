@@ -34,7 +34,7 @@ from backend.contracts.session import Intent, ToolCall, ToolName, ToolOutcome
 from backend.contracts.views import DimensionView
 from backend.db import tables as t
 from backend.db.twin_store import append_event, read_twin
-from backend.scoring.goals import rounds_to_target, suggest_target
+from backend.scoring.goals import range_floor, rounds_to_target, suggest_target
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.levels import TARGET_P
 
@@ -315,27 +315,42 @@ async def goal_facts(ctx: NajmaContext, args: SetGoalArgs) -> FactsPacket:
     return FactsPacket(facts=facts)
 
 
-async def propose_goal(ctx: NajmaContext, dim: str, due: date, call_id: UUID) -> ToolCall:
+async def propose_goal(
+    ctx: NajmaContext, dim: str, due: date, call_id: UUID, target: int | None = None
+) -> ToolCall:
+    """Najma suggests a reachable target, or uses the one the user named; never one narrower
+    than the range can get (the floor plus 2 points, as in `suggest_target`)."""
     async with ctx.services.engine.connect() as conn:
         twin = await read_twin(conn, ctx.user_id, norms=ctx.services.norms)
     view = next((v for v in twin.dims if v.dim == dim), None)
     belief = Belief(view.mu, view.sigma) if view is not None else Belief()
     norms = ctx.services.norms
-    target = suggest_target(belief, dim, norms)
+    floor = math.ceil(range_floor(belief, dim, norms)) + 2
+    widened = target is not None and target < floor
+    target = max(target, floor) if target else suggest_target(belief, dim, norms)
     rounds = rounds_to_target(belief, dim, target, norms)
     args = SetGoalArgs(dim=dim, target=target, due=due, rounds=rounds or None)
     packet = await goal_facts(ctx, args)
     name = dim_name(ctx, dim).lower()
     goal_id = packet.facts[0].id
+    prefix = ""
+    if widened:  # say so, rather than quietly set a different goal than the one asked for
+        closest = Fact(
+            id=f"F{len(packet.facts) + 1}",
+            text=f"Closest {name} range Najma can reach: ±{target} points",
+            dim=dim,
+        )
+        packet = FactsPacket(facts=[*packet.facts, closest])
+        prefix = f"I can't get your {name} range narrower than ±{target} points [{closest.id}]. "
     if rounds:
-        rounds_id = packet.facts[-1].id
-        prompt = (
+        rounds_id = next(f.id for f in packet.facts if f.text.startswith("About "))
+        prompt = prefix + (
             f"Let's aim for your {name} range to be within ±{target} points by {_when(due)} "
             f"[{goal_id}]. That means about {rounds} more {name} rounds [{rounds_id}]. "
             "Shall I set this goal?"
         )
     else:
-        prompt = (
+        prompt = prefix + (
             f"Let's keep your {name} range within ±{target} points until {_when(due)} "
             f"[{goal_id}]. Regular practice keeps it there. Shall I set this goal?"
         )
@@ -630,6 +645,26 @@ async def propose_experiment(ctx: NajmaContext, call_id: UUID) -> ToolCall:
         writes=True,
         prompt=prompt,
         facts=FactsPacket(facts=[fact]),
+    )
+
+
+async def experiment_in_progress(ctx: NajmaContext) -> ToolOutcome | None:
+    """One experiment at a time: if one is running, say how far along it is."""
+    async with ctx.services.engine.connect() as conn:
+        current = await experiments.running(conn, ctx.user_id)
+    if current is None:
+        return None
+    done = experiments.progress(current)
+    fact = Fact(
+        id="F1",
+        text="Experiment so far: "
+        + ", ".join(f"{n} {c} sessions" for c, n in done.items())
+        + f" of {current.design['sessions_per_condition']} each",
+    )
+    return ToolOutcome(
+        facts=FactsPacket(facts=[fact]),
+        reply="An experiment is already running [F1]. Play in the morning or the evening "
+        "to add to it.",
     )
 
 

@@ -79,6 +79,18 @@ function remembered(): string | null {
   }
 }
 
+/** `?session=<id>`: the CLI hands over a game that plays only in the browser (UW19). The id
+ * leaves the address bar at once, and the session is picked up like one paused by a refresh. */
+function handedOver(): string | null {
+  const url = new URL(window.location.href)
+  const sessionId = url.searchParams.get('session')
+  if (!sessionId) return null
+  url.searchParams.delete('session')
+  window.history.replaceState(null, '', url.toString())
+  remember(sessionId)
+  return sessionId
+}
+
 const WAITING_FOR_A_GAME: Phase[] = ['home', 'starting', 'chatting', 'ready', 'ended']
 
 /** One practice session with Najma: start, play each exercise, resume the graph, read coaching,
@@ -147,7 +159,7 @@ export function useSession() {
 
   // A refresh or crash mid-game: the graph is still paused at `play`, so offer to pick up (UW6).
   useEffect(() => {
-    const sessionId = remembered()
+    const sessionId = handedOver() ?? remembered()
     if (!sessionId || !getToken()) return
     api.pending(sessionId).then(
       ({ pending }) => {

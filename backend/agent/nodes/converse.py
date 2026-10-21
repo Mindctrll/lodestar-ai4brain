@@ -18,12 +18,12 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import func, select
 
-from backend.agent import experiments
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.talk import draft_verified, emit_reply
 from backend.agent.slots import (
     asks_for_switches,
     due_date,
+    goal_target,
     history_days,
     life_event,
     local_tz,
@@ -36,6 +36,7 @@ from backend.agent.tools import (
     TOOLS,
     UpdateSettingsArgs,
     estimate_text,
+    experiment_in_progress,
     propose_experiment,
     propose_goal,
     propose_life_context,
@@ -149,7 +150,7 @@ async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
         else:
             tz = local_tz(await user_timezone(ctx))
             due = due_date(text, now.astimezone(tz).date(), await exam_day(ctx, now))
-            call = await propose_goal(ctx, intent.dim, due, call_id)
+            call = await propose_goal(ctx, intent.dim, due, call_id, goal_target(text))
     elif intent.kind == "life_context":
         tz = local_tz(await user_timezone(ctx))
         event = life_event(text, now, tz)
@@ -158,21 +159,8 @@ async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
         else:
             call = propose_life_context(event, tz, call_id)
     elif intent.kind == "experiment":
-        async with ctx.services.engine.connect() as conn:
-            current = await experiments.running(conn, ctx.user_id)
-        if current is not None:
-            done = experiments.progress(current)
-            fact = Fact(
-                id="F1",
-                text="Experiment so far: "
-                + ", ".join(f"{n} {c} sessions" for c, n in done.items())
-                + f" of {current.design['sessions_per_condition']} each",
-            )
-            outcome = ToolOutcome(
-                facts=FactsPacket(facts=[fact]),
-                reply="An experiment is already running [F1]. Play in the morning or the evening "
-                "to add to it.",
-            )
+        if (running := await experiment_in_progress(ctx)) is not None:
+            outcome = running
         elif UNKNOWN_CAUSE.search(text) and not TIME_OF_DAY.search(text):
             outcome = ToolOutcome(
                 reply="For now I can only test mornings against evenings: Najma doesn't record "

@@ -1728,6 +1728,12 @@ export interface components {
        */
       staircase?: string | null
       /**
+       * Terminal
+       * @description A text version exists, so the CLI can play it (UW19)
+       * @default false
+       */
+      terminal: boolean
+      /**
        * Themable
        * @description Its content can follow any theme the user asks for (UW4)
        * @default false

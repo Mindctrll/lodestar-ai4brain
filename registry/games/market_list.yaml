@@ -30,4 +30,5 @@ modalities:
 acs_hooks: []
 practice_trials: 3
 available: true
+terminal: true
 themable: true  # curated word lists per theme, else the LLM fills one (docs/plan/08)

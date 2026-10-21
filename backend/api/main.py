@@ -1,5 +1,5 @@
-"""FastAPI entry point. `create_app` wires the routes; the lifespan opens the database pools, the
-LangGraph Postgres checkpointer and the LLM factory."""
+"""FastAPI entry point. `create_app` wires the routes and the MCP tool server (`/mcp`); the
+lifespan opens the database pools, the LangGraph Postgres checkpointer and the LLM factory."""
 
 import logging
 from collections.abc import AsyncIterator
@@ -31,6 +31,7 @@ from backend.db.engine import get_async_engine, libpq_url
 from backend.generation.pipeline import ContentService
 from backend.llm import redaction
 from backend.llm.factory import LlmFactory
+from backend.mcp_server.server import build_server
 from backend.memory.embeddings import Embedder
 from backend.memory.langgraph_store import QdrantStore
 from backend.memory.notes import Notes
@@ -81,7 +82,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         compile_graph(checkpointer(pool), store), services, settings.local_model
     )
     try:
-        yield
+        async with app.state.mcp.session_manager.run():
+            yield
     finally:
         await pool.close()
         await engine.dispose()
@@ -100,6 +102,9 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
     app.include_router(voice.router)
     app.include_router(experiments.router)
     app.dependency_overrides[llm_factory_dep] = lambda: app.state.services.llm
+    # The MCP tool server for the CLI (UW19), on the same runner as the web app's sessions.
+    app.state.mcp = build_server(lambda: app.state.runner)
+    app.router.routes.extend(app.state.mcp.streamable_http_app(streamable_http_path="/mcp").routes)
 
     @app.get("/health")
     def health() -> dict[str, str]:

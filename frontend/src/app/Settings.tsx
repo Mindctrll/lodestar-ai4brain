@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { ApiError, api } from '../api/client'
+import { ApiError, api, signInCode } from '../api/client'
 import type { ConsentView, LlmOverview, MyData, Receipt } from '../api/types'
 import {
   browserRecognitionAvailable,
@@ -10,7 +10,7 @@ import {
 } from '../voice/speech'
 import { canSpeak, speakReplies } from '../voice/tts'
 
-type Tab = 'privacy' | 'voice' | 'ai' | 'data'
+type Tab = 'privacy' | 'voice' | 'ai' | 'data' | 'terminal'
 
 function message(e: unknown): string {
   return e instanceof ApiError || e instanceof Error ? e.message : String(e)
@@ -551,6 +551,59 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
   )
 }
 
+/** Najma in a terminal (UW19): the `najma` CLI signs in with this browser's code. */
+function Terminal() {
+  const [code, setCode] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  return (
+    <div data-testid="terminal-settings">
+      <h3>Use Najma in a terminal</h3>
+      <p className="muted">
+        The <code>najma</code> command chats with Najma, plays the text games and shows your profile
+        and goals, from the same data as this app. Run <code>najma login</code> and paste your
+        sign-in code.
+      </p>
+      {code === null ? (
+        <button
+          type="button"
+          onClick={() => {
+            setCode(signInCode() ?? '')
+          }}
+        >
+          Show sign-in code
+        </button>
+      ) : (
+        <div className="sign-in-code">
+          <code data-testid="sign-in-code">{code}</code>
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard.writeText(code).then(() => {
+                setCopied(true)
+              })
+            }}
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCode(null)
+              setCopied(false)
+            }}
+          >
+            Hide
+          </button>
+        </div>
+      )}
+      <p className="muted">
+        Anyone with this code can use your Najma account, so keep it to yourself. Deleting your data
+        in Memory &amp; data turns it off.
+      </p>
+    </div>
+  )
+}
+
 export function Settings({
   onLlmChange,
   onVoiceChange,
@@ -566,6 +619,7 @@ export function Settings({
     ['voice', 'Voice'],
     ['ai', 'AI provider'],
     ['data', 'Memory & data'],
+    ['terminal', 'Terminal'],
   ]
   return (
     <section className="card settings" data-testid="settings">
@@ -589,6 +643,7 @@ export function Settings({
       {tab === 'voice' && <Voice onChange={onVoiceChange} />}
       {tab === 'ai' && <Provider onChange={onLlmChange} />}
       {tab === 'data' && <Data onDeleted={onDeleted} />}
+      {tab === 'terminal' && <Terminal />}
     </section>
   )
 }

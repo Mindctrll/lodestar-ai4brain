@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from backend.agent.context import Services
 from backend.api.deps import Conn, CurrentUser, RegistryDep
@@ -12,6 +13,7 @@ from backend.contracts.views import ForecastView, GoalView
 from backend.db import tables as t
 from backend.db.twin_store import read_twin
 from backend.ml.serve import forecast_bands, user_history
+from backend.registry.models import Registry
 from backend.scoring.goals import rounds_to_target
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.norms import Norms
@@ -23,6 +25,11 @@ FORECAST_NOTE = "Based on patterns from 36,000 players of similar games; persona
 
 @router.get("/goals", response_model=list[GoalView])
 async def get_goals(user_id: CurrentUser, conn: Conn, registry: RegistryDep) -> list[GoalView]:
+    return await goal_views(conn, user_id, registry)
+
+
+async def goal_views(conn: AsyncConnection, user_id: UUID, registry: Registry) -> list[GoalView]:
+    """Active goals with their progress; the web app and the CLI's MCP server show the same."""
     norms = Norms()
     twin = await read_twin(conn, user_id, norms=norms)
     views = {v.dim: v for v in twin.dims}

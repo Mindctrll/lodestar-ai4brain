@@ -92,6 +92,9 @@ class Game(Contract):
     acs_hooks: list[AcsHook]
     practice_trials: int = Field(ge=0)
     available: bool = Field(default=False, description="A browser plugin exists for it")
+    terminal: bool = Field(
+        default=False, description="A text version exists, so the CLI can play it (UW19)"
+    )
     consent: ConsentSwitch | None = Field(
         default=None, description="A consent switch this game needs, e.g. planted mistakes"
     )
