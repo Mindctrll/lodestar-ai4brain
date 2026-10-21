@@ -1,0 +1,10 @@
+# Card Gamble (Iowa Gambling Task idea). No knobs: a style, not a level.
+picks: 40
+start_points: 2000
+deadline_ms: 150000
+# Per block of 10 cards, as in Bechara et al. (1994): A and B net -250, C and D net +250.
+decks:
+  - { win: 100, losses: [150, 200, 250, 300, 350] }
+  - { win: 100, losses: [1250] }
+  - { win: 50, losses: [25, 75, 50, 50, 50] }
+  - { win: 50, losses: [250] }

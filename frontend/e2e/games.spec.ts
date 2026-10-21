@@ -40,10 +40,18 @@ const GAMES = [
   { id: 'which_jar', name: 'Which Jar?' },
   { id: 'quick_maths', name: 'Quick Maths' },
   { id: 'balloon_pump', name: 'Balloon Pump' },
+  // Late games (WP3.10).
+  { id: 'two_screens', name: 'Two Screens' },
+  { id: 'sum_and_keep', name: 'Sum & Keep' },
+  { id: 'name_tags', name: 'Name Tags' },
+  { id: 'maze_escape', name: 'Maze Escape' },
+  { id: 'fold_and_punch', name: 'Fold & Punch' },
+  { id: 'card_gamble', name: 'Card Gamble' },
+  { id: 'unusual_uses', name: 'Unusual Uses' },
 ]
 
-// Games with only a few long steps: one minute of words, three explanations.
-const FEW_STEPS: Record<string, number> = { word_burst: 1, teach_me: 3 }
+// Games with only a few long steps: one minute of words, three explanations, two objects.
+const FEW_STEPS: Record<string, number> = { word_burst: 1, teach_me: 3, unusual_uses: 2 }
 
 const only = process.env['NAJMA_GAMES']?.split(',')
 

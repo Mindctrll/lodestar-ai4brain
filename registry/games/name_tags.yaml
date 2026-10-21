@@ -18,10 +18,11 @@ knobs:
     easy: 3
     hard: 10
 level_map: linear
-content: llm
+content: code
 modalities:
 - keyboard
 - touch
+available: true
 acs_hooks: []
 practice_trials: 3
-notes: Drawn characters only, never real faces.
+notes: Drawn characters only, never real faces. Characters and names are made in code.

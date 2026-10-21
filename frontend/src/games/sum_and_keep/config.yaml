@@ -1,0 +1,8 @@
+# Sum & Keep (operation span). Knobs: registry/games/sum_and_keep.yaml.
+sets: 5
+# Consonants that don't sound alike.
+letters: FHJKLNPQRSTY
+letter_ms: 900
+sum_deadline_ms: 6000
+min_size: 2
+max_size: 7

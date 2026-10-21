@@ -1,0 +1,5 @@
+# Maze Escape (maze planning). Knobs: registry/games/maze_escape.yaml.
+mazes: 3
+deadline_ms: 90000
+# The maze ends after this many times the shortest route (plus 10) moves.
+move_limit: 3

@@ -1,0 +1,9 @@
+# Two Screens (dual task). Knobs: registry/games/two_screens.yaml.
+questions: 16
+deadline_ms: 6000
+# Longest tracking time before a question (the question_rate knob sets it below this).
+lead_max_ms: 4000
+# Half-width of the middle band, as a share of half the bar.
+band: 0.35
+# How far one arrow press moves the dot, as a share of half the bar.
+nudge: 0.25

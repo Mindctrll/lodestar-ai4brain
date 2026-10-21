@@ -1,0 +1,3 @@
+# Fold & Punch (paper folding). Knobs: registry/games/fold_and_punch.yaml.
+trials: 12
+deadline_ms: 30000

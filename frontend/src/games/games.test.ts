@@ -152,5 +152,5 @@ test('content games refuse to start without server content', () => {
       /server/,
     )
   }
-  expect(Object.keys(GAMES)).toHaveLength(36)
+  expect(Object.keys(GAMES)).toHaveLength(43)
 })

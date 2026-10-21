@@ -48,6 +48,11 @@ def test_experimental_dimensions_stay_out_of_overall(registry: Registry) -> None
             assert not dim.in_overall
 
 
+def test_unusual_uses_never_enters_an_overall_score(registry: Registry) -> None:
+    for dim in registry.game("unusual_uses").dims:
+        assert not registry.dimension(dim).in_overall
+
+
 def test_onboarding_battery_uses_core_games(registry: Registry) -> None:
     battery = registry.batteries["onboarding"]
     assert battery.games[0] == "quick_draw"  # also measures device lag (UW1)

@@ -17,10 +17,11 @@ metrics:
 - originality
 knobs: {}
 level_map: none
-content: llm
+content: code
 modalities:
 - keyboard
 - touch
+available: true
 acs_hooks: []
 practice_trials: 3
-notes: AI-rated originality; experimental, never in an overall score.
+notes: Originality scored in code from everyday-use words (an AI rating can replace it); experimental, never in an overall score.

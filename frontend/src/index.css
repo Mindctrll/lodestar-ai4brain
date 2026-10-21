@@ -1293,3 +1293,114 @@ button.danger {
   border-radius: 50%;
   background: var(--color-accent);
 }
+
+/* Two Screens */
+.ts-track {
+  position: relative;
+  width: min(24rem, 85vw);
+  height: 2.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1.25rem;
+  background: var(--color-card);
+}
+.ts-band {
+  position: absolute;
+  inset: 0;
+  margin: 0 auto;
+  background: color-mix(in srgb, var(--color-right) 18%, transparent);
+}
+.ts-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  transform: translate(-50%, -50%);
+}
+
+/* Name Tags */
+.nt-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  max-width: 34rem;
+}
+.nt-card {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+}
+.nt-card svg {
+  width: 4.5rem;
+}
+
+/* Maze Escape */
+.me-board {
+  width: min(22rem, 85vw);
+  color: var(--color-ink);
+}
+.me-exit {
+  fill: var(--color-right);
+}
+.me-player {
+  fill: var(--color-accent);
+}
+.me-pad {
+  display: grid;
+  grid-template-areas: '. up .' 'left . right' '. down .';
+  gap: 0.3rem;
+}
+.me-up {
+  grid-area: up;
+}
+.me-down {
+  grid-area: down;
+}
+.me-left {
+  grid-area: left;
+}
+.me-right {
+  grid-area: right;
+}
+
+/* Fold & Punch */
+.fp-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.fp-steps svg,
+.fp-option svg {
+  width: 5rem;
+}
+.fp-paper {
+  fill: var(--color-card);
+  stroke: var(--color-ink);
+  stroke-width: 0.05;
+}
+.fp-fold {
+  fill: color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+.fp-hole {
+  fill: var(--color-ink);
+}
+.fp-option {
+  padding: 0.4rem;
+}
+
+/* Card Gamble */
+.cg-deck {
+  width: 4rem;
+  height: 5.5rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+}
+.cg-last {
+  min-height: 1.5rem;
+  color: var(--color-muted);
+}

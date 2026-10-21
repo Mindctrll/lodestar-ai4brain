@@ -117,6 +117,14 @@ Night Guard (sustained attention) is a P2 game because a good vigilance test nee
 - **Word Burst** has no dictionary yet: a word counts if it starts with the letter, has 3 or more letters and a vowel, and isn't a repeat or a plain plural.
 - P2 games are played on request or when the agent offers them. The agent's default pool (`core_games_by_dim`) stays the P1 core set, so the simulator's thresholds still hold.
 
+**As built (WP3.10).** The 7 L games have browser plugins too (unit tests in `frontend/src/games/late.test.ts`). Notes where the build differs from the table:
+
+- **Two Screens** mixes steps with the question alone and steps where a dot drifts along a bar and must be kept in the middle; `dual_task_cost` is the median answer-time difference. `question_rate` sets how long you track before each question.
+- **Sum & Keep** and **Name Tags** ask several answers inside one step (each sum, each name); a shared helper (`nextAnswer` in `shared/ask.ts`) gives each one its own step id for the end-to-end tests. Name Tags draws its characters and picks its names in code (registry `content: code`).
+- **Maze Escape** scores each maze `shortest / moves` (0 if not escaped) as its continuous score.
+- **Card Gamble** is played as one step of 40 picks, each recorded with `correct: null` like Balloon Pump.
+- **Unusual Uses** scores fluency and originality in code (an idea is original when it uses none of the object's everyday-use words); the ideas are kept in each trial so an AI rating can replace this. Creativity is experimental and `in_overall: false`; `tests/backend/test_registry.py` checks that Unusual Uses never enters an overall score.
+
 ## Game YAML
 
 A game is offered by the agent only when `available: true`, which means its browser plugin exists in `frontend/src/games/<game-id>/` (a test keeps the two lists in sync). How to add one: `frontend/src/taskhost/README.md`.

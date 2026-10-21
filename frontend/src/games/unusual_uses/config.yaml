@@ -1,0 +1,35 @@
+# Unusual Uses (Alternative Uses Task). No knobs; creativity is experimental (never in an
+# overall score). Originality is scored in code; an AI rating can replace it.
+objects_per_round: 2
+seconds: 90
+# Ideas plus original ideas needed for a full score (6 original ideas is a full score).
+enough: 12
+# The share of a full score shown as a good round.
+pass: 0.5
+objects:
+  - id: brick
+    name: a brick
+    common: [build, building, wall, walls, house, houses, construction, chimney]
+    examples:
+      [doorstop, paperweight, step to reach a high shelf, nutcracker, bookend, garden border]
+  - id: paperclip
+    name: a paperclip
+    common: [hold, holding, clip, clipping, paper, papers, sheets, attach]
+    examples: [reset a phone, zip pull, tiny hook for a picture, bookmark, cable holder, lock pick]
+  - id: spoon
+    name: a spoon
+    common: [eat, eating, stir, stirring, soup, food, scoop, cereal, cook, cooking]
+    examples: [catapult, drum stick, shoehorn, plant marker, mirror, jar opener]
+  - id: shoe
+    name: a shoe
+    common: [wear, wearing, walk, walking, feet, foot, run, running]
+    examples: [flower pot, doorstop, hammer for a nail, mouse house, bird feeder, piggy bank]
+  - id: newspaper
+    name: a newspaper
+    common: [read, reading, news, article, articles]
+    examples:
+      [gift wrap, paper hat, window cleaner, fire starter, papier mache mask, packing padding]
+  - id: bucket
+    name: a bucket
+    common: [water, carry, carrying, hold, mop, clean, cleaning, fill]
+    examples: [drum, stool, sandcastle mould, hat, plant pot, rain gauge]

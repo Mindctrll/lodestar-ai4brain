@@ -125,6 +125,13 @@ export function taps(
   })
 }
 
+/** A new answer inside the same step (each sum of Sum & Keep, each name of Name Tags): clears
+ * the expected answer and gives end-to-end tests a fresh step id. */
+export function nextAnswer(stage: HTMLElement, part: number): void {
+  delete stage.dataset['answer']
+  stage.dataset['trial'] = `${stage.dataset['trial']?.split('.')[0] ?? ''}.${String(part)}`
+}
+
 export const scored = (trials: TrialRecord[]) => trials.filter((t) => !t.practice)
 
 export function accuracy(trials: TrialRecord[]): number {
