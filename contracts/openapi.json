@@ -3739,6 +3739,64 @@
         "title": "NewUser",
         "type": "object"
       },
+      "PerRoundGain": {
+        "additionalProperties": false,
+        "properties": {
+          "a": {
+            "exclusiveMinimum": 0.0,
+            "title": "A",
+            "type": "number"
+          },
+          "b": {
+            "exclusiveMinimum": 0.0,
+            "title": "B",
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "PerRoundGain",
+        "type": "object"
+      },
+      "PracticeGain": {
+        "additionalProperties": false,
+        "description": "Improvement per round of practice, fitted to Lumosity (registry/practice.yaml).",
+        "properties": {
+          "generated": {
+            "title": "Generated",
+            "type": "string"
+          },
+          "observed_mean_gain": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Observed Mean Gain",
+            "type": "array"
+          },
+          "per_round": {
+            "$ref": "#/components/schemas/PerRoundGain"
+          },
+          "sessions_fitted": {
+            "title": "Sessions Fitted",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "generated",
+          "source",
+          "sessions_fitted",
+          "per_round",
+          "observed_mean_gain"
+        ],
+        "title": "PracticeGain",
+        "type": "object"
+      },
       "ProgressView": {
         "additionalProperties": false,
         "properties": {
@@ -3928,6 +3986,16 @@
             },
             "title": "Games",
             "type": "array"
+          },
+          "practice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PracticeGain"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "priors": {
             "anyOf": [
@@ -4151,6 +4219,31 @@
             "description": "level -> difficulty used",
             "title": "Item B",
             "type": "object"
+          },
+          "practice_a": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Prediction step used: gain per round = a * k^-b (Lumosity)",
+            "title": "Practice A"
+          },
+          "practice_b": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Practice B"
           },
           "quality_verdict": {
             "title": "Quality Verdict",

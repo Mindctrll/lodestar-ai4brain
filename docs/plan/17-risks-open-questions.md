@@ -4,7 +4,9 @@
 
 | Question | Needed by |
 |---|---|
-| Dashboard style: the reference (`design/reference.png`) is a light task-manager look, the Brain Twin is a dark night sky. Light app with a dark sky card, dark app throughout, or a light sky? | WP2.5 |
+| ~~Dashboard style~~: built as a light app with the night sky as its one dark card (WP2.5); easy to revisit | Done |
+| Licence of the Lumosity learning data (OSF lists none): fine for research and the competition with no redistribution, which is how it's used; confirm before any commercial use | Before release |
+| NCPT percentiles need a linking study (same people playing our games and NCPT subtests) before percentiles can say "ncpt" instead of "simulated" | Phase 2 |
 | The challenge brief PDF: judging criteria for Phase 1 and the final (the weights in this plan add up to 95%) | Now |
 | Operator LLM key for background jobs (optional; Ollama otherwise) | WP2.2 |
 | Porcupine access key and current free-tier terms | WP3.4 |
@@ -23,6 +25,7 @@
 | Unreliable individual scores | Weak profile quality | Multi-task scoring, ranges, reliability notes in the dimension docs |
 | Camera feature seen as unethical | Safety | Off by default, local, weak, never in the profile, Barrett + AI Act framing |
 | Wake word false triggers | Annoying UX | Tap-to-talk fallback always visible; false-trigger test |
+| Estimates lag people's learning (practice moves skill up, a random walk doesn't) | Ranges too narrow; seen through the graph as 74% coverage | Prediction step with the average Lumosity practice gain per round (`07`); coverage through the graph now 81%. Watch it on pilot users |
 | Profile and event log drift apart | Wrong scores | One transaction per round, per-user advisory lock, unique round ids, rebuild-from-events test |
 | Slow dashboard queries as events grow | Laggy UI | Indexes on `(user_id, ts)`, monthly partitions, materialised views refreshed after sessions |
 | Qdrant local mode lacks a feature | Test vs prod mismatch | Run Qdrant server in Docker for integration tests |

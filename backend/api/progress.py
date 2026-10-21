@@ -246,10 +246,13 @@ async def twin_stream(websocket: WebSocket) -> None:
                     await websocket.receive_text()
 
             tasks = [asyncio.create_task(forward()), asyncio.create_task(until_closed())]
-            _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             for task in pending:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError, WebSocketDisconnect):
                     await task
+            for task in done:  # the browser leaving ends a task with WebSocketDisconnect
+                with contextlib.suppress(WebSocketDisconnect, RuntimeError):
+                    task.result()
     except WebSocketDisconnect:
         return

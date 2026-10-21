@@ -2270,6 +2270,28 @@ export interface components {
        */
       timezone?: string | null
     }
+    /** PerRoundGain */
+    PerRoundGain: {
+      /** A */
+      a: number
+      /** B */
+      b: number
+    }
+    /**
+     * PracticeGain
+     * @description Improvement per round of practice, fitted to Lumosity (registry/practice.yaml).
+     */
+    PracticeGain: {
+      /** Generated */
+      generated: string
+      /** Observed Mean Gain */
+      observed_mean_gain: number[]
+      per_round: components['schemas']['PerRoundGain']
+      /** Sessions Fitted */
+      sessions_fitted: number
+      /** Source */
+      source: string
+    }
     /** ProgressView */
     ProgressView: {
       by_hour: components['schemas']['HourHeatmap']
@@ -2363,6 +2385,7 @@ export interface components {
       dimensions: components['schemas']['Dimension'][]
       /** Games */
       games: components['schemas']['Game'][]
+      practice?: components['schemas']['PracticeGain'] | null
       priors?: components['schemas']['SkillPriors'] | null
       /** Providers */
       providers: components['schemas']['LlmProvider'][]
@@ -2478,6 +2501,17 @@ export interface components {
       item_b?: {
         [key: string]: number
       }
+      /**
+       * Practice A
+       * @description Prediction step used: gain per round = a * k^-b (Lumosity)
+       * @default null
+       */
+      practice_a: number | null
+      /**
+       * Practice B
+       * @default null
+       */
+      practice_b: number | null
       /** Quality Verdict */
       quality_verdict: string
       /** Trust */

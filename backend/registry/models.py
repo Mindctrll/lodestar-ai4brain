@@ -197,6 +197,25 @@ class SkillPriors(Contract):
         return {frozenset((a, b)): r for a, b, r, _ in self.correlations}
 
 
+class PerRoundGain(Contract):
+    a: float = Field(gt=0)
+    b: float = Field(gt=0)
+
+    def gain(self, k: float) -> float:
+        """Average improvement from the k-th round of a skill to the next (k >= 1)."""
+        return float(self.a * max(k, 1.0) ** -self.b)
+
+
+class PracticeGain(Contract):
+    """Improvement per round of practice, fitted to Lumosity (registry/practice.yaml)."""
+
+    generated: str
+    source: str
+    sessions_fitted: int
+    per_round: PerRoundGain
+    observed_mean_gain: list[float]
+
+
 class Registry(Contract):
     dimensions: list[Dimension]
     games: list[Game]
@@ -204,6 +223,7 @@ class Registry(Contract):
     batteries: dict[str, Battery]
     consent: ConsentNotice
     priors: SkillPriors | None = None
+    practice: PracticeGain | None = None
 
     @model_validator(mode="after")
     def _cross_references(self) -> Registry:

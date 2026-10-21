@@ -56,6 +56,7 @@ q starts at 0.002 per day (σ grows noticeably after about 3 weeks), and we try 
 ## Item and level difficulty
 
 - Each level starts with a designed difficulty from its knobs (for example, n in n-back, set size, angle).
+- **Prediction step (as built in the Wave 2 gate):** people improve with practice, which a random walk ignores; through the real graph the estimates lagged the simulated truth by about 0.2 and the 80% ranges held only 74% (now 81%). After each round the mean moves up by the average gain people make at that point, `a·k^-b` per round with a = 0.208 and b = 0.77, fitted to 1.08 million Lumosity learning curves (`registry/practice.yaml`, `make practice-prior`; in 98.6% of that data a session is one play, like one round here). The gain is scaled by loading and trust, so rejected rounds get none, and the next round's answers correct it. `twin.updated` events record a and b, so re-scoring stays exact after a refit.
 - Item difficulties are also updated, with a small step and only from users whose σ < 0.6: `b' = b − 0.02 · (S − p)`. Levels drift toward their true difficulty as people play.
 - Each game's YAML has a monotonic `level_map` from b to knobs.
 

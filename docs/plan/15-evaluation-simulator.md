@@ -15,6 +15,11 @@ Each simulated user has:
 - **Nuisance traits:** fatigue slope within a session, lapse rate, device lag.
 - **Types:** normal, fast learner, inconsistent, quitter, **random clicker**, **cheater** (impossibly fast and always correct), **frustration-prone**, long gaps.
 
+**As built (Wave 2 gate).**
+- **Learning rate:** the simulator's people learn at the Lumosity rate per round (`registry/practice.yaml`) times a personal factor (mean 1, sd 0.35; fast learners 1.6×). The earlier invented gains were about half what real players show.
+- **Correlations:** come from NCPT where measured (`registry/priors.yaml`).
+- **Through the graph:** `make sim-graph` plays them through the real graph, with days passing between sessions by moving the user's timestamps back, so drift and check-ups see real elapsed time. It checks experiments 1-5 with the same code as `make sim` (`simulator/experiments.py: gate`) and writes `docs/figures/sim_graph_summary.md`.
+
 ## Evaluation experiments
 
 | # | Question | Metric | Target |

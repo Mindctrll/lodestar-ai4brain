@@ -105,3 +105,26 @@ def test_weights_validate_inputs() -> None:
     assert update_weight(1.0, 0.8, 0.5, 1.0) == pytest.approx(0.4)
     with pytest.raises(ValueError):
         update_weight(1.2, 1, 1, 1)
+
+
+def test_practice_credit_is_the_lumosity_gain_and_bad_data_gets_none() -> None:
+    """The prediction step (registry/practice.yaml): after a round the mean moves up by the
+    average gain people make with that much practice; rejected rounds change nothing."""
+    registry = load_registry()
+    assert registry.practice is not None
+    per_round = registry.practice.per_round
+    gains = registry.practice.observed_mean_gain
+    assert per_round.a > 0 and 0 < per_round.b < 2 and gains[1] > gains[-1] > 0
+    game = registry.game("echo")
+    loads = loading_matrix(registry)["echo"]
+    trials = _trials("echo", [True] * 8 + [False] * 4)
+    plain = score_round(game, trials, _beliefs(registry, "echo"), loads)
+    with_credit = score_round(game, trials, _beliefs(registry, "echo"), loads, practice=per_round)
+    for dim, loading in loads.items():
+        moved = with_credit.beliefs[dim].mu - plain.beliefs[dim].mu
+        assert moved == pytest.approx(loading * per_round.gain(1.0))
+        assert with_credit.beliefs[dim].sigma == plain.beliefs[dim].sigma
+    cheat = [t.model_copy(update={"rt_ms": 80.0}) for t in _trials("echo", [True] * 12)]
+    rejected = score_round(game, cheat, _beliefs(registry, "echo"), loads, practice=per_round)
+    assert rejected.quality.trust == 0
+    assert all(rejected.beliefs[d] == _beliefs(registry, "echo")[d] for d in loads)

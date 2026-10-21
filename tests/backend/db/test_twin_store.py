@@ -29,6 +29,7 @@ from backend.db.twin_store import (
     start_round,
 )
 from backend.registry.loader import load_registry
+from backend.scoring.rounds import ANSWERS_PER_ROUND
 
 T0 = datetime(2026, 10, 21, 19, 0, tzinfo=UTC)
 REGISTRY = load_registry()
@@ -212,9 +213,13 @@ async def test_life_context_window_halves_the_update(aengine: AsyncEngine) -> No
         scored = await score_round_tx(aengine, user_id, _result(round_id, 12), REGISTRY)
         assert scored is not None
         deltas.append(scored.changes[0].mu_after - scored.changes[0].mu_before)
+    # The practice credit (the prediction step) is the same either way: compare the evidence.
+    assert REGISTRY.practice is not None
+    credit = REGISTRY.practice.per_round.gain(1 + 40 / ANSWERS_PER_ROUND)
+    evidence = [d - credit for d in deltas]
     # Each answer's step halves; over a round the total is a bit more than half, because the
     # full-weight path's uncertainty shrinks faster.
-    assert 0.4 < deltas[1] / deltas[0] < 0.7
+    assert 0.4 < evidence[1] / evidence[0] < 0.7
 
 
 async def test_scoring_notifies_listeners(aengine: AsyncEngine, db_url: str) -> None:

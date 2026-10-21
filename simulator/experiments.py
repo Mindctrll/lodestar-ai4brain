@@ -107,3 +107,51 @@ def bad_data_detection(runs: list[UserRun]) -> Detection:
     precision = tp / (tp + fp) if tp + fp else 1.0
     recall = tp / (tp + fn) if tp + fn else 1.0
     return Detection(precision, recall)
+
+
+# docs/plan/15 targets.
+MIN_R_AT_3 = 0.8
+COVERAGE_RANGE = (0.75, 0.85)
+SUCCESS_TARGET, SUCCESS_TOL = 0.80, 0.05
+ONBOARDING_SIGMA_MAX = 0.8
+DETECTION_MIN = (0.9, 0.8)  # precision, recall
+
+
+@dataclass(frozen=True)
+class Gate:
+    dims: list[str]
+    recovery: dict[int, Recovery]
+    success: Success
+    checks: list[tuple[str, str, str, bool]]  # experiment, result, target, pass
+
+    @property
+    def passed(self) -> bool:
+        return all(ok for *_, ok in self.checks)
+
+
+def gate(runs: list[UserRun], bad_runs: list[UserRun], registry: Registry) -> Gate:
+    """Experiments 1-5 of docs/plan/15 against their targets (the offline simulator and the
+    simulator through the real graph use the same definitions)."""
+    dims = established_tracked(registry, runs)
+    rec = {
+        s: recovery(runs, dims, s) for s in (1, 3, 10) if all(len(r.snapshots) >= s for r in runs)
+    }
+    cov = coverage(runs, dims, [s for s in (3, 10) if s in rec])
+    succ = success_rate(runs)
+    onboard = onboarding_sigma(runs, registry.core_skills())
+    det = bad_data_detection(bad_runs)
+    checks = [
+        (f"1. Recovery r after 3 sessions (mean over {len(dims)} established skills)",
+         f"{rec[3].mean_r:.3f}", f"> {MIN_R_AT_3}", rec[3].mean_r > MIN_R_AT_3),
+        ("2. 80% ranges containing the true skill (sessions 3 and 10)",
+         f"{cov:.3f}", f"{COVERAGE_RANGE[0]}-{COVERAGE_RANGE[1]}",
+         COVERAGE_RANGE[0] <= cov <= COVERAGE_RANGE[1]),
+        ("3. Achieved success in Balanced mode", f"{succ.overall:.3f}",
+         f"{SUCCESS_TARGET} +/- {SUCCESS_TOL}", abs(succ.overall - SUCCESS_TARGET) <= SUCCESS_TOL),
+        ("4. Mean sigma after onboarding, worst core skill", f"{max(onboard.values()):.3f}",
+         f"< {ONBOARDING_SIGMA_MAX}", max(onboard.values()) < ONBOARDING_SIGMA_MAX),
+        ("5. Bad-data detection precision / recall", f"{det.precision:.2f} / {det.recall:.2f}",
+         f"> {DETECTION_MIN[0]} / > {DETECTION_MIN[1]}",
+         det.precision > DETECTION_MIN[0] and det.recall > DETECTION_MIN[1]),
+    ]  # fmt: skip
+    return Gate(dims, rec, succ, checks)

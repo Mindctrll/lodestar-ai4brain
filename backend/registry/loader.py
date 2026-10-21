@@ -25,6 +25,9 @@ def load_registry_from(root: Path) -> Registry:
             "batteries": _read(root / "batteries.yaml"),
             "consent": _read(root / "consent.yaml"),
             "priors": _read(root / "priors.yaml") if (root / "priors.yaml").exists() else None,
+            "practice": (
+                _read(root / "practice.yaml") if (root / "practice.yaml").exists() else None
+            ),
         }
     )
 

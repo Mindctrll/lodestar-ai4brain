@@ -295,8 +295,15 @@ async def score_round_tx(
             if level_key(tr.level) in learned_b
         }
 
+        practice = registry.practice.per_round if registry.practice else None
         outcome = score_round(
-            game, trials, before, loads, context_weight=context_weight, item_b=item_b
+            game,
+            trials,
+            before,
+            loads,
+            context_weight=context_weight,
+            item_b=item_b,
+            practice=practice,
         )
         changes = [
             DimensionChange(
@@ -332,6 +339,8 @@ async def score_round_tx(
                         item_b={level_key(k): v for k, v in item_b.items()},
                         trust=outcome.quality.trust,
                         quality_verdict=outcome.quality.verdict,
+                        practice_a=practice.a if practice else None,
+                        practice_b=practice.b if practice else None,
                     ),
                 ),
             ),

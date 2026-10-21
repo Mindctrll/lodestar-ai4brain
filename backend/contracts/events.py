@@ -52,6 +52,10 @@ class ScoringInputs(Contract):
     device_lag_ms: float = 0.0
     trust: float = Field(ge=0.0, le=1.0)
     quality_verdict: str
+    practice_a: float | None = Field(
+        default=None, description="Prediction step used: gain per round = a * k^-b (Lumosity)"
+    )
+    practice_b: float | None = None
 
 
 class TwinUpdatedPayload(Contract):

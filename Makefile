@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
@@ -75,6 +75,9 @@ ml-data: ## download the public datasets the models train on into data/ (about 2
 ml-train: ## train the growth forecast, write its model card and make it the active model
 	uv run python -m backend.ml.train_growth --register
 
+practice-prior: ## refit the average practice gain per round from Lumosity (registry/practice.yaml)
+	uv run python -m backend.ml.practice
+
 ncpt-priors: ## recompute skill correlations from NCPT into registry/priors.yaml
 	uv run python -m backend.ml.ncpt
 
@@ -91,6 +94,9 @@ contracts: ## regenerate OpenAPI, registry schemas and TypeScript types
 N ?= 200
 sim: ## simulate N users (default 200), write docs/figures, fail if a target is missed
 	uv run python -m simulator --users $(N)
+
+sim-graph: ## the wave 2 gate: simulated users through the real graph, experiments 1-5 (~30 min)
+	uv run python -m simulator.graph_gate --users $(or $(GRAPH_N),120)
 
 e2e: ## run Playwright end-to-end tests against the running stack (make up first)
 	$(FRONTEND) run e2e

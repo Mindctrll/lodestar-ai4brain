@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 
 from backend.contracts.trial import TrialEvent
-from backend.registry.models import Game
+from backend.registry.models import Game, PerRoundGain
 from backend.scoring.hshs import hshs_success
 from backend.scoring.kalman_elo import Belief, add_process_noise, predict, update
 from backend.scoring.levels import b_for_level
@@ -18,6 +18,7 @@ from backend.scoring.quality import (
 )
 
 ABILITY_SCORING = {"binary", "hshs", "span", "continuous", "rubric"}
+ANSWERS_PER_ROUND = 12  # to count rounds of practice from answers seen
 
 
 @dataclass(frozen=True)
@@ -77,11 +78,15 @@ def score_round(
     device_lag_ms: float = 0.0,
     item_b: Mapping[float, float] | None = None,
     chance: float = 0.5,
+    practice: PerRoundGain | None = None,
 ) -> RoundOutcome:
     """Apply every counting trial to every dimension the game loads on.
 
     `loadings` comes from `loading_matrix(registry)[game.id]`; `item_b` maps a level to its learned
-    difficulty (from twin.item_difficulty) when one exists.
+    difficulty (from twin.item_difficulty) when one exists. With `practice`, the round ends with
+    the prediction step: people improve with practice, so the mean moves up by the average gain
+    for that much practice (Lumosity, registry/practice.yaml), scaled by loading and trust. The
+    next round's answers correct it.
     """
     counted = [t for t in trials if not t.practice]
     quality = assess_quality(
@@ -112,6 +117,11 @@ def score_round(
 
     if last_ts is not None and quality.trust > 0:
         updated = {d: replace(b, last_practised=last_ts) for d, b in updated.items()}
+    if practice is not None and scores and quality.trust > 0:
+        for dim, loading in loadings.items():
+            rounds_so_far = 1 + beliefs[dim].n / ANSWERS_PER_ROUND
+            credit = loading * quality.trust * practice.gain(rounds_so_far)
+            updated[dim] = replace(updated[dim], mu=updated[dim].mu + credit)
     if not scores or quality.trust == 0:
         # Nothing counted: keep the beliefs exactly as they were (no process noise either).
         updated = {dim: beliefs[dim] for dim in loadings}

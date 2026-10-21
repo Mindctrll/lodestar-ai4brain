@@ -7,25 +7,11 @@ from pathlib import Path
 import numpy as np
 
 from backend.registry.loader import load_registry
-from simulator.experiments import (
-    bad_data_detection,
-    coverage,
-    established_tracked,
-    onboarding_sigma,
-    recovery,
-    success_rate,
-)
+from simulator.experiments import gate
 from simulator.population import make_population
 from simulator.run import simulate_user
 
 SESSIONS = 10
-
-# docs/plan/15 targets.
-MIN_R_AT_3 = 0.8
-COVERAGE_RANGE = (0.75, 0.85)
-SUCCESS_TARGET, SUCCESS_TOL = 0.80, 0.05
-ONBOARDING_SIGMA_MAX = 0.8
-DETECTION_MIN = (0.9, 0.8)  # precision, recall
 
 
 def main() -> int:
@@ -40,13 +26,6 @@ def main() -> int:
     rng = np.random.default_rng(args.seed)
     users = make_population(registry, args.users, rng)
     runs = [simulate_user(u, registry, SESSIONS, rng) for u in users]
-    dims = established_tracked(registry, runs)
-
-    rec = {s: recovery(runs, dims, s) for s in (1, 3, 10)}
-    cov = coverage(runs, dims, [3, 10])
-    succ = success_rate(runs)
-    onboard = onboarding_sigma(runs, registry.core_skills())
-
     bad_users = make_population(
         registry,
         max(40, args.users // 5),
@@ -54,22 +33,8 @@ def main() -> int:
         kinds={"normal": 0.6, "random_clicker": 0.2, "cheater": 0.2},
     )
     bad_runs = [simulate_user(u, registry, 3, rng) for u in bad_users]
-    det = bad_data_detection(bad_runs)
-
-    checks = [
-        (f"1. Recovery r after 3 sessions (mean over {len(dims)} established skills)",
-         f"{rec[3].mean_r:.3f}", f"> {MIN_R_AT_3}", rec[3].mean_r > MIN_R_AT_3),
-        ("2. 80% ranges containing the true skill (sessions 3 and 10)",
-         f"{cov:.3f}", f"{COVERAGE_RANGE[0]}-{COVERAGE_RANGE[1]}",
-         COVERAGE_RANGE[0] <= cov <= COVERAGE_RANGE[1]),
-        ("3. Achieved success in Balanced mode", f"{succ.overall:.3f}",
-         f"{SUCCESS_TARGET} +/- {SUCCESS_TOL}", abs(succ.overall - SUCCESS_TARGET) <= SUCCESS_TOL),
-        ("4. Mean sigma after onboarding, worst core skill", f"{max(onboard.values()):.3f}",
-         f"< {ONBOARDING_SIGMA_MAX}", max(onboard.values()) < ONBOARDING_SIGMA_MAX),
-        ("5. Bad-data detection precision / recall", f"{det.precision:.2f} / {det.recall:.2f}",
-         f"> {DETECTION_MIN[0]} / > {DETECTION_MIN[1]}",
-         det.precision > DETECTION_MIN[0] and det.recall > DETECTION_MIN[1]),
-    ]  # fmt: skip
+    result = gate(runs, bad_runs, registry)
+    dims, rec, succ, checks = result.dims, result.recovery, result.success, result.checks
 
     lines = [
         f"# Simulator results ({args.users} users, {SESSIONS} sessions, seed {args.seed})",
