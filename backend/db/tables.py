@@ -49,6 +49,7 @@ users = Table(
     Column("success_mode", Text, nullable=False, server_default="balanced"),
     Column("locale", Text, nullable=False, server_default="en"),
     Column("age_confirmed", Boolean, nullable=False, server_default=text("false")),
+    Column("timezone", Text, nullable=False, server_default="Africa/Tunis"),
     schema="app",
 )
 
@@ -73,6 +74,17 @@ goals = Table(
     Column("target", Double, nullable=False),
     Column("due", Date, nullable=False),
     Column("status", Text, nullable=False, server_default="active"),
+    Column("created_at", TZ, nullable=False, server_default=NOW),
+    schema="app",
+)
+
+skill_pauses = Table(
+    "skill_pauses",
+    metadata,
+    _uuid_pk("pause_id"),
+    _user_fk(),
+    Column("dim", Text, nullable=False),
+    Column("until", TZ, nullable=False),
     Column("created_at", TZ, nullable=False, server_default=NOW),
     schema="app",
 )

@@ -16,5 +16,6 @@ test('uw6_resume: a refresh mid-game offers to resume and scores the round once'
   await expect(page.getByTestId('resume')).toContainText('Ink Clash')
   await page.getByRole('button', { name: 'Resume' }).click()
   await playCurrentGame(page)
-  await expect(page.getByTestId('coach')).toContainText('[F', { timeout: 60_000 })
+  // Citations render as chips (docs/plan/09: every number traces to a fact).
+  await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({ timeout: 60_000 })
 })

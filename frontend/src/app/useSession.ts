@@ -2,17 +2,41 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { api, ensureUser, getToken } from '../api/client'
 import { SessionSocket } from '../api/session'
-import type { AgentEvent, ExerciseSpec, RoundResult } from '../api/types'
+import type { AgentEvent, ConfirmRequest, ExerciseSpec, RoundResult } from '../api/types'
 
 export type Phase =
-  'home' | 'resumable' | 'starting' | 'ready' | 'playing' | 'scoring' | 'after' | 'ended' | 'error'
+  | 'home'
+  | 'resumable'
+  | 'starting'
+  | 'chatting'
+  | 'ready'
+  | 'playing'
+  | 'scoring'
+  | 'after'
+  | 'ended'
+  | 'error'
+
+/** One line in the conversation with Najma. */
+export interface ChatLine {
+  who: 'you' | 'najma'
+  text: string
+  refs?: Record<string, string> | undefined
+}
 
 export interface SessionState {
   phase: Phase
   sessionId: string | null
   spec: ExerciseSpec | null
   reason: string | null
-  says: string[]
+  /** The pick behind `reason`, for its "why" card. */
+  reasonDecision: string | null
+  /** The after-game coach message. */
+  says: { text: string; refs?: Record<string, string> | undefined }[]
+  chat: ChatLine[]
+  /** A change Najma wants to make, waiting for a yes or no. */
+  confirm: ConfirmRequest | null
+  /** Najma is working on a reply. */
+  busy: boolean
   timeline: AgentEvent[]
   error: string | null
   lastRoundId: string | null
@@ -25,7 +49,11 @@ const INITIAL: SessionState = {
   sessionId: null,
   spec: null,
   reason: null,
+  reasonDecision: null,
   says: [],
+  chat: [],
+  confirm: null,
+  busy: false,
   timeline: [],
   error: null,
   lastRoundId: null,
@@ -51,7 +79,10 @@ function remembered(): string | null {
   }
 }
 
-/** One practice session with Najma: start, play each exercise, resume the graph, read coaching. */
+const WAITING_FOR_A_GAME: Phase[] = ['home', 'starting', 'chatting', 'ready', 'ended']
+
+/** One practice session with Najma: start, play each exercise, resume the graph, read coaching,
+ * and talk to Najma in between. */
 export function useSession() {
   const [state, setState] = useState<SessionState>(INITIAL)
   const socket = useRef<SessionSocket | null>(null)
@@ -63,23 +94,39 @@ export function useSession() {
         case 'decision':
           if (event.node === 'monitor')
             return { ...next, lastMonitor: { decisionId: event.decision_id, chosen: event.chosen } }
-          return event.node === 'plan_next' ? { ...next, reason: event.reason } : next
-        case 'say':
-          return { ...next, says: [...s.says, event.text] }
+          return event.node === 'plan_next'
+            ? { ...next, reason: event.reason, reasonDecision: event.decision_id }
+            : next
+        case 'say': {
+          const line = { text: event.text, refs: event.refs }
+          // After a game the coach speaks in the result card; everything else is conversation.
+          if (event.node === 'coach' && (s.phase === 'scoring' || s.phase === 'after'))
+            return { ...next, says: [...s.says, line] }
+          return { ...next, chat: [...s.chat, { who: 'najma', ...line }] }
+        }
         case 'interrupt':
+          if (event.payload.type === 'confirm')
+            return { ...next, confirm: event.payload, busy: false }
           return {
             ...next,
             spec: event.payload.spec,
-            phase: s.phase === 'starting' ? 'ready' : s.phase === 'scoring' ? 'after' : s.phase,
+            busy: false,
+            phase: WAITING_FOR_A_GAME.includes(s.phase)
+              ? 'ready'
+              : s.phase === 'scoring'
+                ? 'after'
+                : s.phase,
           }
         case 'session':
           if (event.status !== 'ended') return next
           remember(null)
           return { ...next, phase: 'ended', spec: null }
         case 'done':
-          return s.phase === 'scoring'
-            ? { ...next, phase: event.waiting ? 'after' : 'ended' }
-            : next
+          if (s.phase === 'scoring')
+            return { ...next, busy: false, phase: event.waiting ? 'after' : 'ended' }
+          if (s.phase === 'starting' && !event.waiting)
+            return { ...next, busy: false, phase: 'chatting' }
+          return { ...next, busy: false }
         default:
           return next
       }
@@ -104,11 +151,12 @@ export function useSession() {
     if (!sessionId || !getToken()) return
     api.pending(sessionId).then(
       ({ pending }) => {
-        if (pending?.kind !== 'interrupt') {
+        if (pending?.kind !== 'interrupt' || pending.payload.type !== 'exercise') {
           remember(null)
           return
         }
-        setState((s) => ({ ...s, phase: 'resumable', sessionId, spec: pending.payload.spec }))
+        const spec = pending.payload.spec
+        setState((s) => ({ ...s, phase: 'resumable', sessionId, spec }))
       },
       () => {
         remember(null)
@@ -118,7 +166,12 @@ export function useSession() {
 
   const start = useCallback(
     async (message?: string) => {
-      setState({ ...INITIAL, phase: 'starting' })
+      setState({
+        ...INITIAL,
+        phase: 'starting',
+        busy: true,
+        chat: message ? [{ who: 'you', text: message }] : [],
+      })
       try {
         const token = await ensureUser()
         const started = await api.startSession('ui', message)
@@ -129,12 +182,49 @@ export function useSession() {
         setState((s) => ({
           ...s,
           phase: 'error',
+          busy: false,
           error: e instanceof Error ? e.message : String(e),
         }))
       }
     },
     [handle, attach],
   )
+
+  /** Say something to Najma: starts a session if there isn't a live one. */
+  const send = useCallback(
+    async (text: string) => {
+      const message = text.trim()
+      if (!message) return
+      if (!state.sessionId || state.phase === 'ended' || state.phase === 'home') {
+        await start(message)
+        return
+      }
+      setState((s) => ({
+        ...s,
+        busy: true,
+        confirm: null,
+        chat: [...s.chat, { who: 'you', text: message }],
+      }))
+      await socket.current?.say(message)
+    },
+    [start, state.sessionId, state.phase],
+  )
+
+  const answer = useCallback(async (confirmed: boolean) => {
+    setState((s) => ({
+      ...s,
+      busy: true,
+      confirm: null,
+      chat: [...s.chat, { who: 'you', text: confirmed ? 'Yes' : 'No' }],
+    }))
+    await socket.current?.confirm(confirmed)
+  }, [])
+
+  /** From a conversation, ask Najma to pick a game. */
+  const nextGame = useCallback(async () => {
+    setState((s) => ({ ...s, busy: true }))
+    await socket.current?.next()
+  }, [])
 
   const resumeSaved = useCallback(async () => {
     const token = getToken()
@@ -182,5 +272,5 @@ export function useSession() {
 
   useEffect(() => () => socket.current?.close(), [])
 
-  return { state, start, play, finish, resumeSaved, skipSaved }
+  return { state, start, send, answer, nextGame, play, finish, resumeSaved, skipSaved }
 }

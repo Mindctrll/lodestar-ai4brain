@@ -1,4 +1,4 @@
-import type { AgentEvent, Registry, TrialEvent, TwinView } from './types'
+import type { AgentEvent, Decision, GoalView, Registry, TrialEvent, TwinView } from './types'
 
 const TOKEN_KEY = 'najma.token'
 export const API_BASE = '/api'
@@ -54,7 +54,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export async function ensureUser(): Promise<string> {
   const existing = memoryToken ?? getToken()
   if (existing) return existing
-  const created = await request<{ user_id: string; token: string }>('/users', { method: 'POST' })
+  let timezone: string | undefined
+  try {
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    timezone = undefined
+  }
+  const created = await request<{ user_id: string; token: string }>('/users', {
+    method: 'POST',
+    body: JSON.stringify({ timezone }),
+  })
   memoryToken = created.token
   setToken(created.token)
   return created.token
@@ -82,6 +91,8 @@ export const api = {
   }) => request<undefined>('/affect/labels', { method: 'POST', body: JSON.stringify(body) }),
   pending: (sessionId: string) =>
     request<{ pending: AgentEvent | null }>(`/sessions/${sessionId}/pending`),
+  decision: (decisionId: string) => request<Decision>(`/decisions/${decisionId}`),
+  goals: () => request<GoalView[]>('/goals'),
   sendTrials: (trials: TrialEvent[]) =>
     request<{ accepted: number; duplicates: number }>('/events', {
       method: 'POST',

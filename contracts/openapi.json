@@ -1330,6 +1330,7 @@
             "round.completed": "#/components/schemas/RoundCompleted",
             "session.ended": "#/components/schemas/SessionEnded",
             "session.started": "#/components/schemas/SessionStarted",
+            "settings.changed": "#/components/schemas/SettingsChanged",
             "trial.recorded": "#/components/schemas/TrialRecorded",
             "twin.snapshot": "#/components/schemas/TwinSnapshotTaken",
             "twin.updated": "#/components/schemas/TwinUpdated"
@@ -1378,6 +1379,9 @@
           },
           {
             "$ref": "#/components/schemas/MemoryWritten"
+          },
+          {
+            "$ref": "#/components/schemas/SettingsChanged"
           },
           {
             "$ref": "#/components/schemas/SessionEnded"
@@ -1795,6 +1799,19 @@
             "title": "Id",
             "type": "string"
           },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "For a decision fact, the decision id its card opens",
+            "title": "Ref"
+          },
           "text": {
             "minLength": 1,
             "title": "Text",
@@ -2200,6 +2217,105 @@
         "title": "GoalSet",
         "type": "object"
       },
+      "GoalView": {
+        "additionalProperties": false,
+        "description": "A range goal and how far along it is (UW11): the range now against the target.",
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "due": {
+            "format": "date",
+            "title": "Due",
+            "type": "string"
+          },
+          "goal_id": {
+            "format": "uuid",
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "met": {
+            "title": "Met",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "range_now": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\u00b1 points now; None before the first round",
+            "title": "Range Now"
+          },
+          "rounds_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "About how many more rounds it takes",
+            "title": "Rounds Left"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "description": "Aim: the 80% range within \u00b1 this many points",
+            "title": "Target",
+            "type": "number"
+          }
+        },
+        "required": [
+          "goal_id",
+          "dim",
+          "name",
+          "target",
+          "due",
+          "status",
+          "range_now",
+          "low",
+          "high",
+          "rounds_left",
+          "met"
+        ],
+        "title": "GoalView",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2271,6 +2387,15 @@
       "Intent": {
         "additionalProperties": false,
         "properties": {
+          "avoid_dims": {
+            "description": "Skills the user turned down for today (UW3)",
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "title": "Avoid Dims",
+            "type": "array"
+          },
           "dim": {
             "anyOf": [
               {
@@ -2312,6 +2437,27 @@
             "title": "Kind",
             "type": "string"
           },
+          "quick": {
+            "default": false,
+            "description": "The user asked for something short",
+            "title": "Quick",
+            "type": "boolean"
+          },
+          "replace_current": {
+            "default": false,
+            "description": "'Not that one': anything but the game just suggested",
+            "title": "Replace Current",
+            "type": "boolean"
+          },
+          "source": {
+            "default": "rules",
+            "enum": [
+              "rules",
+              "llm"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
           "text": {
             "anyOf": [
               {
@@ -2336,6 +2482,19 @@
             ],
             "default": null,
             "title": "Theme"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The converse tool, when already known",
+            "title": "Tool"
           }
         },
         "required": [
@@ -3044,6 +3203,26 @@
           "text"
         ],
         "title": "MessageInput",
+        "type": "object"
+      },
+      "NewUser": {
+        "additionalProperties": false,
+        "properties": {
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "IANA time zone from the browser, for 'today'",
+            "title": "Timezone"
+          }
+        },
+        "title": "NewUser",
         "type": "object"
       },
       "ProviderCapabilities": {
@@ -3770,6 +3949,139 @@
         "title": "SessionStartedPayload",
         "type": "object"
       },
+      "SettingsChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SettingsChangedPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "settings.changed",
+            "default": "settings.changed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "SettingsChanged",
+        "type": "object"
+      },
+      "SettingsChangedPayload": {
+        "additionalProperties": false,
+        "description": "A setting the user changed by chat or in Settings. Only the fields that changed are set.",
+        "properties": {
+          "paused_dim": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "A skill Najma stops suggesting until `paused_until`",
+            "title": "Paused Dim"
+          },
+          "paused_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Paused Until"
+          },
+          "persona": {
+            "anyOf": [
+              {
+                "enum": [
+                  "zitouna",
+                  "barq",
+                  "hikma",
+                  "sahbi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Persona"
+          },
+          "success_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "chill",
+                  "balanced",
+                  "push"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Success Mode"
+          }
+        },
+        "title": "SettingsChangedPayload",
+        "type": "object"
+      },
       "StartSession": {
         "additionalProperties": false,
         "properties": {
@@ -4410,6 +4722,67 @@
         ]
       }
     },
+    "/decisions/{decision_id}": {
+      "get": {
+        "description": "The card behind a [D1] citation: the question, the top candidates and their parts.",
+        "operationId": "get_decision_decisions__decision_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Decision Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Decision"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Decision",
+        "tags": [
+          "goals",
+          "sessions"
+        ]
+      }
+    },
     "/events": {
       "post": {
         "operationId": "post_events_events_post",
@@ -4466,6 +4839,59 @@
         "summary": "Post Events",
         "tags": [
           "events"
+        ]
+      }
+    },
+    "/goals": {
+      "get": {
+        "operationId": "get_goals_goals_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GoalView"
+                  },
+                  "title": "Response Get Goals Goals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Goals",
+        "tags": [
+          "goals"
         ]
       }
     },
@@ -5072,6 +5498,23 @@
       "post": {
         "description": "Create a user and return their bearer token. WP2.8 adds the age check and consent.",
         "operationId": "post_user_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/NewUser"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
@@ -5082,6 +5525,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Post User",

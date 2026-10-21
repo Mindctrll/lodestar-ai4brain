@@ -1,8 +1,8 @@
-"""Reflect, coach, conversation stubs, remember and consolidate (docs/plan/03, 09).
+"""Reflect, coach, the Twin and experiment stubs, remember and consolidate (docs/plan/03, 09).
 
-The coach drafts with the LLM, verifies against the facts packet, and falls back to a template
-built only from facts. WP2.4 adds the repair loop; WP2.11 and WP3.2 replace the conversation
-stubs; WP1.5 makes `remember` and `consolidate` write memory.
+The coach drafts with the LLM, verifies against the facts packet, repairs up to twice, and falls
+back to a template built only from facts. The converse subgraph lives in nodes/converse.py; WP3.2
+replaces the Twin chat and experiment stubs.
 """
 
 import re
@@ -11,7 +11,6 @@ from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.runtime import Runtime
-from sqlalchemy import select
 
 from backend.agent.context import NajmaContext
 from backend.agent.state import NajmaState
@@ -76,6 +75,7 @@ async def reflect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
     plan_decisions = [d for d in state.decisions if d.node == "plan_next"]
     if plan_decisions:
         add(plan_decisions[-1].reason, decision=True, prefix="D")
+        facts[-1] = facts[-1].model_copy(update={"ref": str(plan_decisions[-1].decision_id)})
     knowledge: list[KnowledgeItem] = []
     memory = ctx.services.memory
     if memory is not None and summary is not None and summary.changes:
@@ -110,9 +110,11 @@ async def draft_verified(
     packet: FactsPacket,
     persona: Persona,
     instruction: str,
+    fallback: str | None = None,
 ) -> tuple[str, CoachReply, list[str]]:
-    """Draft with the LLM, verify, repair up to twice, else a template built only from facts.
-    Nothing reaches the user before it passes (docs/plan/09)."""
+    """Draft with the LLM, verify, repair up to twice, else a template built only from facts (or
+    `fallback`, fixed text with no numbers). Nothing reaches the user before it passes
+    (docs/plan/09)."""
     names = [d.name for d in ctx.services.registry.dimensions]
     items: list[Fact | KnowledgeItem | MemoryItem] = [
         *packet.facts,
@@ -151,7 +153,7 @@ async def draft_verified(
         repairs = attempt + 1
     used_template = final is None
     if final is None:
-        final = template_reply(packet, persona)
+        final = fallback if fallback is not None else template_reply(packet, persona)
         repairs = min(repairs, MAX_REPAIRS)
     result = verify(final, packet, names, persona)
     reply_model = CoachReply(
@@ -171,8 +173,7 @@ async def coach(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, 
     final, reply_model, degraded = await draft_verified(
         runtime.context, packet, state.persona, "Write the short message shown after this game."
     )
-    for sentence in _SENTENCE.split(final):
-        emit({"kind": "say", "text": sentence, "node": "coach"})
+    emit_reply(final, packet, "coach")
     emit(
         {
             "kind": "coach",
@@ -184,33 +185,27 @@ async def coach(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, 
     return {"reply": reply_model, "messages": [AIMessage(final)], "degraded": degraded}
 
 
+_CITE = re.compile(r"\[([FDKM]\d+(?:\s*,\s*[FDKM]\d+)*)\]")
+
+
+def emit_reply(text: str, packet: FactsPacket, node: str) -> None:
+    """Stream a verified reply sentence by sentence. Each sentence carries the decision ids its
+    citations point to, so the UI can open the "why" card behind [D1] (docs/plan/09)."""
+    refs = {f.id: f.ref for f in packet.facts if f.ref}
+    for sentence in _SENTENCE.split(text):
+        cited = {i.strip() for group in _CITE.findall(sentence) for i in group.split(",")}
+        event: dict[str, Any] = {"kind": "say", "text": sentence, "node": node}
+        if links := {i: refs[i] for i in sorted(cited) if i in refs}:
+            event["refs"] = links
+        emit(event)
+
+
 async def _say(text: str, packet: FactsPacket | None = None) -> dict[str, Any]:
     emit({"kind": "say", "text": text})
     update: dict[str, Any] = {"messages": [AIMessage(text)]}
     if packet is not None:
         update["facts"] = packet
     return update
-
-
-@traced("converse")
-async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    """Stand-in until WP2.11: answers 'why' from the latest decision, otherwise points the way."""
-    ctx = runtime.context
-    text = state.intent.text if state.intent and state.intent.text else ""
-    if "why" in text.lower():
-        async with ctx.services.engine.connect() as conn:
-            row = (
-                await conn.execute(
-                    select(t.decisions.c.reason)
-                    .where(t.decisions.c.user_id == ctx.user_id, t.decisions.c.node == "plan_next")
-                    .order_by(t.decisions.c.ts.desc())
-                    .limit(1)
-                )
-            ).one_or_none()
-        if row is not None:
-            packet = FactsPacket(facts=[Fact(id="D1", text=row.reason, decision=True)])
-            return await _say(f"{row.reason} [D1]", packet)
-    return await _say("I can explain my choices and your progress. Say 'play' to start a round.")
 
 
 @traced("twin_chat")
@@ -221,11 +216,6 @@ async def twin_chat(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
 @traced("experiment")
 async def experiment(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
     return await _say("Personal experiments are coming soon.")
-
-
-@traced("update_user")
-async def update_user(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    return await _say("Noted. Changing goals and settings by chat is coming soon.")
 
 
 @traced("respond")
@@ -243,7 +233,7 @@ async def remember(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
         return {}
     registry = ctx.services.registry
     moments: list[tuple[str, str, float, list[str]]] = []  # text, kind, importance, dims
-    said = next((m.text for m in reversed(state.messages) if m.type == "human"), "")
+    said = state.said or ""
     about_self = bool(said) and len(said) > 12 and re.search(r"\b(i|i'm|my|me)\b", said, re.I)
     personal = state.intent and state.intent.kind in ("life_context", "goal", "settings", "chat")
     if about_self and personal:
@@ -282,6 +272,8 @@ async def remember(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
 def after_remember(state: NajmaState) -> str:
     if state.verdict in ("end", "break"):
         return "consolidate"
+    if state.game_waiting() and state.intent and state.intent.kind not in ("play", "proactive"):
+        return "play"  # a question while a game was waiting: back to that game
     if (
         state.intent
         and state.intent.kind in ("play", "proactive")

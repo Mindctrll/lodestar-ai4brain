@@ -1,0 +1,32 @@
+# Held out: written after the rules, never used to tune them. The test reports accuracy here and
+# only asks for 80%; misses show where the model router earns its keep.
+- {text: "ok let's go", kind: play}
+- {text: "can I do the arrows one", kind: play}
+- {text: "Hold It please", kind: play, game: hold_it}
+- {text: "give me something with numbers", kind: play, dim: numerical_thinking}
+- {text: "I've got five minutes, what should I play", kind: play}
+- {text: "nah not reasoning, maybe tomorrow", kind: play, avoid: [reasoning]}
+- {text: "no more speed stuff today", kind: play, avoid: [processing_speed]}
+- {text: "Why did you choose Market List?", kind: chat, tool: explain}
+- {text: "what's the reason for this pick", kind: chat, tool: explain}
+- {text: "how strong is my working memory", kind: chat, tool: read_profile, dim: working_memory}
+- {text: "what am I best at", kind: chat, tool: read_profile}
+- {text: "has my focus gone up this month", kind: chat, tool: get_history, dim: selective_attention}
+- {text: "what do you remember from last week", kind: chat, tool: search_memory}
+- {text: "good morning", kind: chat}
+- {text: "you're great", kind: chat}
+- {text: "do I focus better at night?", kind: twin_chat}
+- {text: "Twin, what helps me most?", kind: twin_chat}
+- {text: "could we try an experiment with coffee", kind: experiment}
+- {text: "I'd like to get better at maths before December", kind: goal, dim: numerical_thinking}
+- {text: "set me a target for speed", kind: goal, dim: processing_speed}
+- {text: "my goal: memory by the 20th", kind: goal, dim: working_memory}
+- {text: "rough night, barely slept", kind: life_context}
+- {text: "I'm feeling sick today", kind: life_context}
+- {text: "final exams start monday", kind: life_context}
+- {text: "long day at work, exhausted", kind: life_context}
+- {text: "use the Hikma coach", kind: settings}
+- {text: "I prefer harder games", kind: settings}
+- {text: "make it more chill", kind: settings}
+- {text: "please stop suggesting reasoning", kind: settings, avoid: [reasoning]}
+- {text: "turn off the microphone", kind: settings}

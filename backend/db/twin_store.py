@@ -85,14 +85,17 @@ async def append_event(conn: AsyncConnection, event: Any) -> UUID:
 
 
 async def create_user(
-    conn: AsyncConnection, *, display_name: str | None = None, persona: str = "zitouna"
+    conn: AsyncConnection,
+    *,
+    display_name: str | None = None,
+    persona: str = "zitouna",
+    timezone: str | None = None,
 ) -> tuple[UUID, str]:
+    values: dict[str, str | None] = {"display_name": display_name, "persona": persona}
+    if timezone:
+        values["timezone"] = timezone
     user_id: UUID = (
-        await conn.execute(
-            t.users.insert()
-            .values(display_name=display_name, persona=persona)
-            .returning(t.users.c.user_id)
-        )
+        await conn.execute(t.users.insert().values(**values).returning(t.users.c.user_id))
     ).scalar_one()
     token = secrets.token_urlsafe(32)
     await conn.execute(t.user_tokens.insert().values(token_hash=hash_token(token), user_id=user_id))

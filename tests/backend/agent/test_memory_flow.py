@@ -53,9 +53,12 @@ async def test_session_remembers_and_consolidates(
     runner, memory, notes = runner_with_memory
     user_id = await new_user(aengine)
     session_id = await runner.create_session(user_id, "ui")
-    await collect(
+    events = await collect(
         runner, user_id, session_id, message="I have my exams next week, I'm a bit stressed"
     )
+    [ask] = [e for e in events if e["kind"] == "interrupt"]
+    assert ask["payload"]["type"] == "confirm"  # noting the exam period waits for a yes
+    await collect(runner, user_id, session_id, resume={"confirmed": True})
     hits = await memory.recall(user_id, "exams next week")
     assert hits and "exams next week" in hits[0].text
 

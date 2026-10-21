@@ -31,9 +31,10 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `users` | `user_id uuid pk`, `created_at`, `display_name` (optional, never sent to an LLM), `persona`, `success_mode`, `locale`, `age_confirmed` | Every other table references this with `ON DELETE CASCADE` |
+| `users` | `user_id uuid pk`, `created_at`, `display_name` (optional, never sent to an LLM), `persona`, `success_mode`, `locale`, `age_confirmed`, `timezone` (from the browser, so "today" means the user's day) | Every other table references this with `ON DELETE CASCADE` |
 | `consent` | `user_id`, `switch`, `granted`, `notice_version`, `changed_at` | Current state; history is in events |
 | `goals` | `goal_id`, `user_id`, `dim`, `kind`, `target`, `due`, `status` | e.g. "WM range ±5 by 7 Nov" |
+| `skill_pauses` | `pause_id`, `user_id`, `dim`, `until` | "Stop suggesting memory this week" (UW3) |
 | `user_tokens` | `token_hash pk`, `user_id`, `created_at`, `last_used` | Bearer tokens for the API; only a SHA-256 hash is stored |
 | `deletion_receipts` | `receipt_id`, `user_hash`, `counts jsonb`, `deleted_at` | Counts only, no personal content |
 | `llm_credentials` | `credential_id pk`, `unique (user_id, provider)`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`NAJMA_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
@@ -80,7 +81,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 ### Event types
 
-`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `affect.labelled` (mood check, "Was I right?"), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key).
+`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `affect.labelled` (mood check, "Was I right?"), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `settings.changed` (coach, difficulty mode, a paused skill), `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key).
 
 ## Dashboard queries come straight from SQL
 

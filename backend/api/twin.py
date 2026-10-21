@@ -1,7 +1,9 @@
 """Users, trial ingestion and the Brain Twin read model (docs/plan/02, API sketch)."""
 
+from zoneinfo import ZoneInfo
+
 from fastapi import APIRouter, HTTPException, status
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from backend.acs.score import score
 from backend.api.deps import Conn, CurrentUser, Engine
@@ -26,6 +28,23 @@ from backend.db.twin_store import (
 router = APIRouter()
 
 
+class NewUser(Contract):
+    timezone: str | None = Field(
+        default=None, max_length=64, description="IANA time zone from the browser, for 'today'"
+    )
+
+    @field_validator("timezone")
+    @classmethod
+    def _known(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        try:
+            ZoneInfo(value)
+        except (ValueError, KeyError) as exc:
+            raise ValueError("unknown time zone") from exc
+        return value
+
+
 class TrialBatch(Contract):
     trials: list[TrialEvent] = Field(min_length=1, max_length=500)
 
@@ -33,10 +52,10 @@ class TrialBatch(Contract):
 @router.post(
     "/users", response_model=CreatedUser, status_code=status.HTTP_201_CREATED, tags=["users"]
 )
-async def post_user(engine: Engine) -> CreatedUser:
+async def post_user(engine: Engine, body: NewUser | None = None) -> CreatedUser:
     """Create a user and return their bearer token. WP2.8 adds the age check and consent."""
     async with engine.begin() as conn:
-        user_id, token = await create_user(conn)
+        user_id, token = await create_user(conn, timezone=body.timezone if body else None)
     return CreatedUser(user_id=user_id, token=token)
 
 

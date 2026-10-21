@@ -20,7 +20,8 @@ test('wave 1 gate: play Quick Draw, the Twin updates, the coach replies', async 
   expect(((await before.json()) as { dims: unknown[] }).dims).toEqual([])
 
   await playCurrentGame(page)
-  await expect(page.getByTestId('coach')).toContainText('[F', { timeout: 60_000 })
+  // Citations render as chips (docs/plan/09: every number traces to a fact).
+  await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({ timeout: 60_000 })
   expect(frames.some((f) => f.includes('"kind": "say"') || f.includes('"kind":"say"'))).toBe(true)
 
   const after = await page.request.get('/api/twin', {

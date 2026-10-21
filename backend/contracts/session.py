@@ -1,8 +1,9 @@
 """Session-level routing and planning (docs/plan/03)."""
 
 from typing import Literal
+from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, JsonValue
 
 from backend.contracts.common import (
     Contract,
@@ -13,6 +14,7 @@ from backend.contracts.common import (
     SuccessMode,
 )
 from backend.contracts.events import DimensionChange
+from backend.contracts.facts import FactsPacket
 
 IntentKind = Literal[
     "play",
@@ -33,6 +35,52 @@ class Intent(Contract):
     dim: DimensionId | None = None
     theme: str | None = Field(default=None, max_length=40)
     text: str | None = None
+    avoid_dims: list[DimensionId] = Field(
+        default_factory=list, description="Skills the user turned down for today (UW3)"
+    )
+    quick: bool = Field(default=False, description="The user asked for something short")
+    replace_current: bool = Field(
+        default=False, description="'Not that one': anything but the game just suggested"
+    )
+    tool: str | None = Field(default=None, description="The converse tool, when already known")
+    source: Literal["rules", "llm"] = "rules"
+
+
+ToolName = Literal[
+    "read_profile",
+    "get_history",
+    "search_memory",
+    "start_game",
+    "set_goal",
+    "log_life_context",
+    "explain",
+    "update_settings",
+]
+
+
+class ToolCall(Contract):
+    """A converse tool Najma is about to use (docs/plan/03, converse subgraph). Tools that write
+    carry the question shown before writing, and the facts behind any number in it."""
+
+    call_id: UUID
+    name: ToolName
+    args: dict[str, JsonValue] = Field(default_factory=dict)
+    writes: bool = False
+    prompt: str | None = None
+    facts: FactsPacket = Field(default_factory=FactsPacket)
+
+
+class ToolOutcome(Contract):
+    """What a tool found or did. `reply` is fixed text; without it the coach drafts a verified
+    answer from `facts` following `instruction`."""
+
+    name: ToolName | None = None
+    facts: FactsPacket = Field(default_factory=FactsPacket)
+    reply: str | None = None
+    instruction: str | None = None
+    fallback: str | None = Field(
+        default=None, description="Fixed text from the facts, used when no draft passes"
+    )
 
 
 class SessionBudget(Contract):

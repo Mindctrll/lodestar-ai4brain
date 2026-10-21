@@ -427,3 +427,93 @@ button:focus-visible {
   background: var(--color-accent);
   color: white;
 }
+
+/* Conversation and "why" cards (docs/plan/03 converse, 09 explainability) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.chat__lines {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.chat__line {
+  max-width: 85%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+}
+.chat__line--you {
+  align-self: flex-end;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+.chat__line--najma {
+  align-self: flex-start;
+  background: var(--color-surface);
+}
+.chat__form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.chat__form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  font: inherit;
+}
+.confirm {
+  border: 1px solid var(--color-accent);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+}
+.cite {
+  display: inline-block;
+  font-size: 0.7em;
+  padding: 0 0.35em;
+  margin: 0 0.1em;
+  border-radius: 0.4em;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  vertical-align: 0.15em;
+}
+.cite--why {
+  cursor: pointer;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: transparent;
+}
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.why__options {
+  padding-left: 1.2rem;
+}
+.why__parts {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0 0.6rem;
+  color: var(--color-muted);
+  font-size: 0.9em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+}

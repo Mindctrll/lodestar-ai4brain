@@ -1,6 +1,7 @@
 """The play loop: plan_next -> prepare_exercise -> play (pause) -> score_update -> monitor
 (docs/plan/03). Code decides; nothing here asks an LLM what to do."""
 
+import contextlib
 import random
 from datetime import UTC, datetime
 from typing import Any
@@ -8,13 +9,13 @@ from uuid import uuid4
 
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
-from sqlalchemy import func, select
+from sqlalchemy import any_, func, literal, select
 
 from backend.agent.affect import estimate
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.state import NajmaState
-from backend.agent.telemetry import record_decision, traced
+from backend.agent.telemetry import emit, record_decision, traced
 from backend.contracts.affect import AffectReading
 from backend.contracts.decision import Candidate, Decision
 from backend.contracts.events import AffectEstimated
@@ -72,6 +73,118 @@ def _pick(options: list[Game], last_game: str | None, seed: int) -> Game:
     return random.Random(seed).choice(choices)
 
 
+QUICK_S = 60  # "something quick": games of a minute or less
+NUDGE_AFTER = 3  # UW3: sessions in a row a skill was turned down before Najma asks once
+
+
+def _length(game: Game) -> str:
+    s = game.duration_s
+    return f"{s // 60}-minute" if s % 60 == 0 else f"{s}-second"
+
+
+async def _abandon(ctx: NajmaContext, round_id: Any) -> None:
+    """A new pick replaces a game that was waiting ("not memory today"): it's never scored."""
+    async with ctx.services.engine.begin() as conn:
+        await conn.execute(
+            t.rounds.update()
+            .where(
+                t.rounds.c.round_id == round_id,
+                t.rounds.c.user_id == ctx.user_id,
+                t.rounds.c.status == "started",
+            )
+            .values(status="abandoned", ended_at=datetime.now(UTC))
+        )
+
+
+async def paused_dims(ctx: NajmaContext, now: datetime) -> set[str]:
+    """Skills the user asked Najma to stop suggesting for a while (UW3)."""
+    async with ctx.services.engine.connect() as conn:
+        rows = await conn.execute(
+            select(t.skill_pauses.c.dim).where(
+                t.skill_pauses.c.user_id == ctx.user_id, t.skill_pauses.c.until > now
+            )
+        )
+        return {r.dim for r in rows}
+
+
+async def should_nudge(ctx: NajmaContext, dim: str) -> bool:
+    """True once a skill was turned down in NUDGE_AFTER sessions in a row, unless Najma already
+    asked about it in that run of sessions."""
+    async with ctx.services.engine.connect() as conn:
+        sessions = [
+            r.session_id
+            for r in await conn.execute(
+                select(t.sessions.c.session_id)
+                .where(t.sessions.c.user_id == ctx.user_id)
+                .order_by(t.sessions.c.started_at.desc())
+                .limit(10)
+            )
+        ]
+        rows = await conn.execute(
+            select(t.decisions.c.session_id, t.decisions.c.node).where(
+                t.decisions.c.user_id == ctx.user_id,
+                t.decisions.c.session_id.in_(sessions),
+                (
+                    (t.decisions.c.node == "plan_next")
+                    & (literal(f"declined:{dim}") == any_(t.decisions.c.evidence))
+                )
+                | ((t.decisions.c.node == "nudge") & (t.decisions.c.chosen == dim)),
+            )
+        )
+        declined = {r.session_id for r in rows if r.node == "plan_next"}
+        rows = await conn.execute(
+            select(t.decisions.c.session_id).where(
+                t.decisions.c.user_id == ctx.user_id,
+                t.decisions.c.node == "nudge",
+                t.decisions.c.chosen == dim,
+            )
+        )
+        nudged = {r.session_id for r in rows}
+    streak = 0
+    for session_id in sessions:
+        if session_id in nudged:
+            return False
+        if session_id not in declined:
+            break
+        streak += 1
+    return streak >= NUDGE_AFTER
+
+
+async def _nudge(state: NajmaState, runtime: Runtime[NajmaContext], dim: str) -> Decision:
+    ctx = runtime.context
+    name = ctx.services.registry.dimension(dim).name.lower()
+    text = (
+        f"You've skipped {name} for a while. Want a short round, or should I stop suggesting it "
+        "this week?"
+    )
+    decision = Decision(
+        decision_id=uuid4(),
+        node="nudge",
+        at=datetime.now(UTC),
+        question="Ask about a skill the user keeps turning down?",
+        candidates=[],
+        chosen=dim,
+        reason=text,
+        evidence=[f"declined:{dim}"],
+    )
+    await record_decision(ctx, decision)
+    emit({"kind": "say", "text": text, "node": "nudge"})
+    if runtime.store is not None:  # the pattern is worth remembering (UW3)
+        # If Qdrant is down, the decision row still records the nudge.
+        with contextlib.suppress(Exception):
+            await runtime.store.aput(
+                ("users", str(ctx.user_id), "episodic"),
+                f"{ctx.session_id}-skips-{dim}",
+                {
+                    "text": f"Often skips {name}: turned it down {NUDGE_AFTER} sessions in a row",
+                    "kind": "preference",
+                    "importance": 0.7,
+                    "dims": [dim],
+                },
+            )
+    return decision
+
+
 @traced("plan_next")
 async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
     """Choose the next skill and game with a utility whose parts are all shown (docs/plan/03).
@@ -86,8 +199,25 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     intent = state.intent
     seed = ctx.seed + len(state.rounds)
 
-    candidates: list[Candidate] = []
+    # What the user turned down or paused, and "something quick", narrow the pool; the policy
+    # still ranks what's left (UW3).
+    turned_down = list(intent.avoid_dims) if intent else []
+    avoid = set(state.declined_dims) | set(turned_down) | await paused_dims(ctx, now)
+    quick = bool(intent and intent.quick)
+    skip_game = (
+        state.exercise.game_id if intent and intent.replace_current and state.exercise else None
+    )
+    pool: dict[str, list[Game]] = {}
     for dim, games in by_dim.items():
+        options = [g for g in games if g.id != skip_game and (not quick or g.duration_s <= QUICK_S)]
+        if dim not in avoid and options:
+            pool[dim] = options
+    overridden = bool(pool) and (bool(turned_down) or quick or skip_game is not None)
+    if not pool:
+        pool = by_dim
+
+    candidates: list[Candidate] = []
+    for dim, games in pool.items():
         belief = _belief(state, dim)
         days = _days_since(belief, now)
         parts = {
@@ -112,8 +242,13 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         reason = f"You asked for {game.name}."
     elif wanted_dim is not None:
         dim = wanted_dim
-        game = _pick(by_dim[dim], last_game, seed)
+        game = _pick(pool.get(dim, by_dim[dim]), last_game, seed)
         reason = f"You asked for {registry.dimension(dim).name.lower()}."
+    elif overridden and not state.onboarding:
+        dim = candidates[0].option
+        game = _pick(pool[dim], last_game, seed)
+        name = registry.dimension(dim).name.lower()
+        reason = f"Sure. Here's {game.name}, a {_length(game)} {name} game, instead."
     elif state.onboarding:
         game = registry.game(state.onboarding[0])
         dim = game.primary_dims[0]
@@ -126,7 +261,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         force_assess = True
     else:
         dim = candidates[0].option
-        game = _pick(by_dim[dim], last_game, seed)
+        game = _pick(pool[dim], last_game, seed)
         belief = _belief(state, dim)
         name = registry.dimension(dim).name
         days = _days_since(belief, now)
@@ -159,23 +294,38 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         candidates=candidates[:3],
         chosen=f"{dim}:{game.id}",
         reason=reason,
-        evidence=[],
+        evidence=[f"declined:{d}" for d in turned_down] + (["quick"] if quick else []),
     )
     await record_decision(ctx, decision)
+    if state.game_waiting() and state.exercise is not None:
+        await _abandon(ctx, state.exercise.round_id)
+    decisions = [decision]
+    for declined_dim in turned_down:
+        if await should_nudge(ctx, declined_dim):
+            decisions.append(await _nudge(state, runtime, declined_dim))
     plan = SessionPlan(
         game_id=game.id,
         mode="assess" if mode == "assess" else "train",
         success_mode=success_mode,
         target_p=TARGET_P[mode],
+        declined_dims=sorted(avoid - {dim}),
         goal_weights={d: 1.0 for d in state.goal_dims},
     )
+    once: dict[str, Any] = {
+        "game_id": None,
+        "dim": None,
+        "avoid_dims": [],
+        "quick": False,
+        "replace_current": False,
+    }
     return {
         **update,
-        "decisions": [decision],
+        "decisions": decisions,
         "plan": plan,
         "exercise": None,
+        "declined_dims": turned_down,
         # A game or skill the user asked for is honoured once, not for the whole session.
-        "intent": intent.model_copy(update={"game_id": None, "dim": None}) if intent else None,
+        "intent": intent.model_copy(update=once) if intent else None,
     }
 
 

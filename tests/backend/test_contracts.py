@@ -21,6 +21,7 @@ PLAN_EVENT_TYPES = {
     "session.started", "trial.recorded", "round.completed", "twin.updated", "acs.observed",
     "affect.estimated", "affect.labelled", "context.added", "goal.set", "experiment.started",
     "experiment.session_logged", "experiment.completed", "consent.changed", "memory.written",
+    "settings.changed",
     "session.ended", "data.exported", "twin.snapshot", "llm.selection_changed",
 }  # fmt: skip
 

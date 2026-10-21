@@ -11,7 +11,14 @@ from pydantic import AwareDatetime, Field, JsonValue, TypeAdapter
 
 from backend.contracts.acs import AcsEvent
 from backend.contracts.affect import AffectReading
-from backend.contracts.common import Contract, DimensionId, Persona, ProviderId, Trigger
+from backend.contracts.common import (
+    Contract,
+    DimensionId,
+    Persona,
+    ProviderId,
+    SuccessMode,
+    Trigger,
+)
 from backend.contracts.exercise import RoundResult
 from backend.contracts.llm import LlmMode
 from backend.contracts.trial import TrialEvent
@@ -98,6 +105,17 @@ class AffectLabelPayload(Contract):
     value: str = Field(max_length=20)
     round_id: UUID | None = None
     decision_id: UUID | None = None
+
+
+class SettingsChangedPayload(Contract):
+    """A setting the user changed by chat or in Settings. Only the fields that changed are set."""
+
+    persona: Persona | None = None
+    success_mode: SuccessMode | None = None
+    paused_dim: DimensionId | None = Field(
+        default=None, description="A skill Najma stops suggesting until `paused_until`"
+    )
+    paused_until: AwareDatetime | None = None
 
 
 class SessionEndedPayload(Contract):
@@ -213,6 +231,11 @@ class MemoryWritten(_Envelope):
     payload: MemoryWrittenPayload
 
 
+class SettingsChanged(_Envelope):
+    type: Literal["settings.changed"] = "settings.changed"
+    payload: SettingsChangedPayload
+
+
 class SessionEnded(_Envelope):
     type: Literal["session.ended"] = "session.ended"
     payload: SessionEndedPayload
@@ -248,6 +271,7 @@ Event = Annotated[
     | ExperimentCompleted
     | ConsentChanged
     | MemoryWritten
+    | SettingsChanged
     | SessionEnded
     | DataExported
     | TwinSnapshotTaken

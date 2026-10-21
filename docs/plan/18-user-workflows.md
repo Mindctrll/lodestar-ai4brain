@@ -122,7 +122,7 @@ Example user: **Amira**, 21, engineering student in Sfax, exams in two weeks.
 
 **Underneath:** converse tool `log_life_context` (confirms first) → `twin.life_context` row with a period and weight 0.5 → scorer applies `context_weight` → `core.md` not changed for a one-off.
 
-**Test `uw9_life_context`:** rounds inside the window update μ half as much as identical rounds outside it.
+**Test `uw9_life_context`:** rounds inside the window count as half the evidence (weight 0.5). In the Kalman update the mean moves about 60% as far as for identical rounds outside the window, and the range shrinks less.
 
 ---
 

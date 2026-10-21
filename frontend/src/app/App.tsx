@@ -4,6 +4,9 @@ import { api } from '../api/client'
 import type { Registry } from '../api/types'
 import { GAMES } from '../games'
 import { GameFrame } from '../taskhost/GameFrame'
+import { Chat } from './Chat'
+import { Cited } from './Cited'
+import { DecisionCard } from './DecisionCard'
 import { useSession } from './useSession'
 
 function greeting(now: Date): string {
@@ -85,8 +88,10 @@ function AfterGameLabels({
 }
 
 export function App() {
-  const { state, start, play, finish, resumeSaved, skipSaved } = useSession()
+  const { state, start, send, answer, nextGame, play, finish, resumeSaved, skipSaved } =
+    useSession()
   const [registry, setRegistry] = useState<Registry | null>(null)
+  const [why, setWhy] = useState<string | null>(null)
 
   useEffect(() => {
     api.registry().then(setRegistry, () => {
@@ -98,6 +103,14 @@ export function App() {
     const game = registry?.games.find((g) => g.id === gameId)
     if (!game || !registry) return []
     return Object.keys(game.dims).map((d) => registry.dimensions.find((x) => x.id === d)?.name ?? d)
+  }
+
+  /** A decision option ("working_memory" or "working_memory:echo") in plain words. */
+  const optionName = (option: string): string => {
+    const [dim = option, gameId] = option.split(':')
+    const dimName = registry?.dimensions.find((d) => d.id === dim)?.name ?? dim
+    const gameName = gameId ? registry?.games.find((g) => g.id === gameId)?.name : undefined
+    return gameName ? `${dimName}, ${gameName}` : dimName
   }
 
   const game = state.spec ? GAMES[state.spec.game_id] : undefined
@@ -143,12 +156,29 @@ export function App() {
         </section>
       )}
 
-      {state.phase === 'starting' && <p className="card">Najma is choosing your first game…</p>}
+      {state.phase === 'starting' && state.chat.length === 0 && (
+        <p className="card">Najma is choosing your first game…</p>
+      )}
 
       {state.phase === 'ready' && state.spec && (
         <section className="card" data-testid="suggestion">
           <h2>Next: {game?.name ?? state.spec.game_id}</h2>
-          {state.reason && <p className="reason">{state.reason}</p>}
+          {state.reason && (
+            <p className="reason">
+              {state.reason}{' '}
+              {state.reasonDecision && (
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    setWhy(state.reasonDecision)
+                  }}
+                >
+                  Why?
+                </button>
+              )}
+            </p>
+          )}
           {game ? (
             <button type="button" className="primary" onClick={play}>
               Let&apos;s go
@@ -175,8 +205,10 @@ export function App() {
           <h2>{state.phase === 'ended' ? 'Session done' : 'How that went'}</h2>
           {state.says.length === 0 && <p className="muted">Najma is looking at your round…</p>}
           <div className="coach" data-testid="coach">
-            {state.says.map((text, i) => (
-              <p key={i}>{text}</p>
+            {state.says.map((line, i) => (
+              <p key={i}>
+                <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
+              </p>
             ))}
           </div>
           {state.sessionId && state.says.length > 0 && (
@@ -198,6 +230,20 @@ export function App() {
             </button>
           )}
         </section>
+      )}
+
+      {why && (
+        <DecisionCard
+          decisionId={why}
+          name={optionName}
+          onClose={() => {
+            setWhy(null)
+          }}
+        />
+      )}
+
+      {!['playing', 'resumable', 'error'].includes(state.phase) && (
+        <Chat state={state} send={send} answer={answer} nextGame={nextGame} onWhy={setWhy} />
       )}
 
       {state.phase === 'error' && (

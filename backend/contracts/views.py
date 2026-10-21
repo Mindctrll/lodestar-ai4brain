@@ -1,5 +1,6 @@
 """Read models for the dashboard (docs/plan/13). Every number comes with its range."""
 
+import datetime as dt
 from uuid import UUID
 
 from pydantic import AwareDatetime, Field
@@ -59,3 +60,19 @@ class CreatedUser(Contract):
 class IngestResult(Contract):
     accepted: int
     duplicates: int
+
+
+class GoalView(Contract):
+    """A range goal and how far along it is (UW11): the range now against the target."""
+
+    goal_id: UUID
+    dim: DimensionId
+    name: str
+    target: float = Field(description="Aim: the 80% range within ± this many points")
+    due: dt.date
+    status: str
+    range_now: float | None = Field(description="± points now; None before the first round")
+    low: float | None
+    high: float | None
+    rounds_left: int | None = Field(description="About how many more rounds it takes")
+    met: bool

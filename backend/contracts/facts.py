@@ -17,6 +17,9 @@ class Fact(Contract):
     dim: DimensionId | None = None
     events: list[str] = Field(default_factory=list)
     decision: bool = False
+    ref: str | None = Field(
+        default=None, description="For a decision fact, the decision id its card opens"
+    )
 
 
 class KnowledgeItem(Contract):

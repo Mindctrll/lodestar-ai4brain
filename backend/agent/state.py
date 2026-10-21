@@ -24,6 +24,8 @@ from backend.contracts.session import (
     RoundSummary,
     SessionBudget,
     SessionPlan,
+    ToolCall,
+    ToolOutcome,
     Verdict,
 )
 from backend.contracts.twin import ForecastBand, LifeContextWindow, TwinSnapshot
@@ -36,6 +38,7 @@ class NajmaState(BaseModel):
     trigger: Trigger
     persona: Persona
     messages: Annotated[list[AnyMessage], add_messages] = Field(default_factory=list)
+    said: str | None = Field(default=None, description="What the user said this turn, if anything")
 
     # perception (filled in parallel)
     twin: TwinSnapshot | None = None
@@ -49,6 +52,14 @@ class NajmaState(BaseModel):
     decisions: Annotated[list[Decision], operator.add] = Field(default_factory=list)
     plan: SessionPlan | None = None
     exercise: ExerciseSpec | None = None
+    declined_dims: Annotated[list[str], operator.add] = Field(
+        default_factory=list, description="Skills turned down this session (UW3)"
+    )
+
+    # conversation (converse subgraph)
+    tool_call: ToolCall | None = None
+    confirmed: bool | None = None
+    tool_outcome: ToolOutcome | None = None
 
     # results
     rounds: Annotated[list[RoundResult], operator.add] = Field(default_factory=list)
@@ -63,6 +74,12 @@ class NajmaState(BaseModel):
     )
     goal_dims: list[str] = Field(default_factory=list, description="Skills with an active goal")
     away_days: float | None = Field(default=None, description="Days since the last session")
+
+    def game_waiting(self) -> bool:
+        """A suggested game the user hasn't played yet: chat turns come back to it."""
+        if self.exercise is None:
+            return False
+        return not any(str(r.round_id) == str(self.exercise.round_id) for r in self.rounds)
 
     # control
     started_at: datetime | None = None

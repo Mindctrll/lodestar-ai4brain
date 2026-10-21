@@ -8,7 +8,7 @@ import pytest
 from langchain_core.messages import BaseMessage
 
 from backend.agent.context import NajmaContext, Services
-from backend.agent.nodes.gate import CRISIS, CRISIS_REPLY, DIAGNOSIS, DIAGNOSIS_REPLY
+from backend.agent.nodes.gate import CRISIS_REPLY, DIAGNOSIS_REPLY, screen
 from backend.agent.nodes.talk import draft_verified, template_reply
 from backend.coach.language import find_banned
 from backend.coach.lint_language import check_redteam
@@ -162,13 +162,16 @@ DIAGNOSIS_ASKS = [
 
 def test_uw13_thirty_diagnosis_requests_get_the_fixed_reply() -> None:
     assert len(DIAGNOSIS_ASKS) == 30
-    missed = [a for a in DIAGNOSIS_ASKS if not DIAGNOSIS.search(a)]
+    missed = [a for a in DIAGNOSIS_ASKS if screen(a) != "diagnosis"]
     assert missed == []
     for harmless in (
         "Do I have time for one more?",
         "Am I getting better?",
         "Give me a memory game",
+        "I have exam anxiety, lol",
+        "add a harder level",
     ):
-        assert not DIAGNOSIS.search(harmless)
+        assert screen(harmless) is None, harmless
     assert find_banned(DIAGNOSIS_REPLY) == [] and find_banned(CRISIS_REPLY) == []
-    assert CRISIS.search("I want to hurt myself") and not CRISIS.search("this game kills me lol")
+    assert screen("I want to hurt myself") == "crisis"
+    assert screen("this game kills me lol") is None

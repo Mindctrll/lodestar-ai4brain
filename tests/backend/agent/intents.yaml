@@ -1,0 +1,128 @@
+# Labelled utterances for intent routing (WP2.11 "Done when"). Each has the intent kind and, where
+# it matters, the slots the router must fill: a named game, a skill, skills turned down, "quick",
+# and the converse tool. Written as people type, typos and all. Safety phrasings (diagnosis,
+# medical advice, crisis) are in safety.yaml: they never reach the router.
+
+# play ---------------------------------------------------------------------------------------
+- {text: "let's play", kind: play}
+- {text: "Start a round", kind: play}
+- {text: "I'm ready", kind: play}
+- {text: "go", kind: play}
+- {text: "another one please", kind: play}
+- {text: "one more game", kind: play}
+- {text: "play Echo", kind: play, game: echo}
+- {text: "can we do quick draw?", kind: play, game: quick_draw}
+- {text: "I want to try Souk Rush", kind: play, game: souk_rush}
+- {text: "Spot the AI's mistake please", kind: play, game: spot_the_mistake}
+- {text: "let's do pattern gap", kind: play, game: pattern_gap}
+- {text: "a memory game", kind: play, dim: working_memory}
+- {text: "something for my focus", kind: play, dim: selective_attention}
+- {text: "give me a logic puzzle", kind: play, dim: reasoning}
+- {text: "train my reaction speed", kind: play, dim: processing_speed}
+- {text: "practice numbers", kind: play, dim: numerical_thinking}
+- {text: "a game about football", kind: play}
+- {text: "something quick", kind: play, quick: true}
+- {text: "a short one, I only have 2 minutes", kind: play, quick: true}
+- {text: "warm me up", kind: play}
+- {text: "challenge me", kind: play}
+- {text: "play switch", kind: play, game: switch}
+
+# declining a suggestion (UW3) ----------------------------------------------------------------
+- {text: "Not memory today, something quick.", kind: play, avoid: [working_memory], quick: true}
+- {text: "no memory games please", kind: play, avoid: [working_memory]}
+- {text: "skip the maths", kind: play, avoid: [numerical_thinking]}
+- {text: "anything but reasoning", kind: play, avoid: [reasoning]}
+- {text: "I'm sick of speed games", kind: play, avoid: [processing_speed]}
+- {text: "something other than focus", kind: play, avoid: [selective_attention]}
+- {text: "I'd rather not do memory right now", kind: play, avoid: [working_memory]}
+- {text: "not that one, give me something else", kind: play}
+
+# chat: why (UW7) -----------------------------------------------------------------------------
+- {text: "Why memory again?", kind: chat, tool: explain}
+- {text: "why did you pick that?", kind: chat, tool: explain}
+- {text: "Why this game", kind: chat, tool: explain}
+- {text: "how did you choose this one", kind: chat, tool: explain}
+- {text: "what made you suggest echo?", kind: chat, tool: explain}
+- {text: "explain your choice", kind: chat, tool: explain}
+- {text: "why so hard?", kind: chat, tool: explain}
+
+# chat: profile -------------------------------------------------------------------------------
+- {text: "How am I doing?", kind: chat, tool: read_profile}
+- {text: "what's my memory score", kind: chat, tool: read_profile, dim: working_memory}
+- {text: "show me my profile", kind: chat, tool: read_profile}
+- {text: "how good is my focus", kind: chat, tool: read_profile, dim: selective_attention}
+- {text: "what are my strengths", kind: chat, tool: read_profile}
+- {text: "where am i at with reasoning", kind: chat, tool: read_profile, dim: reasoning}
+- {text: "my results", kind: chat, tool: read_profile}
+
+# chat: history -------------------------------------------------------------------------------
+- {text: "how has my memory changed over the last month?", kind: chat, tool: get_history, dim: working_memory}
+- {text: "show my progress this week", kind: chat, tool: get_history}
+- {text: "am I improving at speed?", kind: chat, tool: get_history, dim: processing_speed}
+- {text: "my history", kind: chat, tool: get_history}
+- {text: "have I got better since I started", kind: chat, tool: get_history}
+- {text: "show my speed over the past 30 days", kind: chat, tool: get_history, dim: processing_speed}
+
+# chat: memory --------------------------------------------------------------------------------
+- {text: "what do you remember about me?", kind: chat, tool: search_memory}
+- {text: "did I tell you about my exams?", kind: chat, tool: search_memory}
+- {text: "what do you know about me", kind: chat, tool: search_memory}
+- {text: "what did I say last time", kind: chat, tool: search_memory}
+
+# chat: anything else -------------------------------------------------------------------------
+- {text: "hi", kind: chat}
+- {text: "thanks!", kind: chat}
+- {text: "what can you do?", kind: chat}
+- {text: "who are you", kind: chat}
+- {text: "how do the games work", kind: chat}
+- {text: "ok cool", kind: chat}
+
+# twin ----------------------------------------------------------------------------------------
+- {text: "Ask my twin when I focus best", kind: twin_chat}
+- {text: "when am I sharpest?", kind: twin_chat}
+- {text: "am I better in the morning or the evening?", kind: twin_chat}
+- {text: "what's my best time of day", kind: twin_chat}
+- {text: "Twin, how do I learn?", kind: twin_chat}
+- {text: "do I do better after coffee?", kind: twin_chat}
+- {text: "talk to my twin", kind: twin_chat}
+
+# experiment ----------------------------------------------------------------------------------
+- {text: "I want to run an experiment", kind: experiment}
+- {text: "can we test if music helps me focus", kind: experiment}
+- {text: "let's see whether mornings are better for me, like a real test", kind: experiment}
+- {text: "start an experiment on sleep", kind: experiment}
+- {text: "compare morning and evening sessions for me", kind: experiment}
+
+# goals (UW11) --------------------------------------------------------------------------------
+- {text: "I want my memory to be solid before exams.", kind: goal, dim: working_memory}
+- {text: "set a goal for focus", kind: goal, dim: selective_attention}
+- {text: "my goal is to get faster", kind: goal, dim: processing_speed}
+- {text: "I want to improve my reasoning by next month", kind: goal, dim: reasoning}
+- {text: "aim for better maths by 15 November", kind: goal, dim: numerical_thinking}
+- {text: "help me get better at memory in 2 weeks", kind: goal, dim: working_memory}
+- {text: "I'd like a goal", kind: goal}
+- {text: "target: spatial thinking by the end of the month", kind: goal, dim: spatial_thinking}
+- {text: "make my focus stronger before my exam", kind: goal, dim: selective_attention}
+
+# life context (UW9) --------------------------------------------------------------------------
+- {text: "I slept like 4 hours.", kind: life_context}
+- {text: "didn't sleep well last night", kind: life_context}
+- {text: "I'm so tired today", kind: life_context}
+- {text: "I have exams all week", kind: life_context}
+- {text: "feeling a bit ill", kind: life_context}
+- {text: "busy week at uni", kind: life_context}
+- {text: "I'm stressed", kind: life_context}
+- {text: "got a headache", kind: life_context}
+- {text: "jet lag, just flew back", kind: life_context}
+- {text: "exam tomorrow!", kind: life_context}
+
+# settings (UW20, UW3) ------------------------------------------------------------------------
+- {text: "switch to Barq", kind: settings}
+- {text: "change my coach to Hikma", kind: settings}
+- {text: "I want a calmer coach", kind: settings}
+- {text: "put me on push mode", kind: settings}
+- {text: "make the games easier from now on", kind: settings}
+- {text: "chill mode please", kind: settings}
+- {text: "stop suggesting memory this week", kind: settings, avoid: [working_memory]}
+- {text: "turn the camera on", kind: settings}
+- {text: "be more of a friend", kind: settings}

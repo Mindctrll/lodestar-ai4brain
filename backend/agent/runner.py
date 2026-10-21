@@ -172,6 +172,10 @@ class SessionRunner:
                 "success_mode": success_mode,
                 "intent": None,
                 "verdict": None,
+                "said": message or None,
+                "tool_call": None,
+                "confirmed": None,
+                "tool_outcome": None,
                 "messages": [HumanMessage(message)] if message else [],
             }
         waiting = False

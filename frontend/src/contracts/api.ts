@@ -38,6 +38,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/decisions/{decision_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Decision
+     * @description The card behind a [D1] citation: the question, the top candidates and their parts.
+     */
+    get: operations['get_decision_decisions__decision_id__get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/events': {
     parameters: {
       query?: never
@@ -49,6 +69,23 @@ export interface paths {
     put?: never
     /** Post Events */
     post: operations['post_events_events_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/goals': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Goals */
+    get: operations['get_goals_goals_get']
+    put?: never
+    post?: never
     delete?: never
     options?: never
     head?: never
@@ -899,6 +936,7 @@ export interface components {
       | components['schemas']['ExperimentCompleted']
       | components['schemas']['ConsentChanged']
       | components['schemas']['MemoryWritten']
+      | components['schemas']['SettingsChanged']
       | components['schemas']['SessionEnded']
       | components['schemas']['DataExported']
       | components['schemas']['TwinSnapshotTaken']
@@ -1115,6 +1153,12 @@ export interface components {
       events?: string[]
       /** Id */
       id: string
+      /**
+       * Ref
+       * @description For a decision fact, the decision id its card opens
+       * @default null
+       */
+      ref: string | null
       /** Text */
       text: string
     }
@@ -1287,6 +1331,49 @@ export interface components {
        */
       user_id: string
     }
+    /**
+     * GoalView
+     * @description A range goal and how far along it is (UW11): the range now against the target.
+     */
+    GoalView: {
+      /** Dim */
+      dim: string
+      /**
+       * Due
+       * Format: date
+       */
+      due: string
+      /**
+       * Goal Id
+       * Format: uuid
+       */
+      goal_id: string
+      /** High */
+      high: number | null
+      /** Low */
+      low: number | null
+      /** Met */
+      met: boolean
+      /** Name */
+      name: string
+      /**
+       * Range Now
+       * @description ± points now; None before the first round
+       */
+      range_now: number | null
+      /**
+       * Rounds Left
+       * @description About how many more rounds it takes
+       */
+      rounds_left: number | null
+      /** Status */
+      status: string
+      /**
+       * Target
+       * @description Aim: the 80% range within ± this many points
+       */
+      target: number
+    }
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -1318,6 +1405,11 @@ export interface components {
     /** Intent */
     Intent: {
       /**
+       * Avoid Dims
+       * @description Skills the user turned down for today (UW3)
+       */
+      avoid_dims?: string[]
+      /**
        * Dim
        * @default null
        */
@@ -1342,6 +1434,24 @@ export interface components {
         | 'settings'
         | 'refuse'
       /**
+       * Quick
+       * @description The user asked for something short
+       * @default false
+       */
+      quick: boolean
+      /**
+       * Replace Current
+       * @description 'Not that one': anything but the game just suggested
+       * @default false
+       */
+      replace_current: boolean
+      /**
+       * Source
+       * @default rules
+       * @enum {string}
+       */
+      source: 'rules' | 'llm'
+      /**
        * Text
        * @default null
        */
@@ -1351,6 +1461,12 @@ export interface components {
        * @default null
        */
       theme: string | null
+      /**
+       * Tool
+       * @description The converse tool, when already known
+       * @default null
+       */
+      tool: string | null
     }
     JsonValue: unknown
     /** KeyInput */
@@ -1676,6 +1792,14 @@ export interface components {
     MessageInput: {
       /** Text */
       text: string
+    }
+    /** NewUser */
+    NewUser: {
+      /**
+       * Timezone
+       * @description IANA time zone from the browser, for 'today'
+       */
+      timezone?: string | null
     }
     /** ProviderCapabilities */
     ProviderCapabilities: {
@@ -2052,6 +2176,68 @@ export interface components {
        */
       trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
     }
+    /** SettingsChanged */
+    SettingsChanged: {
+      /**
+       * Event Id
+       * @description Assigned by Postgres (uuidv7)
+       * @default null
+       */
+      event_id: string | null
+      payload: components['schemas']['SettingsChangedPayload']
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Session Id
+       * @default null
+       */
+      session_id: string | null
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'settings.changed'
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
+    /**
+     * SettingsChangedPayload
+     * @description A setting the user changed by chat or in Settings. Only the fields that changed are set.
+     */
+    SettingsChangedPayload: {
+      /**
+       * Paused Dim
+       * @description A skill Najma stops suggesting until `paused_until`
+       * @default null
+       */
+      paused_dim: string | null
+      /**
+       * Paused Until
+       * @default null
+       */
+      paused_until: string | null
+      /**
+       * Persona
+       * @default null
+       */
+      persona: ('zitouna' | 'barq' | 'hikma' | 'sahbi') | null
+      /**
+       * Success Mode
+       * @default null
+       */
+      success_mode: ('chill' | 'balanced' | 'push') | null
+    }
     /** StartSession */
     StartSession: {
       /**
@@ -2384,6 +2570,39 @@ export interface operations {
       }
     }
   }
+  get_decision_decisions__decision_id__get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        decision_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Decision']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   post_events_events_post: {
     parameters: {
       query?: never
@@ -2406,6 +2625,37 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['IngestResult']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_goals_goals_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['GoalView'][]
         }
       }
       /** @description Validation Error */
@@ -2797,7 +3047,11 @@ export interface operations {
       path?: never
       cookie?: never
     }
-    requestBody?: never
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['NewUser'] | null
+      }
+    }
     responses: {
       /** @description Successful Response */
       201: {
@@ -2806,6 +3060,15 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['CreatedUser']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
         }
       }
     }

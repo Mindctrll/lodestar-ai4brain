@@ -49,6 +49,18 @@ export class SessionSocket {
     this.socket?.send(JSON.stringify({ type: 'resume', value: result }))
   }
 
+  /** Answer a "Shall I…?" question from Najma. */
+  async confirm(confirmed: boolean): Promise<void> {
+    await this.connect()
+    this.socket?.send(JSON.stringify({ type: 'resume', value: { confirmed } }))
+  }
+
+  /** Ask Najma for the next game without saying anything. */
+  async next(): Promise<void> {
+    await this.connect()
+    this.socket?.send(JSON.stringify({ type: 'start' }))
+  }
+
   async say(text: string): Promise<void> {
     await this.connect()
     this.socket?.send(JSON.stringify({ type: 'message', text }))
