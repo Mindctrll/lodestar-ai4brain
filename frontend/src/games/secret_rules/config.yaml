@@ -1,0 +1,5 @@
+# Secret Rules (card sorting). Knobs: registry/games/secret_rules.yaml.
+trials: 40
+colours: ['#d64545', '#2f9e44', '#e8a600', '#3b6fd8']
+shapes: ['▲', '★', '✚', '●']
+frames: [solid, dashed, dotted, double]

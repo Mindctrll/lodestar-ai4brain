@@ -1,0 +1,5 @@
+# Tower (Tower of London). Knobs: registry/games/tower.yaml.
+problems: 5
+# Moves allowed beyond the shortest solution before the problem ends.
+extra_moves: 4
+deadline_ms: 60000

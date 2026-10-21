@@ -24,11 +24,12 @@ knobs:
     easy: 0.0
     hard: 0.5
 level_map: linear
-content: llm
+content: code
 modalities:
 - keyboard
 - touch
+available: true
 acs_hooks:
 - iteration
 - clarification
-practice_trials: 3
+practice_trials: 1

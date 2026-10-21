@@ -1,0 +1,5 @@
+# Connect (Trail Making part A). Knobs: registry/games/connect.yaml.
+boards: 3
+deadline_ms: 90000
+# Letters scattered as clutter; the clutter knob shows a share of them.
+decoys: 'KMPRTWXZ'

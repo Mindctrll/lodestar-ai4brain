@@ -20,7 +20,30 @@ const GAMES = [
   { id: 'spot_the_mistake', name: "Spot the AI's Mistake" },
   { id: 'turn_it', name: 'Turn It' },
   { id: 'number_line', name: 'Number Line' },
+  // P2 (WP3.1). Callback needs a Market List first: see callback.spec.ts.
+  { id: 'brake', name: 'Brake' },
+  { id: 'look_here', name: 'Look Here' },
+  { id: 'night_guard', name: 'Night Guard' },
+  { id: 'control_tower', name: 'Control Tower' },
+  { id: 'digits_back', name: 'Digits Back' },
+  { id: 'seen_it', name: 'Seen It?' },
+  { id: 'twins', name: 'Twins' },
+  { id: 'connect', name: 'Connect' },
+  { id: 'zigzag', name: 'Zigzag' },
+  { id: 'secret_rules', name: 'Secret Rules' },
+  { id: 'tower', name: 'Tower' },
+  { id: 'guide_the_robot', name: 'Guide the Robot' },
+  { id: 'logic_lock', name: 'Logic Lock' },
+  { id: 'word_burst', name: 'Word Burst' },
+  { id: 'scramble', name: 'Scramble' },
+  { id: 'teach_me', name: 'Teach Me' },
+  { id: 'which_jar', name: 'Which Jar?' },
+  { id: 'quick_maths', name: 'Quick Maths' },
+  { id: 'balloon_pump', name: 'Balloon Pump' },
 ]
+
+// Games with only a few long steps: one minute of words, three explanations.
+const FEW_STEPS: Record<string, number> = { word_burst: 1, teach_me: 3 }
 
 const only = process.env['NAJMA_GAMES']?.split(',')
 
@@ -32,8 +55,9 @@ for (const { id, name } of GAMES.filter((g) => !only || only.includes(g.id))) {
     await playCurrentGame(page)
     await expect(page.getByTestId('coach')).not.toBeEmpty({ timeout: 60_000 })
     const trials = sent.filter((t) => t.game_id === id)
-    expectWellFormed(trials, id)
-    const scored = trials.filter((t) => !t.practice)
+    expectWellFormed(trials, id, FEW_STEPS[id])
+    // Steps that aren't right or wrong (Balloon Pump, Zigzag's baseline board) aren't counted.
+    const scored = trials.filter((t) => !t.practice && t.correct !== null)
     const right = scored.filter((t) => t.correct === true).length
     // We always give the expected answer; allow one miss for timing at a deadline.
     expect(right).toBeGreaterThanOrEqual(scored.length - 1)

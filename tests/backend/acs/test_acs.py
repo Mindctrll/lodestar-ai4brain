@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -57,3 +58,31 @@ def test_observations_from_play() -> None:
 def test_experiment_7_rankings_are_stable_under_weight_changes() -> None:
     result = analyse(n=150, seed=3)
     assert result.worst_rho > 0.9, result.shifts
+
+
+def _asked(game: str, ambiguous: bool, response: dict[str, Any] | None) -> TrialEvent:
+    return TrialEvent(
+        trial_id=uuid4(), round_id=uuid4(), session_id=uuid4(), game_id=game, level=0.5,
+        trial_index=0, stimulus={"ambiguous": ambiguous}, response=response, correct=False, ts=T0,
+    )  # fmt: skip
+
+
+def test_clarification_and_retries_from_guide_the_robot_and_teach_me() -> None:
+    robot = from_trials(
+        "guide_the_robot",
+        [
+            _asked("guide_the_robot", True, {"asked_first": True, "first_failed": False}),
+            _asked("guide_the_robot", False, {"asked_first": True, "first_failed": True,
+                                              "solved": True}),
+            _asked("guide_the_robot", True, None),
+        ],
+    )  # fmt: skip
+    assert [(o.component, o.success) for o in robot] == [("C", True), ("C", False), ("I", True)]
+    teach = from_trials(
+        "teach_me",
+        [
+            _asked("teach_me", False, {"asked_first": False}),
+            _asked("teach_me", True, {"asked_first": False, "first_failed": True}),
+        ],
+    )
+    assert [(o.component, o.success) for o in teach] == [("C", True), ("C", False)]

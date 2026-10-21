@@ -1,0 +1,3 @@
+# Zigzag (Trail Making part B). Knobs: registry/games/zigzag.yaml.
+pairs: 2
+deadline_ms: 90000

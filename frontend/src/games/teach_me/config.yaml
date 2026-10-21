@@ -1,0 +1,127 @@
+# Teach Me. Knobs: registry/games/teach_me.yaml.
+topics_per_round: 3
+seconds: 180
+# Words that make an explanation long enough for full marks.
+enough_words: 15
+# Rubric score that counts as getting it across.
+pass: 0.5
+# Each key idea lists words that show it was mentioned.
+topics:
+  - id: shadows
+    name: shadows
+    question: I don't get why I have a shadow.
+    difficulty: 0.1
+    ideas:
+      - { idea: 'Light travels in straight lines.', words: [straight, line, lines, travels] }
+      - { idea: 'Your body blocks the light.', words: [block, blocks, blocked, stop, stops] }
+      - {
+          idea: "The shadow is the dark area where light can't reach.",
+          words: [dark, reach, behind, area],
+        }
+  - id: ice_floats
+    name: ice floating
+    question: I don't get why ice floats on water.
+    difficulty: 0.3
+    ideas:
+      - {
+          idea: 'Water expands when it freezes.',
+          words: [expand, expands, bigger, freezes, freeze],
+        }
+      - { idea: 'So ice is less dense than water.', words: [dense, density, lighter, less] }
+      - {
+          idea: 'Less dense things float on denser liquids.',
+          words: [float, floats, floating, top],
+        }
+  - id: seasons
+    name: the seasons
+    question: I don't get why we have summer and winter.
+    difficulty: 0.5
+    ideas:
+      - { idea: 'The Earth is tilted.', words: [tilt, tilted, angle, leans, axis] }
+      - {
+          idea: 'In summer your half leans toward the Sun and gets more direct sunlight.',
+          words: [toward, towards, direct, more],
+        }
+      - {
+          idea: 'Days are longer in summer and shorter in winter.',
+          words: [longer, shorter, days, hours],
+        }
+  - id: photosynthesis
+    name: photosynthesis
+    question: I don't get how plants make food.
+    difficulty: 0.4
+    ideas:
+      - {
+          idea: 'Plants take in sunlight with their leaves.',
+          words: [sunlight, light, sun, leaves],
+        }
+      - {
+          idea: 'They use water and carbon dioxide from the air.',
+          words: [water, carbon, co2, air],
+        }
+      - {
+          idea: 'They turn them into sugar and give off oxygen.',
+          words: [sugar, glucose, oxygen, food],
+        }
+  - id: interest
+    name: compound interest
+    question: I don't get how savings grow faster over time.
+    difficulty: 0.7
+    ideas:
+      - { idea: 'The bank pays interest on your money.', words: [interest, pays, percent, rate] }
+      - { idea: 'The interest is added to your savings.', words: [added, adds, add, total] }
+      - {
+          idea: 'Next time you earn interest on the interest too, so it grows faster.',
+          words: [faster, grows, compounds, 'on the interest', snowball],
+        }
+  - id: vaccines
+    name: how vaccines work
+    question: I don't get how a vaccine protects you.
+    difficulty: 0.6
+    ideas:
+      - {
+          idea: 'A vaccine shows your body a harmless version or piece of a germ.',
+          words: [harmless, weak, weakened, piece, dead],
+        }
+      - {
+          idea: 'Your immune system learns to recognise it.',
+          words: [immune, learns, recognise, recognize, antibodies],
+        }
+      - {
+          idea: 'If the real germ comes later, your body fights it quickly.',
+          words: [later, quickly, faster, real, remembers],
+        }
+  - id: supply_demand
+    name: supply and demand
+    question: I don't get why prices go up and down.
+    difficulty: 0.8
+    ideas:
+      - {
+          idea: 'When many people want something, the price goes up.',
+          words: [demand, want, many, popular],
+        }
+      - {
+          idea: 'When there is a lot of something, the price goes down.',
+          words: [supply, plenty, lot, lots],
+        }
+      - {
+          idea: 'The price settles where buyers and sellers agree.',
+          words: [balance, settles, agree, sellers, meet],
+        }
+  - id: encryption
+    name: encryption
+    question: I don't get how messages stay secret online.
+    difficulty: 0.9
+    ideas:
+      - {
+          idea: 'The message is scrambled with a key.',
+          words: [scrambled, scramble, key, code, coded],
+        }
+      - {
+          idea: 'Only someone with the right key can unscramble it.',
+          words: [only, unscramble, decode, unlock],
+        }
+      - {
+          idea: 'Anyone who intercepts it sees nonsense.',
+          words: [nonsense, gibberish, intercept, intercepts, random],
+        }

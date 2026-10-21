@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import type { ExerciseSpec, RoundResult, TrialEvent } from '../api/types'
 import { mulberry32 } from '../lib/rng'
 import { TrialBatcher } from './batcher'
+import { calibration } from './calibration'
 import type { GameModule, TrialRecord } from './types'
 
 export type FinishStatus = 'completed' | 'stopped' | 'eased'
@@ -43,6 +44,7 @@ function toEvent(record: TrialRecord, spec: ExerciseSpec, sessionId: string): Tr
     correct: record.correct,
     rt_ms: record.rt_ms,
     hint_level: record.hint_level ?? 0,
+    confidence: record.confidence ?? null,
     ts: new Date().toISOString(),
   }
 }
@@ -109,7 +111,7 @@ export function TaskHost({
         status,
         stop_reason: status === 'stopped' ? 'user' : null,
         trial_count: scored.length,
-        metrics: game.metrics(records),
+        metrics: { ...game.metrics(records), ...calibration(records) },
         behaviour: summarise(spec.game_id, records, rapidTaps, status),
         final_level: spec.level,
         started_at: started.toISOString(),

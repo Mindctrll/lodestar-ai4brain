@@ -23,6 +23,7 @@ content: code
 modalities:
 - keyboard
 - touch
+available: true
 acs_hooks: []
-practice_trials: 3
+practice_trials: 0
 notes: Recalls the Market List from earlier in the same session.

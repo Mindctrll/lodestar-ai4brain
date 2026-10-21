@@ -1,0 +1,6 @@
+# Guide the Robot. Knobs: registry/games/guide_the_robot.yaml.
+problems: 4
+attempts: 3
+wall_share: 0.22
+deadline_ms: 90000
+colours: [gold, blue]

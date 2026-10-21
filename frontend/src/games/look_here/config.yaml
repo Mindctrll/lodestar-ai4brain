@@ -1,0 +1,4 @@
+# Look Here (spatial cueing). Knobs: registry/games/look_here.yaml.
+trials: 32
+deadline_ms: 1500
+fixation_ms: 500

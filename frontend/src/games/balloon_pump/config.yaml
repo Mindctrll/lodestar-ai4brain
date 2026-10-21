@@ -1,0 +1,4 @@
+# Balloon Pump (BART). No difficulty knobs: it shows a style, not a skill.
+balloons: 12
+max_pumps: 32
+deadline_ms: 60000

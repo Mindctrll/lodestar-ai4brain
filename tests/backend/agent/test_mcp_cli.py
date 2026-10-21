@@ -7,13 +7,14 @@ against a real server process.
 
 import asyncio
 import os
+import random
 import re
 import secrets
 import socket
 import subprocess
 import sys
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from datetime import date
 from io import StringIO
 from typing import Any
@@ -22,6 +23,7 @@ from uuid import UUID
 import httpx
 import httpx2
 import pytest
+import yaml
 from fastapi import FastAPI
 from mcp import Client
 from rich.console import Console
@@ -223,6 +225,88 @@ async def test_a_browser_game_hands_the_session_to_the_web_app(
 
 def test_terminal_games_match_the_registry() -> None:
     assert {g.id for g in load_registry().games if g.terminal} == set(games.GAMES)
+
+
+def answering(reply: Callable[[str], str], seconds: list[float] | None = None) -> Io:
+    """A terminal whose user answers each prompt with `reply(prompt)`, taking `seconds` per
+    answer (1 s each by default)."""
+    io, _ = scripted([])
+    steps = iter(seconds or [])
+    now = [0.0]
+
+    def read(prompt: str) -> str:
+        now[0] += next(steps, 1.0)
+        return reply(prompt)
+
+    return Io(console=io.console, read=read, pause=io.pause, clock=lambda: now[0])
+
+
+async def test_digits_back_in_the_terminal() -> None:
+    rng, length, n = random.Random(5), [3], [0]  # the game's own draws, mirrored
+
+    def reply(prompt: str) -> str:
+        if "backwards" not in prompt:
+            return ""
+        digits = [rng.randint(0, 9) for _ in range(length[0])]
+        right = n[0] % 3 != 2  # every third answer wrong
+        n[0] += 1
+        if n[0] > 1:  # the first one is practice: the length stays
+            length[0] = max(2, min(9, length[0] + (1 if right else -1)))
+        back = "".join(str(d) for d in reversed(digits))
+        return " ".join(back) if right else back + "0"
+
+    spec = {"game_id": "digits_back", "round_id": "r", "seed": 5, "practice_trials": 1}
+    out = await games.play(answering(reply), {**spec, "knobs": {"length": 3}})
+    answers = out["answers"]
+    assert out["status"] == "completed" and len(answers) == 1 + 8
+    assert answers[0]["practice"] and not any(a["practice"] for a in answers[1:])
+    assert [a["correct"] for a in answers] == [i % 3 != 2 for i in range(9)]
+    assert [a["stimulus"]["length"] for a in answers[:4]] == [3, 3, 4, 3]
+    assert (
+        answers[0]["response"]["typed"] == "".join(map(str, answers[0]["stimulus"]["digits"]))[::-1]
+    )
+    assert out["metrics"]["span"] == max(
+        a["stimulus"]["length"] for a in answers[1:] if a["correct"]
+    )
+
+
+async def test_quick_maths_in_the_terminal() -> None:
+    def reply(prompt: str) -> str:
+        a, op, b = prompt.rstrip("= ").split()
+        x, y = int(a), int(b)
+        return str({"+": x + y, "-": x - y, "×": x * y, "÷": x // y}[op])  # noqa: RUF001
+
+    spec = {"game_id": "quick_maths", "round_id": "r", "seed": 3, "practice_trials": 0}
+    io = answering(reply, seconds=[2, 2, 9])  # the third answer comes after the 8 s limit
+    out = await games.play(io, {**spec, "knobs": {"operations": 4, "operand_max": 20}})
+    answers = out["answers"]
+    assert len(answers) == 20 and {a["stimulus"]["op"] for a in answers} <= set(games.OPS)
+    assert [a["correct"] for a in answers[:4]] == [True, True, False, True]
+    assert answers[2]["rt_ms"] is None and answers[0]["stimulus"]["deadline_ms"] == 8000
+    assert all(a["response"]["typed"] == str(a["stimulus"]["answer"]) for a in answers)
+    assert out["metrics"]["accuracy"] == 19 / 20
+
+
+async def test_logic_lock_in_the_terminal() -> None:
+    facts = yaml.safe_load((games.GAMES_DIR / "logic_lock" / "config.yaml").read_text())["facts"]
+    rng, n = random.Random(9), [0]
+    said = {0: "yes", 1: "2", 2: "can’t tell"}  # noqa: RUF001
+
+    def reply(prompt: str) -> str:
+        right = games.make_lock(rng, facts, 3)["answer"]
+        n[0] += 1
+        if n[0] == 4:
+            return "q"
+        return said[right] if n[0] != 2 else said[(right + 1) % 3]
+
+    spec = {"game_id": "logic_lock", "round_id": "r", "seed": 9, "practice_trials": 1}
+    out = await games.play(answering(reply), {**spec, "knobs": {"premises": 3}})
+    answers = out["answers"]
+    assert out["status"] == "stopped" and [a["correct"] for a in answers] == [True, False, True]
+    first = answers[0]["stimulus"]
+    assert len(first["premises"]) == 3 and first["premises"][-1].endswith(".")
+    assert answers[0]["response"]["answer"] == games.ANSWERS[first["answer"]]
+    assert first["answer"] == {"forward": 0, "backward": 1}.get(first["form"], 2)
 
 
 async def test_a_write_tool_called_directly_asks_first(app: FastAPI, aengine: AsyncEngine) -> None:

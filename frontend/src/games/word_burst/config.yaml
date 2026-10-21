@@ -1,0 +1,33 @@
+# Word Burst (letter fluency). Knobs: registry/games/word_burst.yaml.
+seconds: 60
+# Words a minute that earn full marks.
+full_marks_per_min: 20
+# Letters from easiest to hardest (by how many common words start with them).
+letters: 'sptcbmfdrhlgwnaeoiuvkjyqz'
+# Example answers, used only by end-to-end tests.
+examples:
+  s: [sun, salt, stone, ship, song]
+  p: [pen, park, paper, plant, pear]
+  t: [table, tree, train, tent, tiger]
+  c: [cat, cup, coin, cloud, cake]
+  b: [book, bird, bread, bell, boat]
+  m: [milk, moon, map, mouse, music]
+  f: [fish, frog, fork, flag, fire]
+  d: [door, desk, duck, drum, dust]
+  r: [rain, road, rose, ring, river]
+  h: [house, hand, hat, honey, horse]
+  l: [lamp, leaf, lion, lake, lemon]
+  g: [garden, goat, glass, gate, gift]
+  w: [water, wind, wolf, wall, window]
+  n: [nest, nose, net, night, needle]
+  a: [apple, ant, arm, anchor, attic]
+  e: [egg, eagle, engine, earth, elbow]
+  o: [orange, owl, ocean, oven, olive]
+  i: [island, iron, idea, insect, ink]
+  u: [umbrella, uncle, unit, uniform, usual]
+  v: [van, vase, voice, valley, violin]
+  k: [key, kite, king, kettle, kitten]
+  j: [jam, jar, jacket, juice, jungle]
+  y: [yard, yellow, yogurt, young, yarn]
+  q: [queen, quiet, quilt, quiz, quick]
+  z: [zebra, zero, zone, zoom, zipper]

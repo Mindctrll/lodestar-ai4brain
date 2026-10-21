@@ -1,0 +1,6 @@
+# Twins (pattern comparison). Knobs: registry/games/twins.yaml.
+trials: 30
+deadline_ms: 4000
+symbols: 'ABCDEFGHJKLMNPRSTUVWXYZ23456789'
+# Pairs that are easy to confuse; at high complexity, differences use these.
+lookalikes: [[B, 8], [S, 5], [Z, 2], [E, F], [P, R], [C, G], [M, N], [V, W], [U, V], [6, 9]]

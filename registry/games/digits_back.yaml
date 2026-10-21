@@ -27,5 +27,7 @@ modalities:
 - keyboard
 - touch
 - voice
+available: true
+terminal: true
 acs_hooks: []
 practice_trials: 3

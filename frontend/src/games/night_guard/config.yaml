@@ -1,0 +1,5 @@
+# Night Guard (vigilance). Knobs: registry/games/night_guard.yaml.
+# 90 lights at 1.4 s each is about two minutes of watching.
+items: 90
+pace_ms: 1400
+show_ms: 600

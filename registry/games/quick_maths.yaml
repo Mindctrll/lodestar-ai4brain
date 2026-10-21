@@ -26,5 +26,7 @@ content: code
 modalities:
 - keyboard
 - touch
+available: true
+terminal: true
 acs_hooks: []
 practice_trials: 3

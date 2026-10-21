@@ -1012,3 +1012,260 @@ button.danger {
   border: 1px solid var(--color-line);
   overflow-wrap: anywhere;
 }
+
+/* Shared by the P2 games (WP3.1) */
+.choice-row,
+.type-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.type-input {
+  width: min(18rem, 70vw);
+  border: 1px solid var(--color-line);
+  border-radius: 0.6rem;
+  padding: 0.6rem;
+  font-size: 1.2rem;
+}
+.big-symbol {
+  font-size: 3rem;
+  font-weight: 700;
+  min-height: 4rem;
+  text-align: center;
+}
+.game-prompt {
+  max-width: 30rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Brake */
+.brake-arrow {
+  font-size: 4rem;
+  font-weight: 700;
+  width: 6rem;
+  height: 6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 0.4rem solid transparent;
+}
+.brake-arrow.is-stop {
+  color: var(--color-wrong);
+  border-color: var(--color-wrong);
+}
+
+/* Look Here */
+.lh-field {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.lh-box {
+  width: 5rem;
+  height: 5rem;
+  border: 2px solid var(--color-line);
+  border-radius: 0.6rem;
+  display: grid;
+  place-items: center;
+  font-size: 2.5rem;
+}
+.lh-centre {
+  font-size: 2.5rem;
+  width: 3rem;
+  text-align: center;
+}
+
+/* Night Guard */
+.ng-light {
+  width: 7rem;
+  height: 7rem;
+  color: var(--color-ink);
+}
+
+/* Control Tower */
+.ct-rule.is-new {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.ct-planes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ct-radar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+.ct-radar.is-red {
+  background: #d64545;
+}
+.ct-radar.is-green {
+  background: #2f9e44;
+}
+
+/* Twins */
+.twins-pair {
+  display: grid;
+  gap: 0.5rem;
+  font-family: ui-monospace, monospace;
+  font-size: 2rem;
+  letter-spacing: 0.3rem;
+  text-align: center;
+}
+
+/* Which Jar? */
+.wj-jars {
+  display: flex;
+  gap: 1.5rem;
+}
+.wj-jars svg {
+  width: min(9rem, 38vw);
+}
+
+/* Connect and Zigzag */
+.trail-board {
+  position: relative;
+  width: min(26rem, 90vw);
+  height: min(22rem, 70vh);
+  background: var(--color-surface);
+  border-radius: 1rem;
+}
+.trail-dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  padding: 0;
+}
+.trail-dot.is-done {
+  background: var(--color-accent);
+  color: white;
+}
+.trail-dot.is-wrong {
+  background: var(--color-wrong);
+  color: white;
+}
+
+/* Secret Rules */
+.rules-refs {
+  display: flex;
+  gap: 0.5rem;
+}
+.rules-card {
+  min-width: 5rem;
+  min-height: 4rem;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--color-ink);
+  border-radius: 0.5rem;
+  background: var(--color-card);
+  font-size: 1.2rem;
+}
+.rules-card.frame-dashed {
+  border-style: dashed;
+}
+.rules-card.frame-dotted {
+  border-style: dotted;
+}
+.rules-card.frame-double {
+  border-style: double;
+  border-width: 6px;
+}
+
+/* Tower */
+.tw-tower {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+.tw-peg {
+  width: 3.4rem;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  padding: 0.3rem 0;
+  border-radius: 0.5rem;
+}
+.tw-peg.is-held {
+  outline: 3px solid var(--color-accent);
+}
+.tw-ball {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+.tw-ball.is-red {
+  background: #d64545;
+}
+.tw-ball.is-green {
+  background: #2f9e44;
+}
+.tw-ball.is-blue {
+  background: #3b6fd8;
+}
+.tw-goal {
+  display: grid;
+  justify-items: center;
+  opacity: 0.85;
+}
+
+/* Guide the Robot and Teach Me */
+.gr-grid {
+  display: grid;
+  gap: 2px;
+}
+.gr-cell {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface);
+}
+.gr-cell.is-wall {
+  background: var(--color-ink);
+}
+.gr-cell.is-gold {
+  color: #c99700;
+}
+.gr-cell.is-blue {
+  color: #3b6fd8;
+}
+.gr-reply {
+  min-height: 1.5rem;
+  color: var(--color-muted);
+}
+
+/* Logic Lock */
+.ll-premises {
+  max-width: 30rem;
+  line-height: 1.6;
+}
+
+/* Balloon Pump */
+.bp-balloon {
+  width: 5rem;
+  height: 6rem;
+  border-radius: 50% 50% 45% 45%;
+  background: #d64545;
+  transition: transform 0.1s;
+}
+.bp-balloon.is-popped {
+  opacity: 0.2;
+}
+
+/* How sure are you? */
+.how-sure {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+}
+.how-sure input {
+  width: min(18rem, 70vw);
+}

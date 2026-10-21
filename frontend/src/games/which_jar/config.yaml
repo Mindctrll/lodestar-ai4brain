@@ -1,0 +1,6 @@
+# Which Jar? (approximate number). Knobs: registry/games/which_jar.yaml.
+trials: 30
+show_ms: 700
+deadline_ms: 2500
+min_dots: 6
+max_dots: 30

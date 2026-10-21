@@ -48,6 +48,11 @@ export async function startSession(page: Page, ask: string): Promise<void> {
 
 /** Perform one expected answer (see markAnswer in src/taskhost/plugin.ts). */
 async function perform(page: Page, answer: string): Promise<void> {
+  if (answer.includes(' >> ')) {
+    // Several actions in order, e.g. ask Najma first, then type (Guide the Robot, Teach Me).
+    for (const part of answer.split(' >> ')) await perform(page, part)
+    return
+  }
   const [kind, ...rest] = answer.split(':')
   const arg = rest.join(':')
   if (kind === 'none') return
@@ -73,11 +78,13 @@ export interface PlayOptions {
   missScored?: boolean
   /** Stop playing as soon as this shows up. */
   until?: Locator
+  /** The game is already picked (its Start button is showing). */
+  picked?: boolean
 }
 
 /** Play the current game by reading each step's expected answer and giving it. */
 export async function playCurrentGame(page: Page, options: PlayOptions = {}): Promise<void> {
-  await page.getByRole('button', { name: /Let's go|Next game/ }).click()
+  if (!options.picked) await page.getByRole('button', { name: /Let's go|Next game/ }).click()
   await page.getByRole('button', { name: 'Start' }).click()
   const after = page.getByTestId('after-game')
   let last = ''
@@ -102,8 +109,8 @@ export async function playCurrentGame(page: Page, options: PlayOptions = {}): Pr
   }
 }
 
-export function expectWellFormed(trials: SentTrial[], gameId: string): void {
-  expect(trials.length).toBeGreaterThan(3)
+export function expectWellFormed(trials: SentTrial[], gameId: string, minTrials = 4): void {
+  expect(trials.length).toBeGreaterThanOrEqual(minTrials)
   const rounds = new Set(trials.map((t) => t.round_id))
   expect(rounds.size).toBe(1)
   const indexes = trials.map((t) => t.trial_index)

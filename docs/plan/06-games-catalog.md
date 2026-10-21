@@ -109,6 +109,14 @@ Quick Draw, Ink Clash, Arrow Storm, Odd One Out, Hold It, Echo, Light Path, Mark
 
 Night Guard (sustained attention) is a P2 game because a good vigilance test needs about 3 minutes, which is too long for the onboarding battery.
 
+**As built (WP3.1).** All 20 P2 games have browser plugins in `frontend/src/games/<id>/` (shared helpers in `shared/ask.ts` and `shared/trail.ts`). Notes where the build differs from the table:
+
+- **"How sure are you?"** isn't a round of its own: the shared plugin wrapper (`taskhost/plugin.ts`) shows the slider after about one scored answer in ten, in every game, and stores it in `trials.confidence`. Each round's metrics then carry `calibration_error` and `brier_score`.
+- **Guide the Robot** and **Teach Me** build their content in code (registry `content: code`). Guide the Robot takes typed moves like "up 2, right 3"; a direction without a number is too vague and fails. Teach Me's rubric is scored in code from the topic's key ideas, at the game's low weight; an AI rating can replace it later. Each round has at least one ambiguous request, which is where the ACS clarification signal comes from.
+- **Callback** plays the words of this session's Market List. The agent offers it once the delay has passed.
+- **Word Burst** has no dictionary yet: a word counts if it starts with the letter, has 3 or more letters and a vowel, and isn't a repeat or a plain plural.
+- P2 games are played on request or when the agent offers them. The agent's default pool (`core_games_by_dim`) stays the P1 core set, so the simulator's thresholds still hold.
+
 ## Game YAML
 
 A game is offered by the agent only when `available: true`, which means its browser plugin exists in `frontend/src/games/<game-id>/` (a test keeps the two lists in sync). How to add one: `frontend/src/taskhost/README.md`.

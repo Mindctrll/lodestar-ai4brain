@@ -1,0 +1,4 @@
+# Digits Back (backward digit span). Knobs: registry/games/digits_back.yaml.
+trials: 8
+min_length: 2
+max_length: 9

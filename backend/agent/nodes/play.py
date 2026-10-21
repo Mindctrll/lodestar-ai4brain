@@ -3,7 +3,7 @@
 
 import contextlib
 import random
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -130,6 +130,44 @@ def _themed_game(registry: Registry, pool: dict[str, list[Game]], intent: Any) -
         near = [g for g in games if registry.dimension(g.primary_dims[0]).group == group]
         games = near or games
     return games[0] if games else None
+
+
+def _callback_due(
+    registry: Registry, state: NajmaState, consent: frozenset[str] | None, avoid: set[str]
+) -> bool:
+    """Callback recalls this session's Market List once its delay has passed, once a session."""
+    game = registry.game("callback")
+    if not game.available or not allowed(game, consent) or game.primary_dims[0] in avoid:
+        return False
+    if any(r.game_id == game.id for r in state.rounds):
+        return False
+    delay = timedelta(minutes=knobs_for(game, 0.0)["delay_min"])
+    now = datetime.now(UTC)
+    return any(
+        r.game_id == "market_list" and r.status != "stopped" and now - r.ended_at >= delay
+        for r in state.rounds
+    )
+
+
+async def _market_list_words(ctx: NajmaContext) -> list[str]:
+    """The words of this session's latest Market List round, in the order they were shown."""
+    async with ctx.services.engine.connect() as conn:
+        rows = (
+            await conn.execute(
+                select(t.trials.c.round_id, t.trials.c.stimulus)
+                .where(
+                    t.trials.c.user_id == ctx.user_id,
+                    t.trials.c.session_id == ctx.session_id,
+                    t.trials.c.game_id == "market_list",
+                    t.trials.c.practice.is_(False),
+                )
+                .order_by(t.trials.c.ts)
+            )
+        ).all()
+    if not rows:
+        return []
+    latest = [r.stimulus for r in rows if r.round_id == rows[-1].round_id]
+    return [s["word"] for s in sorted(latest, key=lambda s: s["position"])]
 
 
 async def _abandon(ctx: NajmaContext, round_id: Any) -> None:
@@ -301,6 +339,13 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     switched_off = requested is not None and not allowed(requested, ctx.consent)
     if switched_off:
         requested = None
+    no_list = (
+        requested is not None
+        and requested.id == "callback"
+        and not any(r.game_id == "market_list" for r in state.rounds)
+    )
+    if no_list:
+        requested = None
     wanted_dim = intent.dim if intent and intent.dim in by_dim else None
     force_assess = False
     if switched_off and intent and intent.game_id:
@@ -308,6 +353,10 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         game = _pick(pool[dim], last_game, seed)
         off = registry.game(intent.game_id).name
         reason = f"{off} is switched off in your privacy settings, so here's {game.name} instead."
+    elif no_list:
+        game = registry.game("market_list")
+        dim = game.primary_dims[0]
+        reason = "Callback asks about a Market List from earlier, so let's start with Market List."
     elif requested is not None:
         dim, game = requested.primary_dims[0], requested
         reason = f"You asked for {game.name}."
@@ -345,6 +394,12 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         )
         update["onboarding"] = state.onboarding[1:]
         force_assess = True
+    elif _callback_due(registry, state, ctx.consent, avoid):
+        game = registry.game("callback")
+        dim = game.primary_dims[0]
+        reason = (
+            "Earlier you learned a market list. Let's see which words you still remember: Callback."
+        )
     else:
         dim = candidates[0].option
         easing = not state.rounds and state.engagement is not None and state.engagement.high_risk
@@ -485,6 +540,7 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
             theme=theme,
         )
         degraded = content.degraded if content else []
+    words = await _market_list_words(ctx) if game.id == "callback" else []
     spec = ExerciseSpec(
         round_id=round_id,
         game_id=game.id,
@@ -493,7 +549,7 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
         level=level,
         difficulty_b=b_for_level(level),
         knobs=knobs,
-        content=content.content if content else None,
+        content=content.content if content else ({"words": words} if words else None),
         content_item_id=content.item_id if content else None,
         theme=theme,
         seed=seed,

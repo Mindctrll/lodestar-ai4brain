@@ -1,0 +1,39 @@
+# Scramble (anagrams). Knobs: registry/games/scramble.yaml.
+trials: 8
+deadline_ms: 20000
+# Common words by length, each with only one sensible unscrambling.
+words:
+  '4': [lamp, frog, milk, door, bird, ship, coin, rain, song, wolf, desk, salt]
+  '5': [bread, chair, plant, house, river, train, money, light, cloud, smile, juice, table]
+  '6':
+    [garden, window, rabbit, button, pencil, market, orange, bottle, jacket, castle, silver, ticket]
+  '7':
+    [
+      kitchen,
+      picture,
+      blanket,
+      chicken,
+      monster,
+      library,
+      holiday,
+      teacher,
+      mineral,
+      sandals,
+      balcony,
+      journey,
+    ]
+  '8':
+    [
+      elephant,
+      mountain,
+      umbrella,
+      bathroom,
+      sandwich,
+      dinosaur,
+      hospital,
+      painting,
+      notebook,
+      airplane,
+      broccoli,
+      triangle,
+    ]

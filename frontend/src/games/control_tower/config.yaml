@@ -1,0 +1,5 @@
+# Control Tower (dual task with rule changes). Knobs: registry/games/control_tower.yaml.
+trials: 20
+deadline_ms: 5000
+# Share of steps where the radar needs watching too.
+dual_share: 0.5

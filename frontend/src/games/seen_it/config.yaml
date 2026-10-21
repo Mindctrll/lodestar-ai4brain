@@ -1,0 +1,8 @@
+# Seen It? (picture recognition). Knobs: registry/games/seen_it.yaml.
+show_ms: 900
+# Pictures by category; with high similarity, new pictures come from the studied categories.
+categories:
+  animals: [🐶, 🐱, 🐭, 🐰, 🦊, 🐻, 🐼, 🐨, 🐯, 🦁, 🐮, 🐷, 🐸, 🐵, 🐔, 🐧]
+  food: [🍎, 🍐, 🍊, 🍋, 🍌, 🍉, 🍇, 🍓, 🍒, 🍑, 🥝, 🍅, 🥕, 🌽, 🥐, 🧀]
+  things: [⌚, 📱, 💡, 🔑, 🔨, ✂️, 📎, 🎈, 🎁, 📚, ✏️, 🧲, 🪑, 🧸, 🎸, 🚲]
+  nature: [🌵, 🌲, 🌴, 🍀, 🍁, 🌻, 🌹, 🌷, 🌙, ⭐, ☀️, ⛅, 🌈, ❄️, 🔥, 🌊]

@@ -1,0 +1,16 @@
+# Logic Lock (conditional reasoning). Knobs: registry/games/logic_lock.yaml.
+trials: 10
+deadline_ms: 30000
+# Each fact as [false, true], so rules and denials read naturally. Kept neutral: no fact should
+# be more believable than another (belief bias).
+facts:
+  - [the lamp is off, the lamp is on]
+  - [the door is closed, the door is open]
+  - [the bird is quiet, the bird sings]
+  - [the box is empty, the box is full]
+  - [the flag is down, the flag is up]
+  - [the bell is silent, the bell rings]
+  - [the gate is locked, the gate is unlocked]
+  - [the fan is still, the fan spins]
+  - [the light is red, the light is green]
+  - [the cup is dry, the cup is wet]

@@ -20,12 +20,13 @@ knobs:
     easy: 0.2
     hard: 0.9
 level_map: linear
-content: llm
+content: code
 modalities:
 - keyboard
 - touch
 - voice
+available: true
 acs_hooks:
 - clarification
-practice_trials: 3
-notes: AI-rated rubric, counted at low weight.
+practice_trials: 1
+notes: Rubric scored in code from the key ideas mentioned (an AI rating can replace it); counted at low weight.

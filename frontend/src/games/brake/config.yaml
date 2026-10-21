@@ -1,0 +1,5 @@
+# Brake (stop signal). Knobs: registry/games/brake.yaml.
+trials: 32
+stop_delay_start_ms: 250
+stop_delay_step_ms: 50
+stop_delay_min_ms: 50
