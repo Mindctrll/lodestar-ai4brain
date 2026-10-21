@@ -48,6 +48,8 @@ const GAMES = [
   { id: 'fold_and_punch', name: 'Fold & Punch' },
   { id: 'card_gamble', name: 'Card Gamble' },
   { id: 'unusual_uses', name: 'Unusual Uses' },
+  // New dimension from the WP4.4 drill
+  { id: 'off_beat', name: 'Off Beat' },
 ]
 
 // Games with only a few long steps: one minute of words, three explanations, two objects.
