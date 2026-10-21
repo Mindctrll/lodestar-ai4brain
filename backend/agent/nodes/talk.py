@@ -72,6 +72,18 @@ async def reflect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
             add("This round didn't count toward your profile because the answers looked rushed")
     for window in state.context:
         add(f"Life context: {window.label}; today's results count less")
+    if summary is not None and summary.changes:
+        band = state.forecast.get(summary.changes[0].dim)
+        if band is not None:  # always with its range (AGENTS.md rule 5)
+            name = registry.dimension(band.dim).name
+            mid, _, _ = _pct(ctx, band.dim, band.median, 0.0001)
+            low, _, _ = _pct(ctx, band.dim, band.low, 0.0001)
+            high, _, _ = _pct(ctx, band.dim, band.high, 0.0001)
+            add(
+                f"Forecast for {name} after {band.sessions_ahead} more sessions: {mid}% "
+                f"(80% range {low}-{high}%)",
+                band.dim,
+            )
     plan_decisions = [d for d in state.decisions if d.node == "plan_next"]
     if plan_decisions:
         add(plan_decisions[-1].reason, decision=True, prefix="D")

@@ -38,6 +38,7 @@ from backend.registry.models import Registry
 from backend.scoring.kalman_elo import Belief, drift, update_item_difficulty
 from backend.scoring.loadings import loading_matrix
 from backend.scoring.norms import Norms
+from backend.scoring.priors import cold_start
 from backend.scoring.rounds import RoundOutcome, score_round
 
 NOTIFY_CHANNEL = "twin_updated"
@@ -259,11 +260,14 @@ async def score_round_tx(
             for r in await conn.execute(
                 select(t.dimension_state).where(
                     t.dimension_state.c.user_id == user_id,
-                    t.dimension_state.c.dim.in_(list(loads)),
                 )
             )
         }
-        before = {d: drift(stored.get(d, Belief()), round_row.started_at) for d in loads}
+        # A skill measured for the first time starts from its cold-start prior (NCPT correlations).
+        before = {
+            d: drift(stored.get(d) or cold_start(d, stored, registry.priors), round_row.started_at)
+            for d in loads
+        }
         context_weight = (
             await conn.execute(
                 select(func.min(t.life_context.c.weight)).where(

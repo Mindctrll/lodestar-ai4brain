@@ -17,6 +17,7 @@ from backend.agent.state import NajmaState
 from backend.agent.telemetry import traced
 from backend.contracts.twin import DimensionState, LifeContextWindow, TwinSnapshot
 from backend.db import tables as t
+from backend.ml.serve import forecast_bands, user_history
 from backend.scoring.kalman_elo import Belief, drift
 
 PERCEIVE_TIMEOUT_S = 3.0
@@ -148,5 +149,14 @@ async def read_context(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 
 @traced("forecast")
 async def forecast(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    # The growth forecast model arrives in WP2.7.
-    return {}
+    """Growth bands for each skill with at least three days of practice (docs/plan/10)."""
+    services = runtime.context.services
+    forecaster = services.forecaster
+    if forecaster is None:
+        return {}
+
+    async def work() -> dict[str, Any]:
+        history = await user_history(services.engine, runtime.context.user_id)
+        return {"forecast": forecast_bands(forecaster, services.registry, history)}
+
+    return await _guarded("forecast", work())

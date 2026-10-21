@@ -1,7 +1,8 @@
 """From skill estimates to percentages (docs/plan/07). Every percentage comes with its range.
 
-WP2.7 replaces the simulated norms with NCPT-derived ones where a dimension maps to an NCPT
-subtest; the UI labels simulated norms as such.
+Norms stay "simulated" (the population starts at mean 0, sd 1 on our scale), and the UI says so.
+NCPT norms are in raw subtest units, so applying them needs a linking study first (docs/plan/10,
+"NCPT dataset"). NCPT is used for skill correlations and cold-start priors instead.
 """
 
 import math

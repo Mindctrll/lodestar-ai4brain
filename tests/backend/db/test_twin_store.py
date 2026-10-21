@@ -251,3 +251,22 @@ async def test_api_flow(aengine: AsyncEngine) -> None:
             assert twin.status_code == 200 and twin.json()["dims"] == []
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_first_round_of_a_skill_starts_from_its_cold_start_prior(
+    aengine: AsyncEngine,
+) -> None:
+    """A strong, well-measured speed estimate lifts where working memory starts (NCPT priors)."""
+    user_id = await _new_user(aengine)
+    async with aengine.begin() as conn:
+        await conn.execute(
+            t.dimension_state.insert().values(
+                user_id=user_id, dim="processing_speed", mu=1.5, sigma=0.3, n=30,
+                last_practised=T0,
+            )
+        )  # fmt: skip
+    round_id = await _played_round(aengine, user_id, [True] * 6 + [False] * 6)
+    scored = await score_round_tx(aengine, user_id, _result(round_id, 12), REGISTRY)
+    assert scored is not None
+    wm = next(c for c in scored.changes if c.dim == "working_memory")
+    assert wm.mu_before > 0.2 and wm.sigma_before < 1.5

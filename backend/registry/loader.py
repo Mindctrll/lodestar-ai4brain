@@ -24,6 +24,7 @@ def load_registry_from(root: Path) -> Registry:
             "providers": _read(root / "llm_providers.yaml"),
             "batteries": _read(root / "batteries.yaml"),
             "consent": _read(root / "consent.yaml"),
+            "priors": _read(root / "priors.yaml") if (root / "priors.yaml").exists() else None,
         }
     )
 

@@ -24,6 +24,7 @@ from backend.memory.embeddings import Embedder
 from backend.memory.langgraph_store import QdrantStore
 from backend.memory.notes import Notes
 from backend.memory.store import MemoryStore
+from backend.ml.serve import GrowthForecaster
 from backend.registry.loader import load_knowledge_items, load_registry
 
 log = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         memory=memory,
         notes=Notes(settings.memory_dir),
         content=ContentService(engine, llm, memory),
+        forecaster=await GrowthForecaster.load_active(engine),
     )
     app.state.services = services
     app.state.runner = SessionRunner(

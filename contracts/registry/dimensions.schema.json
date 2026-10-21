@@ -19,6 +19,19 @@
           "title": "Biases",
           "type": "array"
         },
+        "forecast_family": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Closest Lumosity master game id for the growth forecast",
+          "title": "Forecast Family"
+        },
         "framework": {
           "items": {
             "type": "string"

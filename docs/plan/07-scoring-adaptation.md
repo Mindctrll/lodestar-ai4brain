@@ -83,6 +83,7 @@ The user chooses Chill, Balanced or Push in settings. Najma switches to Assess a
 - **Percentile** against norms: `P = Φ((μ − m_norm) / s_norm)`.
 - **Range** from μ ± 1.28σ, giving an 80% interval: "62% (likely 48–74%)".
 - **Norms:** where a dimension maps to an NCPT subtest, we derive norms from the NCPT dataset (757,427 adults, CC BY 4.0). Elsewhere we use simulated norms and say so on screen.
+- **As built (WP2.7):** every skill uses simulated norms for now, labelled on screen, because NCPT scores can't be put on our scale without a linking study (`10`). NCPT gives the skill correlations behind cold-start priors: a skill's first round starts from what the measured, correlated skills suggest.
 - **Caveat on screen:** norms come from mostly English-speaking online users, so they may not fit Tunisian students. Local pilot data is shown separately.
 
 ## Overall score

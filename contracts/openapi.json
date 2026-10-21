@@ -1171,6 +1171,18 @@
             "title": "Biases",
             "type": "array"
           },
+          "forecast_family": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Closest Lumosity master game id for the growth forecast",
+            "title": "Forecast Family"
+          },
           "framework": {
             "items": {
               "type": "string"
@@ -2019,6 +2031,57 @@
           "source"
         ],
         "title": "ForecastBand",
+        "type": "object"
+      },
+      "ForecastView": {
+        "additionalProperties": false,
+        "description": "A growth forecast in percent, always as an 80% range (AGENTS.md rule 5).",
+        "properties": {
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "title": "Median",
+            "type": "number"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "sessions_ahead": {
+            "title": "Sessions Ahead",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dim",
+          "name",
+          "sessions_ahead",
+          "low",
+          "median",
+          "high",
+          "model_version",
+          "note"
+        ],
+        "title": "ForecastView",
         "type": "object"
       },
       "Game": {
@@ -3679,6 +3742,16 @@
             "title": "Games",
             "type": "array"
           },
+          "priors": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPriors"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "providers": {
             "items": {
               "$ref": "#/components/schemas/LlmProvider"
@@ -4399,6 +4472,70 @@
           }
         },
         "title": "SettingsChangedPayload",
+        "type": "object"
+      },
+      "SkillPriors": {
+        "additionalProperties": false,
+        "description": "Observed-score correlations between skills from NCPT (registry/priors.yaml).",
+        "properties": {
+          "batteries": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Batteries",
+            "type": "array"
+          },
+          "correlations": {
+            "items": {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Correlations",
+            "type": "array"
+          },
+          "generated": {
+            "title": "Generated",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "subtests": {
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "type": "string"
+              }
+            },
+            "title": "Subtests",
+            "type": "object"
+          }
+        },
+        "required": [
+          "generated",
+          "source",
+          "batteries",
+          "subtests",
+          "correlations"
+        ],
+        "title": "SkillPriors",
         "type": "object"
       },
       "StartSession": {
@@ -5342,6 +5479,73 @@
         "summary": "Post Events",
         "tags": [
           "events"
+        ]
+      }
+    },
+    "/forecast": {
+      "get": {
+        "description": "Growth bands per skill (docs/plan/10), always as a range. Empty until a model is trained\nand the skill has three days of practice.",
+        "operationId": "get_forecast_forecast_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sessions",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Sessions",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ForecastView"
+                  },
+                  "title": "Response Get Forecast Forecast Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Forecast",
+        "tags": [
+          "goals",
+          "twin"
         ]
       }
     },

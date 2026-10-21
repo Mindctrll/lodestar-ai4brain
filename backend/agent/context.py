@@ -14,6 +14,7 @@ from backend.generation.pipeline import ContentService
 from backend.llm.factory import LlmFactory
 from backend.memory.notes import Notes
 from backend.memory.store import MemoryStore
+from backend.ml.serve import GrowthForecaster
 from backend.registry.models import Registry
 from backend.scoring.norms import Norms
 
@@ -27,6 +28,7 @@ class Services:
     memory: MemoryStore | None = None  # None when Qdrant is unavailable
     notes: Notes | None = None
     content: ContentService | None = None
+    forecaster: GrowthForecaster | None = None  # None until a model is trained (make ml-train)
 
 
 @dataclass(frozen=True)

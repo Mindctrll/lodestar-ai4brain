@@ -29,6 +29,8 @@ Two models trained on real public data, plus two light models that need no exter
 
 **In the app.** We map our games to the closest Lumosity task family (for example Echo ↔ memory tasks). The curve shows the forecast band, labelled: "Based on patterns from 36,000 players of similar games; personalises as you play." When a user's own history disagrees with the forecast, the user's data wins (Bayesian blend weighted by n).
 
+**As built (WP2.7).** `make ml-data` downloads `gamedata_preprocessed.csv` (2.6 GB) and `make ml-train` builds one curve per person and game family (one point per session with that family), so "k sessions ahead" means k more sessions with that kind of game. The binned file (`normalized_score_array_*`) has only 8 practice bins per curve, too few for k up to 20. The data has no timestamps, so the gap features count sessions, not days. Scores are scaled per family: 0 is the first-session mean and 1 is the family's spread over all sessions, because some families score on a multiplying scale and their first-session spread is tiny. The 0.1 and 0.9 quantiles are conformalised separately for each k (conformalised quantile regression), so each horizon gets its own coverage guarantee. Results, compared with persistence and the power law, are in `backend/ml/model_cards/growth_forecast.md`. Model files go to `models/` (gitignored, since the OSF project states no licence) and the active model is a row in `agent.ml_models`. In the app, the input is the Brain Twin estimate for each day a skill was practised, mapped to its nearest Lumosity family (`forecast_family` in `registry/dimensions.yaml`). Forecasts appear in coach facts and at `GET /forecast`, always as a range.
+
 ## 2. Engagement Risk
 
 **Data.** OULAD (Kuzilek et al. 2017, *Scientific Data*): 32,593 students, 10,655,280 daily activity summaries, CC BY 4.0.
@@ -62,6 +64,8 @@ NCPT (Jaffe et al. 2022, *Scientific Data*): 757,427 adults, 5.45 million subtes
 - **Correlation structure** between dimensions, which also makes the simulator realistic.
 
 We never use NCPT demographics to tell a user what to expect based on age or gender.
+
+**As built (WP2.7).** `make ncpt-priors` computes Spearman correlations between subtests mapped to our skills, across 180,000 test runs in batteries 17 and 32, pooled without demographics. They go to `registry/priors.yaml` and are used for **cold-start priors** (`backend/scoring/priors.py`: a skill's first round starts from the conditional mean given the skills already measured, weighted by how sure those are) and for the simulator's population. They are observed-score correlations, lower than the true skill correlations, which keeps the priors cautious. **Percentiles stay labelled "simulated"**: NCPT norms are in raw subtest units (spans, counts, seconds), and our estimates are on our own game-difficulty scale. Turning one into the other needs a linking study, with the same people playing both. Until then, showing an NCPT percentile would claim an accuracy we don't have.
 
 ## Files
 

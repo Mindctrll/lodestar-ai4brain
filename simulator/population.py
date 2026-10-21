@@ -5,7 +5,8 @@ from typing import Literal
 
 import numpy as np
 
-from backend.registry.models import Registry
+from backend.registry.models import Registry, SkillPriors
+from backend.scoring.priors import nearest_correlation
 
 UserType = Literal[
     "normal",
@@ -57,16 +58,21 @@ class SimUser:
         self.learned = {d: v * factor for d, v in self.learned.items()}
 
 
-def correlation_matrix(dims: list[str]) -> np.ndarray:
+def correlation_matrix(dims: list[str], priors: SkillPriors | None = None) -> np.ndarray:
+    """NCPT correlations where a pair was measured (registry/priors.yaml), else the defaults
+    above; repaired to a valid correlation matrix."""
     k = len(dims)
     corr = np.full((k, k), R_OTHER)
+    pairs = priors.pairs() if priors is not None else {}
     for i, a in enumerate(dims):
         for j, b in enumerate(dims):
             if i == j:
                 corr[i, j] = 1.0
+            elif frozenset((a, b)) in pairs:
+                corr[i, j] = pairs[frozenset((a, b))]
             elif a in EXECUTIVE and b in EXECUTIVE:
                 corr[i, j] = R_EXECUTIVE
-    return corr
+    return nearest_correlation(corr)
 
 
 def ability_dims(registry: Registry) -> list[str]:
@@ -80,7 +86,9 @@ def make_population(
     kinds: dict[UserType, float] | None = None,
 ) -> list[SimUser]:
     dims = ability_dims(registry)
-    thetas = rng.multivariate_normal(np.zeros(len(dims)), correlation_matrix(dims), size=n)
+    thetas = rng.multivariate_normal(
+        np.zeros(len(dims)), correlation_matrix(dims, registry.priors), size=n
+    )
     mix = kinds or {"normal": 0.55, "fast_learner": 0.15, "inconsistent": 0.15, "long_gaps": 0.15}
     labels = list(mix)
     probs = np.array([mix[k] for k in labels], dtype=float)

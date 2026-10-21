@@ -10,6 +10,7 @@
   group: attention
   framework: [CHC:Gs, NIH:flanker, NCPT:selective_attention]
   main_metric: Flanker RT cost; search slope (ms per item)
+  forecast_family: 1  # Lumosity master game: Lost in Migration (docs/plan/10)
   biases: [screen size, device lag, speed vs accuracy trade-off]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -33,6 +34,7 @@
   group: attention
   framework: [NCPT:divided_attention]
   main_metric: Dual-task cost (% drop vs single task)
+  forecast_family: 20  # Lumosity master game: Playing Koi (docs/plan/10)
   biases: [strategy learning]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -45,6 +47,7 @@
   group: control
   framework: [Miyake:inhibition, NIH:flanker, NCPT:response_inhibition]
   main_metric: Stroop effect, commission errors, SSRT
+  forecast_family: 2  # Lumosity master game: Color Match (docs/plan/10)
   biases: [reading fluency with English colour words]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -57,6 +60,7 @@
   group: memory
   framework: [CHC:Gwm, Miyake:updating, NIH:list_sorting, NCPT:working_memory]
   main_metric: d-prime by n, span
+  forecast_family: 10  # Lumosity master game: Memory Match (docs/plan/10)
   biases: [chunking strategy, practice gains on n-back]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -69,6 +73,7 @@
   group: memory
   framework: [CHC:Gwm, NIH:picture_sequence_memory, NCPT:visuospatial_memory]
   main_metric: Items recalled, recognition d-prime
+  forecast_family: 4  # Lumosity master game: Memory Matrix (docs/plan/10)
   biases: [language, repeated lists (use fresh content)]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -81,6 +86,7 @@
   group: speed
   framework: [CHC:Gs, NIH:pattern_comparison, NCPT:psychomotor_speed]
   main_metric: Median RT, items per minute
+  forecast_family: 6  # Lumosity master game: Speed Match (docs/plan/10)
   biases: [device latency, motor speed]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -93,6 +99,7 @@
   group: control
   framework: [Miyake:shifting, NIH:card_sort]
   main_metric: Switch cost, perseverative errors
+  forecast_family: 3  # Lumosity master game: Brain Shift (docs/plan/10)
   biases: [card sort loses meaning on repeat once the trick is known]
   sources: []  # filled and checked in WP4.3
 
@@ -104,6 +111,7 @@
   group: reasoning
   framework: [CHC:Gf]
   main_metric: Percent optimal solutions, planning time, extra moves
+  forecast_family: 29  # Lumosity master game: Route to Sprout (docs/plan/10)
   biases: [trial-and-error strategies]
   sources: []  # filled and checked in WP4.3
 
@@ -115,6 +123,7 @@
   group: reasoning
   framework: [CHC:Gf, NCPT:abstract_reasoning]
   main_metric: Accuracy by item difficulty
+  forecast_family: 18  # Lumosity master game: By the Rules (docs/plan/10)
   biases: [item memorisation (generate fresh items, solver-checked)]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -127,6 +136,7 @@
   group: reasoning
   framework: [CHC:Gv, NCPT:visuospatial_memory]
   main_metric: Angle-RT slope, accuracy, span
+  forecast_family: 17  # Lumosity master game: Penguin Pursuit (docs/plan/10)
   biases: [prior gaming experience]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8
@@ -139,6 +149,7 @@
   group: language
   framework: [CHC:Gc, CHC:Gr]
   main_metric: Words per minute, solutions
+  forecast_family: 13  # Lumosity master game: Word Bubbles (docs/plan/10)
   biases: [the English-only rule disadvantages Arabic and French speakers]
   note: Tasks are in English, which puts Arabic and French speakers at a disadvantage.
   sources: []  # filled and checked in WP4.3
@@ -151,6 +162,7 @@
   group: language
   framework: [CHC:Gq, NCPT:numerical_calculation]
   main_metric: Percent absolute error, RT
+  forecast_family: 12  # Lumosity master game: Raindrops (docs/plan/10)
   biases: [maths worry, schooling]
   sources:
     - https://www.nature.com/articles/s41597-022-01872-8

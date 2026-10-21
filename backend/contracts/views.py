@@ -76,3 +76,16 @@ class GoalView(Contract):
     high: float | None
     rounds_left: int | None = Field(description="About how many more rounds it takes")
     met: bool
+
+
+class ForecastView(Contract):
+    """A growth forecast in percent, always as an 80% range (AGENTS.md rule 5)."""
+
+    dim: DimensionId
+    name: str
+    sessions_ahead: int
+    low: float
+    median: float
+    high: float
+    model_version: str
+    note: str

@@ -112,6 +112,27 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/forecast': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Forecast
+     * @description Growth bands per skill (docs/plan/10), always as a range. Empty until a model is trained
+     *     and the skill has three days of practice.
+     */
+    get: operations['get_forecast_forecast_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/goals': {
     parameters: {
       query?: never
@@ -1016,6 +1037,11 @@ export interface components {
       badge: 'established' | 'moderate' | 'experimental'
       /** Biases */
       biases: string[]
+      /**
+       * Forecast Family
+       * @description Closest Lumosity master game id for the growth forecast
+       */
+      forecast_family?: number | null
       /** Framework */
       framework: string[]
       /**
@@ -1396,6 +1422,28 @@ export interface components {
        * @enum {string}
        */
       source: 'model' | 'prior'
+    }
+    /**
+     * ForecastView
+     * @description A growth forecast in percent, always as an 80% range (AGENTS.md rule 5).
+     */
+    ForecastView: {
+      /** Dim */
+      dim: string
+      /** High */
+      high: number
+      /** Low */
+      low: number
+      /** Median */
+      median: number
+      /** Model Version */
+      model_version: string
+      /** Name */
+      name: string
+      /** Note */
+      note: string
+      /** Sessions Ahead */
+      sessions_ahead: number
     }
     /** Game */
     Game: {
@@ -2164,6 +2212,7 @@ export interface components {
       dimensions: components['schemas']['Dimension'][]
       /** Games */
       games: components['schemas']['Game'][]
+      priors?: components['schemas']['SkillPriors'] | null
       /** Providers */
       providers: components['schemas']['LlmProvider'][]
     }
@@ -2525,6 +2574,24 @@ export interface components {
        * @default null
        */
       success_mode: ('chill' | 'balanced' | 'push') | null
+    }
+    /**
+     * SkillPriors
+     * @description Observed-score correlations between skills from NCPT (registry/priors.yaml).
+     */
+    SkillPriors: {
+      /** Batteries */
+      batteries: number[]
+      /** Correlations */
+      correlations: [string, string, number, number][]
+      /** Generated */
+      generated: string
+      /** Source */
+      source: string
+      /** Subtests */
+      subtests: {
+        [key: string]: string
+      }
     }
     /** StartSession */
     StartSession: {
@@ -3016,6 +3083,39 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['IngestResult']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_forecast_forecast_get: {
+    parameters: {
+      query?: {
+        sessions?: number
+      }
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ForecastView'][]
         }
       }
       /** @description Validation Error */

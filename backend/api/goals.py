@@ -1,20 +1,24 @@
-"""Goals and "why" cards (docs/plan/09, 13; UW7, UW11)."""
+"""Goals, growth forecasts and "why" cards (docs/plan/09, 10, 13; UW7, UW11)."""
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import select
 
+from backend.agent.context import Services
 from backend.api.deps import Conn, CurrentUser, RegistryDep
 from backend.contracts.decision import Candidate, Decision
-from backend.contracts.views import GoalView
+from backend.contracts.views import ForecastView, GoalView
 from backend.db import tables as t
 from backend.db.twin_store import read_twin
+from backend.ml.serve import forecast_bands, user_history
 from backend.scoring.goals import rounds_to_target
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.norms import Norms
 
 router = APIRouter(tags=["goals"])
+
+FORECAST_NOTE = "Based on patterns from 36,000 players of similar games; personalises as you play."
 
 
 @router.get("/goals", response_model=list[GoalView])
@@ -77,3 +81,38 @@ async def get_decision(decision_id: UUID, user_id: CurrentUser, conn: Conn) -> D
         reason=row.reason,
         evidence=list(row.evidence),
     )
+
+
+@router.get("/forecast", response_model=list[ForecastView], tags=["twin"])
+async def get_forecast(
+    user_id: CurrentUser,
+    registry: RegistryDep,
+    request: Request,
+    sessions: int = Query(default=5, ge=1, le=20),
+) -> list[ForecastView]:
+    """Growth bands per skill (docs/plan/10), always as a range. Empty until a model is trained
+    and the skill has three days of practice."""
+    services: Services = request.app.state.services
+    if services.forecaster is None:
+        return []
+    history = await user_history(services.engine, user_id)
+    norms = services.norms
+    out = []
+    for dim, band in forecast_bands(services.forecaster, registry, history, sessions).items():
+
+        def pct(x: float, dim: str = dim) -> float:
+            return round(norms.percentile(dim, Belief(x, 1e-4)).value, 1)
+
+        out.append(
+            ForecastView(
+                dim=dim,
+                name=registry.dimension(dim).name,
+                sessions_ahead=band.sessions_ahead,
+                low=pct(band.low),
+                median=pct(band.median),
+                high=pct(band.high),
+                model_version=services.forecaster.version,
+                note=FORECAST_NOTE,
+            )
+        )
+    return out

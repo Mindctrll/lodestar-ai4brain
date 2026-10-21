@@ -11,10 +11,11 @@ from uuid import UUID, uuid4
 import numpy as np
 
 from backend.contracts.trial import TrialEvent
-from backend.registry.models import Game, Registry
+from backend.registry.models import Game, Registry, SkillPriors
 from backend.scoring.kalman_elo import Belief, drift
 from backend.scoring.levels import TARGET_P, b_for_level, choose_mode, next_level
 from backend.scoring.loadings import loading_matrix
+from backend.scoring.priors import cold_start
 from backend.scoring.rounds import score_round
 from simulator.population import SimUser
 from simulator.responses import answer
@@ -72,6 +73,7 @@ def play_round(
     fatigue: float,
     loadings: dict[str, float],
     rng: np.random.Generator,
+    priors: SkillPriors | None = None,
 ) -> None:
     user = run.user
     primary = max(game.dims, key=lambda d: game.dims[d])
@@ -99,7 +101,11 @@ def play_round(
                 ts=now + timedelta(seconds=5 * i),
             )
         )
-    beliefs = {d: run.beliefs[d] for d in loadings}
+    # Same cold-start priors as the app (backend/scoring/priors.py).
+    beliefs = {
+        d: run.beliefs[d] if run.beliefs[d].n > 0 else cold_start(d, run.beliefs, priors)
+        for d in loadings
+    }
     outcome = score_round(game, trials, beliefs, loadings)
     run.beliefs.update(outcome.beliefs)
     if outcome.quality.trust == 0:
@@ -139,7 +145,7 @@ def simulate_user(
                 primary = game.primary_dims[0]
                 level = next_level(run.beliefs[primary], TARGET_P["assess"])
                 play_round(run, game, "assess", TARGET_P["assess"], level, ONBOARDING_TRIALS,
-                           s, now, 0.0, matrix[gid], rng)  # fmt: skip
+                           s, now, 0.0, matrix[gid], rng, registry.priors)  # fmt: skip
                 now += timedelta(minutes=1)
         else:
             for r in range(ROUNDS_PER_SESSION):
@@ -151,7 +157,7 @@ def simulate_user(
                 level = next_level(run.beliefs[dim], target)
                 fatigue = user.fatigue_per_round * r
                 play_round(run, game, mode, target, level, TRIALS_PER_ROUND, s, now, fatigue,
-                           matrix[game.id], rng)  # fmt: skip
+                           matrix[game.id], rng, registry.priors)  # fmt: skip
                 last_game = game.id
                 now += timedelta(minutes=4)
         run.snapshots.append(

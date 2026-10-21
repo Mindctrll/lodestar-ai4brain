@@ -37,6 +37,9 @@ class Dimension(Contract):
     group: SkyGroup
     framework: list[str]
     main_metric: str
+    forecast_family: int | None = Field(
+        default=None, description="Closest Lumosity master game id for the growth forecast"
+    )
     biases: list[str]
     note: str | None = None
     style: bool = Field(default=False, description="Shown as a style, not better or worse")
@@ -178,12 +181,26 @@ class ConsentNotice(Contract):
         return next(s for s in self.switches if s.id == switch_id)
 
 
+class SkillPriors(Contract):
+    """Observed-score correlations between skills from NCPT (registry/priors.yaml)."""
+
+    generated: str
+    source: str
+    batteries: list[int]
+    subtests: dict[DimensionId, str]
+    correlations: list[tuple[DimensionId, DimensionId, float, int]]
+
+    def pairs(self) -> dict[frozenset[str], float]:
+        return {frozenset((a, b)): r for a, b, r, _ in self.correlations}
+
+
 class Registry(Contract):
     dimensions: list[Dimension]
     games: list[Game]
     providers: list[LlmProvider]
     batteries: dict[str, Battery]
     consent: ConsentNotice
+    priors: SkillPriors | None = None
 
     @model_validator(mode="after")
     def _cross_references(self) -> Registry:

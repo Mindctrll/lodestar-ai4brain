@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
@@ -68,6 +68,15 @@ pool: ## fill agent.content_pool so play never waits on an LLM
 
 rebuild-twin: ## recompute a user's profile from the event log: make rebuild-twin USER=<uuid>
 	uv run python -m backend.db.rebuild $(USER)
+
+ml-data: ## download the public datasets the models train on into data/ (about 2.6 GB)
+	uv run python -m backend.ml.download
+
+ml-train: ## train the growth forecast, write its model card and make it the active model
+	uv run python -m backend.ml.train_growth --register
+
+ncpt-priors: ## recompute skill correlations from NCPT into registry/priors.yaml
+	uv run python -m backend.ml.ncpt
 
 retention: ## run the daily retention job now (old traces, checkpoints, events; docs/plan/14)
 	uv run python -m backend.ethics.retention
