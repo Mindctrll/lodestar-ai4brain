@@ -622,6 +622,47 @@
         "title": "Candidate",
         "type": "object"
       },
+      "Choice": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          },
+          "block": {
+            "const": "choice",
+            "title": "Block",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block",
+          "question",
+          "options",
+          "answer"
+        ],
+        "title": "Choice",
+        "type": "object"
+      },
       "CoachReply": {
         "additionalProperties": false,
         "properties": {
@@ -1080,6 +1121,104 @@
         "title": "CurvePoint",
         "type": "object"
       },
+      "CustomGameContent": {
+        "additionalProperties": false,
+        "description": "The served content: the recipe plus the user's request it was written for.",
+        "properties": {
+          "asked": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Asked"
+          },
+          "dims": {
+            "description": "Skills it trains; the main one has loading 1.0",
+            "maxProperties": 3,
+            "minProperties": 1,
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "type": "number"
+              }
+            },
+            "title": "Dims",
+            "type": "object"
+          },
+          "repeat": {
+            "default": 1,
+            "maximum": 5,
+            "minimum": 1,
+            "title": "Repeat",
+            "type": "integer"
+          },
+          "steps": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "choice": "#/components/schemas/Choice",
+                  "distractor": "#/components/schemas/Distractor",
+                  "feedback": "#/components/schemas/Feedback",
+                  "react": "#/components/schemas/React",
+                  "recall": "#/components/schemas/Recall",
+                  "rule": "#/components/schemas/Rule",
+                  "show_items": "#/components/schemas/ShowItems",
+                  "timer": "#/components/schemas/Timer"
+                },
+                "propertyName": "block"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ShowItems"
+                },
+                {
+                  "$ref": "#/components/schemas/Distractor"
+                },
+                {
+                  "$ref": "#/components/schemas/Recall"
+                },
+                {
+                  "$ref": "#/components/schemas/Choice"
+                },
+                {
+                  "$ref": "#/components/schemas/Timer"
+                },
+                {
+                  "$ref": "#/components/schemas/Rule"
+                },
+                {
+                  "$ref": "#/components/schemas/React"
+                },
+                {
+                  "$ref": "#/components/schemas/Feedback"
+                }
+              ]
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Steps",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "dims",
+          "steps"
+        ],
+        "title": "CustomGameContent",
+        "type": "object"
+      },
       "DataExported": {
         "additionalProperties": false,
         "properties": {
@@ -1505,6 +1644,39 @@
           "still_learning"
         ],
         "title": "DimensionView",
+        "type": "object"
+      },
+      "Distractor": {
+        "additionalProperties": false,
+        "description": "A filler task between seeing and recalling (not scored).",
+        "properties": {
+          "block": {
+            "const": "distractor",
+            "title": "Block",
+            "type": "string"
+          },
+          "seconds": {
+            "maximum": 60,
+            "minimum": 5,
+            "title": "Seconds",
+            "type": "integer"
+          },
+          "task": {
+            "enum": [
+              "arithmetic:easy",
+              "arithmetic:hard",
+              "tapping"
+            ],
+            "title": "Task",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block",
+          "task",
+          "seconds"
+        ],
+        "title": "Distractor",
         "type": "object"
       },
       "Event": {
@@ -2149,6 +2321,31 @@
           }
         },
         "title": "FactsPacket",
+        "type": "object"
+      },
+      "Feedback": {
+        "additionalProperties": false,
+        "description": "Show how the round is going so far (not scored).",
+        "properties": {
+          "block": {
+            "const": "feedback",
+            "title": "Block",
+            "type": "string"
+          },
+          "level": {
+            "default": "brief",
+            "enum": [
+              "brief",
+              "full"
+            ],
+            "title": "Level",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block"
+        ],
+        "title": "Feedback",
         "type": "object"
       },
       "ForecastBand": {
@@ -4047,6 +4244,79 @@
         "title": "ProviderView",
         "type": "object"
       },
+      "React": {
+        "additionalProperties": false,
+        "description": "Press as soon as the target shows, hold back for distractors.",
+        "properties": {
+          "block": {
+            "const": "react",
+            "title": "Block",
+            "type": "string"
+          },
+          "deadline_ms": {
+            "maximum": 3000,
+            "minimum": 300,
+            "title": "Deadline Ms",
+            "type": "integer"
+          },
+          "distractors": {
+            "items": {
+              "maxLength": 12,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Distractors",
+            "type": "array"
+          },
+          "target": {
+            "maxLength": 12,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          },
+          "trials": {
+            "maximum": 30,
+            "minimum": 4,
+            "title": "Trials",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "block",
+          "target",
+          "deadline_ms",
+          "trials"
+        ],
+        "title": "React",
+        "type": "object"
+      },
+      "Recall": {
+        "additionalProperties": false,
+        "description": "Recall the items of the last `show_items`: tap them in order, in any order, or say for\neach probe whether it was shown.",
+        "properties": {
+          "block": {
+            "const": "recall",
+            "title": "Block",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "free",
+              "ordered",
+              "recognition"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block",
+          "kind"
+        ],
+        "title": "Recall",
+        "type": "object"
+      },
       "Receipt": {
         "additionalProperties": false,
         "properties": {
@@ -4304,6 +4574,52 @@
           "ended_at"
         ],
         "title": "RoundResult",
+        "type": "object"
+      },
+      "Rule": {
+        "additionalProperties": false,
+        "description": "Sort numbers 1-9 by a rule; with `switch_after`, the rule swaps every that many trials.",
+        "properties": {
+          "block": {
+            "const": "rule",
+            "title": "Block",
+            "type": "string"
+          },
+          "rule": {
+            "enum": [
+              "odd_even",
+              "high_low"
+            ],
+            "title": "Rule",
+            "type": "string"
+          },
+          "switch_after": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 2,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Switch After"
+          },
+          "trials": {
+            "maximum": 30,
+            "minimum": 4,
+            "title": "Trials",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "block",
+          "rule",
+          "trials"
+        ],
+        "title": "Rule",
         "type": "object"
       },
       "ScoringInputs": {
@@ -4863,6 +5179,48 @@
         "title": "SettingsChangedPayload",
         "type": "object"
       },
+      "ShowItems": {
+        "additionalProperties": false,
+        "description": "Flash items one at a time: `\"digits:7\"` (drawn in the browser) or an explicit list.",
+        "properties": {
+          "block": {
+            "const": "show_items",
+            "title": "Block",
+            "type": "string"
+          },
+          "items": {
+            "anyOf": [
+              {
+                "pattern": "^(digits|letters|words|shapes):([2-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "maxLength": 20,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "description": "\"<digits|letters|words|shapes>:<2-12>\" or 2-12 short items",
+            "title": "Items"
+          },
+          "ms_each": {
+            "maximum": 3000,
+            "minimum": 300,
+            "title": "Ms Each",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "block",
+          "items",
+          "ms_each"
+        ],
+        "title": "ShowItems",
+        "type": "object"
+      },
       "SkillPriors": {
         "additionalProperties": false,
         "description": "Observed-score correlations between skills from NCPT (registry/priors.yaml).",
@@ -5102,6 +5460,29 @@
           "granted"
         ],
         "title": "SwitchView",
+        "type": "object"
+      },
+      "Timer": {
+        "additionalProperties": false,
+        "description": "A countdown (not scored).",
+        "properties": {
+          "block": {
+            "const": "timer",
+            "title": "Block",
+            "type": "string"
+          },
+          "seconds": {
+            "maximum": 30,
+            "minimum": 1,
+            "title": "Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "block",
+          "seconds"
+        ],
+        "title": "Timer",
         "type": "object"
       },
       "TraceRow": {

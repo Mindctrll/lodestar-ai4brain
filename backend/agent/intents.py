@@ -45,6 +45,13 @@ _ELSE = re.compile(
     r"\b(something else|another (one|game)|different (one|game)|not that one)\b", re.I
 )
 _THEME = re.compile(r"\babout ([a-z][a-z ]{2,30})$", re.I)
+# "Make me a game where I remember a phone number while doing maths" (docs/plan/08).
+_CUSTOM = re.compile(
+    r"\b((make|invent|create|build|design|dream up) (me |us )?(a |an |my own |a new )?"
+    r"(\w+ )?game|(my own|custom|new kind of) game|a game (where|in which|that))\b",
+    re.I,
+)
+CUSTOM_GAME = "custom_blocks"
 
 ToolChoice = Literal["explain", "read_profile", "get_history", "search_memory"]
 
@@ -215,6 +222,9 @@ def classify(text: str, trigger: str, registry: Registry | None = None) -> Route
     tool = chat_tool(stripped)
     if tool == "explain":
         return Routed(Intent(kind="chat", text=stripped, tool=tool), sure=True)
+    if _CUSTOM.search(stripped) and game in (None, CUSTOM_GAME):
+        # A game made to order: the request text becomes the recipe brief.
+        return Routed(Intent(kind="play", text=stripped, game_id=CUSTOM_GAME), sure=True)
     other = bool(_ELSE.search(stripped))
     if avoid or other:
         # Turning a skill down is still a request to play something (UW3).

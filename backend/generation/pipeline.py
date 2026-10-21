@@ -103,7 +103,8 @@ class ContentService:
         errors = gen.check(content, knobs)
         banned = {v.word for text in _strings(content.model_dump()) for v in find_banned(text)}
         errors += [f"banned word '{w}'" for w in sorted(banned)]
-        if not errors and user_id is not None and self.memory is not None:
+        novel = getattr(gen, "novelty", True)  # custom recipes: items are drawn fresh each round
+        if not errors and novel and user_id is not None and self.memory is not None:
             try:
                 since = datetime.now(UTC) - timedelta(days=NOVELTY_DAYS)
                 similarity = await self.memory.max_similarity_served(
@@ -173,15 +174,19 @@ class ContentService:
         knobs: dict[str, float],
         seed: int,
         theme: str | None = None,
+        request: str | None = None,
     ) -> Prepared | None:
+        """`request`: what the user asked for, for games built to order (custom block games)."""
         gen = GENERATORS.get(game_id)
         if gen is None:
             return None
         report: dict[str, Any] = {"validators": ["schema", "rules+solver", "language", "novelty"]}
         rng = random.Random(seed)
         content = gen.build(knobs, rng, theme)
-        request = gen.text_request(content)
-        needs_llm = request is not None and request.required
+        if request and "asked" in gen.schema.model_fields:
+            content = content.model_copy(update={"asked": request[:300]})
+        text = gen.text_request(content)
+        needs_llm = text is not None and text.required
         improved: Contract | None = None
         degraded: list[str] = []
         if self.live_llm == "always" or needs_llm:

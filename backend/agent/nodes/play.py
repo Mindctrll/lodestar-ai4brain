@@ -30,6 +30,7 @@ from backend.ml import bandit
 from backend.registry.models import Game, Registry
 from backend.scoring.kalman_elo import SIGMA_START, Belief
 from backend.scoring.levels import TARGET_P, b_for_level, choose_mode, knobs_for, next_level
+from backend.scoring.loadings import recipe_loadings
 
 # docs/plan/03, "How plan_next decides". bandit_gain is the best-next-game bandit
 # (backend/ml/bandit.py); it stays 0 until the person has played enough rounds.
@@ -54,10 +55,16 @@ def core_games_by_dim(
     registry: Registry, consent: frozenset[str] | None = None
 ) -> dict[str, list[Game]]:
     """Core games the browser can run, by primary skill, leaving out games a switch has turned
-    off."""
+    off. Custom block games are only served when asked for."""
     out: dict[str, list[Game]] = {}
     for game in registry.games:
-        if game.phase == "P1" and game.kind == "game" and game.available and allowed(game, consent):
+        if (
+            game.phase == "P1"
+            and game.kind == "game"
+            and game.origin != "custom"
+            and game.available
+            and allowed(game, consent)
+        ):
             for dim in game.primary_dims:
                 out.setdefault(dim, []).append(game)
     return out
@@ -357,6 +364,13 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         game = registry.game("market_list")
         dim = game.primary_dims[0]
         reason = "Callback asks about a Market List from earlier, so let's start with Market List."
+    elif requested is not None and requested.origin == "custom":
+        dim, game = requested.primary_dims[0], requested
+        # docs/plan/08: block-built games count at low weight, and Najma says so.
+        reason = (
+            "Fun idea. I'll build it from my game blocks. "
+            "I'm only counting it a little until it's been tested more."
+        )
     elif requested is not None:
         dim, game = requested.primary_dims[0], requested
         reason = f"You asked for {game.name}."
@@ -508,6 +522,28 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
     belief = _belief(state, game.primary_dims[0])
     level = next_level(belief, state.plan.target_p)
     round_id = uuid4()
+    knobs = knobs_for(game, level)
+    seed = random.Random(f"{ctx.seed}:{round_id}").randrange(2**31)
+    theme = state.intent.theme if state.intent else None
+    content = None
+    degraded: list[str] = []
+    if ctx.services.content is not None and ctx.services.content.needs_content(game.id):
+        content = await ctx.services.content.prepare(
+            user_id=ctx.user_id,
+            selection=ctx.llm,
+            game_id=game.id,
+            level=level,
+            knobs=knobs,
+            seed=seed,
+            theme=theme,
+            # A custom game is built from what the user asked for (docs/plan/08).
+            request=state.intent.text if state.intent and game.origin == "custom" else None,
+        )
+        degraded = content.degraded if content else []
+    # A custom game counts for the skills its recipe names, not the registry's placeholder.
+    loadings = (
+        recipe_loadings(content.content, registry) if content and game.origin == "custom" else None
+    )
     async with ctx.services.engine.begin() as conn:
         played_before = (
             await conn.execute(
@@ -523,23 +559,8 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
             round_id=round_id,
             game_id=game.id,
             level=level,
+            loadings=loadings,
         )
-    knobs = knobs_for(game, level)
-    seed = random.Random(f"{ctx.seed}:{round_id}").randrange(2**31)
-    theme = state.intent.theme if state.intent else None
-    content = None
-    degraded: list[str] = []
-    if ctx.services.content is not None and ctx.services.content.needs_content(game.id):
-        content = await ctx.services.content.prepare(
-            user_id=ctx.user_id,
-            selection=ctx.llm,
-            game_id=game.id,
-            level=level,
-            knobs=knobs,
-            seed=seed,
-            theme=theme,
-        )
-        degraded = content.degraded if content else []
     words = await _market_list_words(ctx) if game.id == "callback" else []
     spec = ExerciseSpec(
         round_id=round_id,

@@ -1,0 +1,55 @@
+# Custom games from blocks (docs/plan/08). Item pools for "digits:N", "letters:N", "words:N" and
+# "shapes:N". Their sizes must match POOL in backend/generation/blocks.py (checked in vitest).
+pools:
+  digits: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+  letters: [B, C, D, F, G, H, J, K, L, M, N, P, Q, R, S, T, V, W, X, Z]
+  words:
+    [
+      apple,
+      bread,
+      chair,
+      cloud,
+      river,
+      stone,
+      lamp,
+      door,
+      tree,
+      bird,
+      cup,
+      shoe,
+      boat,
+      ring,
+      star,
+      moon,
+      rose,
+      kite,
+      fish,
+      drum,
+      bell,
+      coat,
+      hill,
+      leaf,
+      sand,
+      salt,
+      rice,
+      milk,
+      tea,
+      olive,
+      lemon,
+      honey,
+      mint,
+      fig,
+      date,
+      nut,
+      road,
+      key,
+      book,
+      box,
+    ]
+  shapes: ['●', '■', '▲', '◆', '★', '♥', '✚', '☾']
+# Time allowed per answer in timed blocks.
+recall_deadline_ms: 60000
+recognition_deadline_ms: 5000
+choice_deadline_ms: 30000
+rule_deadline_ms: 2500
+feedback_ms: 2500

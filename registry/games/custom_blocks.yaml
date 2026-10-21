@@ -1,0 +1,28 @@
+# Custom games from blocks (docs/plan/08, WP3.7). One generic entry: the user asks for a game,
+# the LLM writes a recipe from known blocks, code validates it, the browser's block engine runs
+# it. Each round counts for the skills its recipe names (twin.rounds.loadings); the dims below
+# only apply when a recipe names none. Counted at low weight until tested (origin custom: 0.4).
+id: custom_blocks
+name: Custom Game
+kind: game
+phase: L
+dims:
+  working_memory: 1.0
+origin: custom
+paradigm: Recipe of known blocks (show items, distractor, recall, choice, timer, rule, react, feedback)
+code_source: own (block engine)
+does: A game made to order from your request
+scoring: binary
+duration_s: 180
+metrics:
+- accuracy
+knobs: {}
+level_map: none
+content: llm
+modalities:
+- keyboard
+- touch
+acs_hooks: []
+practice_trials: 0
+available: true
+notes: Only served when asked for; never picked by the policy (phase L, not P1).

@@ -112,7 +112,7 @@ const SELF_CONTAINED = [
   'turn_it',
   'number_line',
 ]
-const NEEDS_CONTENT = ['souk_rush', 'pattern_gap', 'spot_the_mistake']
+const NEEDS_CONTENT = ['souk_rush', 'pattern_gap', 'spot_the_mistake', 'custom_blocks']
 
 test('every self-contained game builds a seeded timeline with its practice trials first', () => {
   const knobs = {
@@ -152,5 +152,5 @@ test('content games refuse to start without server content', () => {
       /server/,
     )
   }
-  expect(Object.keys(GAMES)).toHaveLength(35)
+  expect(Object.keys(GAMES)).toHaveLength(36)
 })

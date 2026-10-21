@@ -621,7 +621,10 @@ async def propose_experiment(ctx: NajmaContext, call_id: UUID) -> ToolCall:
         played = [
             r.game_id
             for r in rows
-            if registry.game(r.game_id).available and registry.game(r.game_id).consent is None
+            if registry.game(r.game_id).available
+            and registry.game(r.game_id).consent is None
+            and registry.game(r.game_id).origin
+            != "custom"  # a new recipe each time: not comparable
         ]
     games = (played + [g for g in DEFAULT_EXPERIMENT_GAMES if g not in played])[:3]
     plan = experiments.design(games, None)

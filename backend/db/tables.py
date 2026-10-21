@@ -164,6 +164,8 @@ rounds = Table(
     Column("started_at", TZ, nullable=False, server_default=NOW),
     Column("ended_at", TZ),
     Column("scored_at", TZ),
+    # Per-round skill loadings (custom block games, from their recipe); null: the registry's.
+    Column("loadings", JSONB),
     schema="twin",
 )
 

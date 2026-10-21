@@ -136,12 +136,19 @@ async def start_round(
     round_id: UUID,
     game_id: str,
     level: float,
+    loadings: dict[str, float] | None = None,
 ) -> None:
-    """Create the round when the exercise is issued, so trials can reference it (UW6)."""
+    """Create the round when the exercise is issued, so trials can reference it (UW6).
+    `loadings` overrides the game's registry loadings (a custom game's recipe)."""
     await conn.execute(
         pg_insert(t.rounds)
         .values(
-            round_id=round_id, user_id=user_id, session_id=session_id, game_id=game_id, level=level
+            round_id=round_id,
+            user_id=user_id,
+            session_id=session_id,
+            game_id=game_id,
+            level=level,
+            loadings=loadings,
         )
         .on_conflict_do_nothing(index_elements=["round_id"])
     )
@@ -252,7 +259,9 @@ async def score_round_tx(
             return None
 
         game = registry.game(round_row.game_id)
-        loads = loading_matrix(registry).get(game.id, {})
+        loads: dict[str, float] = dict(
+            round_row.loadings or loading_matrix(registry).get(game.id, {})
+        )
         trials = [
             _trial_from_row(r)
             for r in await conn.execute(

@@ -867,6 +867,20 @@ export interface components {
       /** Score */
       score: number
     }
+    /** Choice */
+    Choice: {
+      /** Answer */
+      answer: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'choice'
+      /** Options */
+      options: string[]
+      /** Question */
+      question: string
+    }
     /** CoachReply */
     CoachReply: {
       /** Cited Ids */
@@ -1100,6 +1114,42 @@ export interface components {
       /** Percent */
       percent: number
     }
+    /**
+     * CustomGameContent
+     * @description The served content: the recipe plus the user's request it was written for.
+     */
+    CustomGameContent: {
+      /**
+       * Asked
+       * @default null
+       */
+      asked: string | null
+      /**
+       * Dims
+       * @description Skills it trains; the main one has loading 1.0
+       */
+      dims: {
+        [key: string]: number
+      }
+      /**
+       * Repeat
+       * @default 1
+       */
+      repeat: number
+      /** Steps */
+      steps: (
+        | components['schemas']['ShowItems']
+        | components['schemas']['Distractor']
+        | components['schemas']['Recall']
+        | components['schemas']['Choice']
+        | components['schemas']['Timer']
+        | components['schemas']['Rule']
+        | components['schemas']['React']
+        | components['schemas']['Feedback']
+      )[]
+      /** Title */
+      title: string
+    }
     /** DataExported */
     DataExported: {
       /**
@@ -1291,6 +1341,24 @@ export interface components {
        * @description Shown greyed: 'still learning about you'
        */
       still_learning: boolean
+    }
+    /**
+     * Distractor
+     * @description A filler task between seeing and recalling (not scored).
+     */
+    Distractor: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'distractor'
+      /** Seconds */
+      seconds: number
+      /**
+       * Task
+       * @enum {string}
+       */
+      task: 'arithmetic:easy' | 'arithmetic:hard' | 'tapping'
     }
     Event:
       | components['schemas']['SessionStarted']
@@ -1587,6 +1655,23 @@ export interface components {
       knowledge?: components['schemas']['KnowledgeItem'][]
       /** Memories */
       memories?: components['schemas']['MemoryItem'][]
+    }
+    /**
+     * Feedback
+     * @description Show how the round is going so far (not scored).
+     */
+    Feedback: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'feedback'
+      /**
+       * Level
+       * @default brief
+       * @enum {string}
+       */
+      level: 'brief' | 'full'
     }
     /**
      * ForecastBand
@@ -2451,6 +2536,42 @@ export interface components {
       /** Notes */
       notes: string | null
     }
+    /**
+     * React
+     * @description Press as soon as the target shows, hold back for distractors.
+     */
+    React: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'react'
+      /** Deadline Ms */
+      deadline_ms: number
+      /** Distractors */
+      distractors?: string[]
+      /** Target */
+      target: string
+      /** Trials */
+      trials: number
+    }
+    /**
+     * Recall
+     * @description Recall the items of the last `show_items`: tap them in order, in any order, or say for
+     *     each probe whether it was shown.
+     */
+    Recall: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'recall'
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'free' | 'ordered' | 'recognition'
+    }
     /** Receipt */
     Receipt: {
       /** Counts */
@@ -2566,6 +2687,29 @@ export interface components {
       stop_reason: ('user' | 'frustration' | 'error') | null
       /** Trial Count */
       trial_count: number
+    }
+    /**
+     * Rule
+     * @description Sort numbers 1-9 by a rule; with `switch_after`, the rule swaps every that many trials.
+     */
+    Rule: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'rule'
+      /**
+       * Rule
+       * @enum {string}
+       */
+      rule: 'odd_even' | 'high_low'
+      /**
+       * Switch After
+       * @default null
+       */
+      switch_after: number | null
+      /** Trials */
+      trials: number
     }
     /**
      * ScoringInputs
@@ -2847,6 +2991,24 @@ export interface components {
       success_mode: ('chill' | 'balanced' | 'push') | null
     }
     /**
+     * ShowItems
+     * @description Flash items one at a time: `"digits:7"` (drawn in the browser) or an explicit list.
+     */
+    ShowItems: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'show_items'
+      /**
+       * Items
+       * @description "<digits|letters|words|shapes>:<2-12>" or 2-12 short items
+       */
+      items: string | string[]
+      /** Ms Each */
+      ms_each: number
+    }
+    /**
      * SkillPriors
      * @description Observed-score correlations between skills from NCPT (registry/priors.yaml).
      */
@@ -2936,6 +3098,19 @@ export interface components {
       required: boolean
       /** Title */
       title: string
+    }
+    /**
+     * Timer
+     * @description A countdown (not scored).
+     */
+    Timer: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      block: 'timer'
+      /** Seconds */
+      seconds: number
     }
     /** TraceRow */
     TraceRow: {

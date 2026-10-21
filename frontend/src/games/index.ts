@@ -6,6 +6,7 @@ import { game as callback } from './callback/plugin'
 import { game as connect } from './connect/plugin'
 import { game as controlTower } from './control_tower/plugin'
 import { game as digitsBack } from './digits_back/plugin'
+import { game as customBlocks } from './custom_blocks/plugin'
 import { game as echo } from './echo/plugin'
 import { game as guideTheRobot } from './guide_the_robot/plugin'
 import { game as holdIt } from './hold_it/plugin'
@@ -75,5 +76,7 @@ export const GAMES: Record<string, GameModule> = Object.fromEntries(
     whichJar,
     quickMaths,
     balloonPump,
+    // Built from blocks (WP3.7)
+    customBlocks,
   ].map((g) => [g.id, g]),
 )
