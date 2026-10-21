@@ -3,7 +3,7 @@ COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
 .PHONY: env cli docs ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
-	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
+	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim eval e2e
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -106,6 +106,9 @@ sim: ## simulate N users (default 200), write docs/figures, fail if a target is 
 
 sim-graph: ## the wave 2 gate: simulated users through the real graph, experiments 1-5 (~30 min)
 	uv run python -m simulator.graph_gate --users $(or $(GRAPH_N),120)
+
+eval: ## the 11 experiments of docs/plan/15: figures + eval_summary.md in docs/figures (~5-10 min); GRAPH=120 adds 1-5 through the graph
+	uv run python -m simulator.eval $(if $(GRAPH),--graph $(GRAPH)) $(if $(COACH_N),--coach-drafts $(COACH_N))
 
 e2e: ## run Playwright end-to-end tests against the running stack (make up first)
 	$(FRONTEND) run e2e

@@ -49,7 +49,8 @@ def recovery(runs: list[UserRun], dims: list[str], session: int) -> Recovery:
     return Recovery(session, r_by, rmse_by, share)
 
 
-def coverage(runs: list[UserRun], dims: list[str], sessions: list[int]) -> float:
+def coverage(runs: list[UserRun], dims: list[str], sessions: list[int], z: float = Z80) -> float:
+    """Share of ranges containing the true skill (the 80% range by default)."""
     inside = total = 0
     for run in runs:
         for s in sessions:
@@ -58,7 +59,7 @@ def coverage(runs: list[UserRun], dims: list[str], sessions: list[int]) -> float
                 belief = snap.beliefs[dim]
                 if belief.n == 0:
                     continue
-                lo, hi = interval(belief, Z80)
+                lo, hi = interval(belief, z)
                 inside += lo <= snap.truth[dim] <= hi
                 total += 1
     return inside / total if total else float("nan")
@@ -95,15 +96,19 @@ class Detection:
     recall: float
 
 
-def bad_data_detection(runs: list[UserRun]) -> Detection:
+def flagged(run: UserRun) -> bool:
     """A user is flagged when at least half of their rounds got trust 0."""
+    return run.trust_zero_rounds >= max(1, len(run.rounds) // 2)
+
+
+def bad_data_detection(runs: list[UserRun]) -> Detection:
     tp = fp = fn = 0
     for run in runs:
         bad = run.user.kind in {"random_clicker", "cheater"}
-        flagged = run.trust_zero_rounds >= max(1, len(run.rounds) // 2)
-        tp += bad and flagged
-        fp += (not bad) and flagged
-        fn += bad and not flagged
+        is_flagged = flagged(run)
+        tp += bad and is_flagged
+        fp += (not bad) and is_flagged
+        fn += bad and not is_flagged
     precision = tp / (tp + fp) if tp + fp else 1.0
     recall = tp / (tp + fn) if tp + fn else 1.0
     return Detection(precision, recall)

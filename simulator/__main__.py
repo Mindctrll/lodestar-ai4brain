@@ -7,11 +7,23 @@ from pathlib import Path
 import numpy as np
 
 from backend.registry.loader import load_registry
+from backend.registry.models import Registry
 from simulator.experiments import gate
 from simulator.population import make_population
-from simulator.run import simulate_user
+from simulator.run import UserRun, simulate_user
 
 SESSIONS = 10
+
+
+def simulate(registry: Registry, n: int, seed: int) -> tuple[list[UserRun], list[UserRun]]:
+    """The main population (10 sessions) and a smaller one with random clickers and cheaters."""
+    rng = np.random.default_rng(seed)
+    runs = [simulate_user(u, registry, SESSIONS, rng) for u in make_population(registry, n, rng)]
+    bad_users = make_population(
+        registry, max(40, n // 5), rng,
+        kinds={"normal": 0.6, "random_clicker": 0.2, "cheater": 0.2},
+    )  # fmt: skip
+    return runs, [simulate_user(u, registry, 3, rng) for u in bad_users]
 
 
 def main() -> int:
@@ -23,16 +35,7 @@ def main() -> int:
     args = parser.parse_args()
 
     registry = load_registry()
-    rng = np.random.default_rng(args.seed)
-    users = make_population(registry, args.users, rng)
-    runs = [simulate_user(u, registry, SESSIONS, rng) for u in users]
-    bad_users = make_population(
-        registry,
-        max(40, args.users // 5),
-        rng,
-        kinds={"normal": 0.6, "random_clicker": 0.2, "cheater": 0.2},
-    )
-    bad_runs = [simulate_user(u, registry, 3, rng) for u in bad_users]
+    runs, bad_runs = simulate(registry, args.users, args.seed)
     result = gate(runs, bad_runs, registry)
     dims, rec, succ, checks = result.dims, result.recovery, result.success, result.checks
 
@@ -68,12 +71,12 @@ def main() -> int:
     if not args.no_plots:
         args.out.mkdir(parents=True, exist_ok=True)
         (args.out / "sim_summary.md").write_text(report, encoding="utf-8")
-        _plots(runs, dims, rec, succ, args.out)
+        plots(runs, dims, rec, succ, args.out)
 
     return 0 if all(ok for *_, ok in checks) else 1
 
 
-def _plots(runs, dims, rec, succ, out: Path) -> None:  # type: ignore[no-untyped-def]
+def plots(runs, dims, rec, succ, out: Path) -> None:  # type: ignore[no-untyped-def]
     import matplotlib
 
     matplotlib.use("Agg")
