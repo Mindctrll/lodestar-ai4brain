@@ -1268,6 +1268,8 @@ button.danger {
 }
 .how-sure input {
   width: min(18rem, 70vw);
+}
+
 .signal-indicator {
   position: sticky;
   top: 0;
