@@ -927,6 +927,15 @@ export interface components {
       /** Score */
       score: number
     }
+    /** Chapter */
+    Chapter: {
+      /** Game */
+      game: string
+      /** Text */
+      text: string
+      /** Title */
+      title: string
+    }
     /** Choice */
     Choice: {
       /** Answer */
@@ -1459,6 +1468,7 @@ export interface components {
       | components['schemas']['DataExported']
       | components['schemas']['TwinSnapshotTaken']
       | components['schemas']['LlmSelectionChanged']
+      | components['schemas']['StoryChapterCompleted']
     /**
      * ExerciseSpec
      * @description Payload of the `play` interrupt.
@@ -1891,6 +1901,8 @@ export interface components {
        * @description Knob tuned inside the game
        */
       staircase?: string | null
+      /** @description The chapters, for a story */
+      story?: components['schemas']['Story'] | null
       /**
        * Terminal
        * @description A text version exists, so the CLI can play it (UW19)
@@ -3149,6 +3161,70 @@ export interface components {
        * @description Days in a row with a session, up to today or yesterday
        */
       streak_days: number
+    }
+    /**
+     * Story
+     * @description A story wrapper (docs/plan/06, Detective): each chapter is one game, scored as that game.
+     */
+    Story: {
+      /** Chapters */
+      chapters: components['schemas']['Chapter'][]
+      /** Ending */
+      ending: string
+      /** Intro */
+      intro: string
+    }
+    /** StoryChapterCompleted */
+    StoryChapterCompleted: {
+      /**
+       * Event Id
+       * @description Assigned by Postgres (uuidv7)
+       * @default null
+       */
+      event_id: string | null
+      payload: components['schemas']['StoryChapterPayload']
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Session Id
+       * @default null
+       */
+      session_id: string | null
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'story.chapter_completed'
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
+    /** StoryChapterPayload */
+    StoryChapterPayload: {
+      /**
+       * Chapter
+       * @description The chapter just finished, from 1
+       */
+      chapter: number
+      /** Chapters */
+      chapters: number
+      /**
+       * Round Id
+       * Format: uuid
+       */
+      round_id: string
+      /** Story Id */
+      story_id: string
     }
     /** SwitchInput */
     SwitchInput: {

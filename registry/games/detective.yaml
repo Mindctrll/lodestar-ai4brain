@@ -20,3 +20,19 @@ modalities:
 acs_hooks: []
 practice_trials: 0
 notes: Chains other games; each chapter is scored by its own game.
+# The story itself (WP3.8): each chapter is one game, scored as that game.
+story:
+  intro: A brass lamp has gone missing from the old souk, and you're the detective.
+  chapters:
+  - game: twins
+    title: The two notes
+    text: Someone left a note at the lamp stall. Compare it with the notes on file, fast.
+  - game: seen_it
+    title: The witness
+    text: The stall keeper remembers what was on the table. Did you see each thing before?
+  - game: logic_lock
+    title: The locked box
+    text: The last clue is a box with an if-then lock. Work out each rule to open it.
+  ending: >-
+    Case closed! The lamp was in the spice seller's back room all along, and your sharp eyes
+    cracked it. Thanks for solving it with me.

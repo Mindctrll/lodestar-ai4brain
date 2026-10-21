@@ -111,8 +111,10 @@ export function useSession() {
             : next
         case 'say': {
           const line = { text: event.text, refs: event.refs }
-          // After a game the coach speaks in the result card; everything else is conversation.
-          if (event.node === 'coach' && (s.phase === 'scoring' || s.phase === 'after'))
+          // After a game the coach (and a story's ending) speaks in the result card; everything
+          // else is conversation.
+          const after = event.node === 'coach' || event.node === 'story'
+          if (after && (s.phase === 'scoring' || s.phase === 'after'))
             return { ...next, says: [...s.says, line] }
           return { ...next, chat: [...s.chat, { who: 'najma', ...line }] }
         }

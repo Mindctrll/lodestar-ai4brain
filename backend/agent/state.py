@@ -78,6 +78,8 @@ class NajmaState(BaseModel):
     onboarding: list[str] = Field(
         default_factory=list, description="Warm-up battery games still to play (UW1)"
     )
+    story_id: str | None = Field(default=None, description="A story being played (Detective)")
+    story_chapter: int = Field(default=0, description="Chapters of that story finished")
     goal_dims: list[str] = Field(default_factory=list, description="Skills with an active goal")
     away_days: float | None = Field(default=None, description="Days since the last session")
     engagement: EngagementReading | None = None

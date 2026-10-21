@@ -108,9 +108,18 @@ export function Practice({
             A practice coach for how you focus, remember and reason. It doesn&apos;t assess medical
             or psychological conditions.
           </p>
-          <button type="button" className="primary" onClick={() => void start(askFromUrl())}>
-            Start a session
-          </button>
+          <div className="flex gap-2">
+            <button type="button" className="primary" onClick={() => void start(askFromUrl())}>
+              Start a session
+            </button>
+            <button
+              type="button"
+              title="A short mystery where each chapter is one of the games"
+              onClick={() => void start('play the Detective story')}
+            >
+              Detective story
+            </button>
+          </div>
         </section>
       )}
 
@@ -172,6 +181,7 @@ export function Practice({
           sessionId={state.sessionId}
           game={game}
           skills={skillNames(state.spec.game_id)}
+          reason={state.spec.reason}
           onFinish={finish}
         />
       )}

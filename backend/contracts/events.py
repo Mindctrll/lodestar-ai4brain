@@ -144,6 +144,13 @@ class LlmSelectionPayload(Contract):
     model: str
 
 
+class StoryChapterPayload(Contract):
+    story_id: str
+    chapter: int = Field(ge=1, description="The chapter just finished, from 1")
+    chapters: int = Field(ge=1)
+    round_id: UUID
+
+
 # Envelopes ------------------------------------------------------------------------------------
 
 
@@ -257,6 +264,11 @@ class LlmSelectionChanged(_Envelope):
     payload: LlmSelectionPayload
 
 
+class StoryChapterCompleted(_Envelope):
+    type: Literal["story.chapter_completed"] = "story.chapter_completed"
+    payload: StoryChapterPayload
+
+
 Event = Annotated[
     SessionStarted
     | TrialRecorded
@@ -277,7 +289,8 @@ Event = Annotated[
     | SessionEnded
     | DataExported
     | TwinSnapshotTaken
-    | LlmSelectionChanged,
+    | LlmSelectionChanged
+    | StoryChapterCompleted,
     Field(discriminator="type"),
 ]
 

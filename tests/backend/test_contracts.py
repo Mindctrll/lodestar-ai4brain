@@ -24,6 +24,7 @@ PLAN_EVENT_TYPES = {
     "experiment.session_logged", "experiment.completed", "consent.changed", "memory.written",
     "settings.changed",
     "session.ended", "data.exported", "twin.snapshot", "llm.selection_changed",
+    "story.chapter_completed",
 }  # fmt: skip
 
 

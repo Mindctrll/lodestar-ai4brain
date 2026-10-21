@@ -138,3 +138,5 @@ level_map: generated            # scorer maps level 0..1 → knobs
 content: llm                    # items and customer lines generated, see 08
 acs_hooks: []
 ```
+
+**As built (WP3.8).** Detective is a story: `registry/games/detective.yaml` has a `story` block (intro, chapters, ending) and each chapter names a game (Twins, Seen It?, Logic Lock). Saying "play the Detective story", or the **Detective story** button on Home, makes `plan_next` serve the chapters in order; the chapter's title and text are the pick's reason, shown on the suggestion and on the game's start screen. Each chapter is scored as its own game, a finished chapter writes a `story.chapter_completed` event, and the last one shows the ending in the after-game card. The session makes room for every chapter. A story lives inside one session for now: a session that ends early starts the story again next time. Asking for another game mid-story plays it, then the story goes on.

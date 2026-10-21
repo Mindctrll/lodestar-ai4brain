@@ -21,7 +21,7 @@ from backend.agent.state import NajmaState
 from backend.agent.telemetry import emit, record_decision, traced
 from backend.contracts.affect import AffectReading, AffectSource
 from backend.contracts.decision import Candidate, Decision
-from backend.contracts.events import AffectEstimated
+from backend.contracts.events import AffectEstimated, StoryChapterCompleted, StoryChapterPayload
 from backend.contracts.exercise import ExerciseSpec, RoundResult
 from backend.contracts.session import RoundSummary, SessionPlan, Verdict
 from backend.db import tables as t
@@ -335,9 +335,14 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     update: dict[str, Any] = {}
     evidence: list[str] = []
     requested = registry.game(intent.game_id) if intent and intent.game_id else None
+    story = registry.game(state.story_id) if state.story_id else None
+    chapter = state.story_chapter
+    if requested is not None and requested.kind == "story":  # "play the Detective story"
+        story, requested, chapter = requested, None, 0
+        update.update(story_id=story.id, story_chapter=0)
     themed = _themed_game(registry, pool, intent) if requested is None else None
     experiment = None
-    if requested is None and themed is None and not state.onboarding:
+    if requested is None and themed is None and story is None and not state.onboarding:
         slot = await experiment_slot(ctx)
         if slot is not None:
             played = {r.game_id for r in state.rounds}
@@ -382,6 +387,22 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         dim = wanted_dim
         game = _pick(pool.get(dim, by_dim[dim]), last_game, seed)
         reason = f"You asked for {registry.dimension(dim).name.lower()}."
+    elif story is not None and story.story is not None:
+        chapters = story.story.chapters
+        game = registry.game(chapters[chapter].game)
+        dim = game.primary_dims[0]
+        intro = f"{story.story.intro} " if chapter == 0 else ""
+        reason = (
+            f"{intro}{story.name}, chapter {chapter + 1} of {len(chapters)}: "
+            f"{chapters[chapter].title}. {chapters[chapter].text}"
+        )
+        evidence.append(f"story:{story.id}:{chapter + 1}")
+        if "story_id" in update:  # room in the session for every chapter
+            update["budget"] = state.budget.model_copy(
+                update={
+                    "max_rounds": max(state.budget.max_rounds, len(state.rounds) + len(chapters))
+                }
+            )
     elif experiment is not None:
         row, window = experiment
         played = {r.game_id for r in state.rounds}
@@ -616,7 +637,40 @@ async def score_update(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
         quality_verdict=scored.outcome.quality.verdict if scored else "ok",
     )
     await _experiment_round_done(runtime)
-    return {"last_round": summary, "twin": await read_twin_snapshot(ctx)}
+    story = await _story_round_done(state, ctx, result)
+    return {"last_round": summary, "twin": await read_twin_snapshot(ctx), **story}
+
+
+async def _story_round_done(
+    state: NajmaState, ctx: NajmaContext, result: RoundResult
+) -> dict[str, Any]:
+    """A played chapter moves the story on (an event per chapter); the last one ends it."""
+    game = ctx.services.registry.game(state.story_id) if state.story_id else None
+    story = game.story if game else None
+    index = state.story_chapter
+    if (
+        game is None
+        or story is None
+        or result.status == "stopped"
+        or index >= len(story.chapters)
+        or story.chapters[index].game != result.game_id
+    ):
+        return {}
+    payload = StoryChapterPayload(
+        story_id=game.id, chapter=index + 1, chapters=len(story.chapters), round_id=result.round_id
+    )
+    async with ctx.services.engine.begin() as conn:
+        await append_event(
+            conn,
+            StoryChapterCompleted(
+                user_id=ctx.user_id, session_id=ctx.session_id, ts=datetime.now(UTC),
+                payload=payload,
+            ),
+        )  # fmt: skip
+    if index + 1 < len(story.chapters):
+        return {"story_chapter": index + 1}
+    emit({"kind": "say", "text": story.ending, "node": "story"})
+    return {"story_id": None, "story_chapter": 0}
 
 
 async def experiment_slot(ctx: NajmaContext) -> tuple[Any, str] | None:

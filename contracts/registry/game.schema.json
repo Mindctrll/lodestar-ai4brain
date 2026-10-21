@@ -1,5 +1,30 @@
 {
   "$defs": {
+    "Chapter": {
+      "additionalProperties": false,
+      "properties": {
+        "game": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Game",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "game",
+        "title",
+        "text"
+      ],
+      "title": "Chapter",
+      "type": "object"
+    },
     "Knob": {
       "additionalProperties": false,
       "description": "A difficulty knob: its value at level 0 (easy) and level 1 (hard).",
@@ -30,6 +55,35 @@
         "hard"
       ],
       "title": "Knob",
+      "type": "object"
+    },
+    "Story": {
+      "additionalProperties": false,
+      "description": "A story wrapper (docs/plan/06, Detective): each chapter is one game, scored as that game.",
+      "properties": {
+        "chapters": {
+          "items": {
+            "$ref": "#/$defs/Chapter"
+          },
+          "minItems": 1,
+          "title": "Chapters",
+          "type": "array"
+        },
+        "ending": {
+          "title": "Ending",
+          "type": "string"
+        },
+        "intro": {
+          "title": "Intro",
+          "type": "string"
+        }
+      },
+      "required": [
+        "intro",
+        "chapters",
+        "ending"
+      ],
+      "title": "Story",
       "type": "object"
     }
   },
@@ -239,6 +293,18 @@
       "default": null,
       "description": "Knob tuned inside the game",
       "title": "Staircase"
+    },
+    "story": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Story"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The chapters, for a story"
     },
     "terminal": {
       "default": false,

@@ -686,6 +686,31 @@
         "title": "Candidate",
         "type": "object"
       },
+      "Chapter": {
+        "additionalProperties": false,
+        "properties": {
+          "game": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Game",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "game",
+          "title",
+          "text"
+        ],
+        "title": "Chapter",
+        "type": "object"
+      },
       "Choice": {
         "additionalProperties": false,
         "properties": {
@@ -1806,6 +1831,7 @@
             "session.ended": "#/components/schemas/SessionEnded",
             "session.started": "#/components/schemas/SessionStarted",
             "settings.changed": "#/components/schemas/SettingsChanged",
+            "story.chapter_completed": "#/components/schemas/StoryChapterCompleted",
             "trial.recorded": "#/components/schemas/TrialRecorded",
             "twin.snapshot": "#/components/schemas/TwinSnapshotTaken",
             "twin.updated": "#/components/schemas/TwinUpdated"
@@ -1872,6 +1898,9 @@
           },
           {
             "$ref": "#/components/schemas/LlmSelectionChanged"
+          },
+          {
+            "$ref": "#/components/schemas/StoryChapterCompleted"
           }
         ]
       },
@@ -2766,6 +2795,17 @@
             ],
             "description": "Knob tuned inside the game",
             "title": "Staircase"
+          },
+          "story": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Story"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The chapters, for a story"
           },
           "terminal": {
             "default": false,
@@ -5514,6 +5554,131 @@
           "skills_total"
         ],
         "title": "StatPills",
+        "type": "object"
+      },
+      "Story": {
+        "additionalProperties": false,
+        "description": "A story wrapper (docs/plan/06, Detective): each chapter is one game, scored as that game.",
+        "properties": {
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/Chapter"
+            },
+            "minItems": 1,
+            "title": "Chapters",
+            "type": "array"
+          },
+          "ending": {
+            "title": "Ending",
+            "type": "string"
+          },
+          "intro": {
+            "title": "Intro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intro",
+          "chapters",
+          "ending"
+        ],
+        "title": "Story",
+        "type": "object"
+      },
+      "StoryChapterCompleted": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/StoryChapterPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "story.chapter_completed",
+            "default": "story.chapter_completed",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "StoryChapterCompleted",
+        "type": "object"
+      },
+      "StoryChapterPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "chapter": {
+            "description": "The chapter just finished, from 1",
+            "minimum": 1,
+            "title": "Chapter",
+            "type": "integer"
+          },
+          "chapters": {
+            "minimum": 1,
+            "title": "Chapters",
+            "type": "integer"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          },
+          "story_id": {
+            "title": "Story Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "story_id",
+          "chapter",
+          "chapters",
+          "round_id"
+        ],
+        "title": "StoryChapterPayload",
         "type": "object"
       },
       "SwitchInput": {

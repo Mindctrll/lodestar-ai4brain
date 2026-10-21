@@ -70,6 +70,20 @@ class Knob(Contract):
         return float(math.floor(value + 0.5)) if self.is_int else value
 
 
+class Chapter(Contract):
+    game: GameId
+    title: str
+    text: str
+
+
+class Story(Contract):
+    """A story wrapper (docs/plan/06, Detective): each chapter is one game, scored as that game."""
+
+    intro: str
+    chapters: list[Chapter] = Field(min_length=1)
+    ending: str
+
+
 class Game(Contract):
     id: GameId
     name: str
@@ -101,10 +115,13 @@ class Game(Contract):
     themable: bool = Field(
         default=False, description="Its content can follow any theme the user asks for (UW4)"
     )
+    story: Story | None = Field(default=None, description="The chapters, for a story")
     notes: str | None = None
 
     @model_validator(mode="after")
     def _shape(self) -> Game:
+        if (self.kind == "story") != (self.story is not None):
+            raise ValueError(f"{self.id}: a story, and only a story, has chapters")
         for dim, loading in self.dims.items():
             if not 0.0 < loading <= 1.0:
                 raise ValueError(f"{self.id}: loading on {dim} must be in (0, 1]")
@@ -245,6 +262,10 @@ class Registry(Contract):
         unmeasured = known - measured
         if unmeasured:
             raise ValueError(f"dimensions with no game: {sorted(unmeasured)}")
+        for game in self.games:
+            for chapter in game.story.chapters if game.story else []:
+                if chapter.game not in game_ids or self.game(chapter.game).kind != "game":
+                    raise ValueError(f"{game.id}: chapter game {chapter.game} isn't a game")
         for name, battery in self.batteries.items():
             missing = set(battery.games) - set(game_ids)
             if missing:

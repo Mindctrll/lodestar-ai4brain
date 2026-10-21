@@ -172,8 +172,8 @@ def skills_in(text: str, registry: Registry | None = None) -> list[str]:
 
 def game_in(text: str, registry: Registry) -> str | None:
     lowered = text.lower().replace("\u2019", "'")
-    for game in registry.games:
-        if game.available and game.name.lower() in lowered:
+    for game in registry.games:  # a story ("the Detective story") is played chapter by chapter
+        if (game.available or game.kind == "story") and game.name.lower() in lowered:
             return game.id
     return None
 

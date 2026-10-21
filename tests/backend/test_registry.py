@@ -116,3 +116,10 @@ def test_registry_endpoint_hides_test_provider() -> None:
     body = TestClient(app).get("/registry").json()
     assert len(body["dimensions"]) == 16
     assert "stub" not in {p["id"] for p in body["providers"]}
+
+
+def test_detective_story_chains_games_the_browser_can_run(registry: Registry) -> None:
+    story = registry.game("detective").story
+    assert story is not None and len(story.chapters) >= 3
+    assert all(registry.game(c.game).available for c in story.chapters)
+    assert all(registry.game(g).story is None for g in ("echo", "logic_lock"))
