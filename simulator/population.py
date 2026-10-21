@@ -85,7 +85,9 @@ def correlation_matrix(dims: list[str], priors: SkillPriors | None = None) -> np
 
 
 def ability_dims(registry: Registry) -> list[str]:
-    return [d.id for d in registry.dimensions if not d.style and d.badge != "experimental"]
+    """Every skill a game can score (as backend/scoring/loadings.py), so a simulated person can
+    play any game the registry adds, experimental ones included."""
+    return [d.id for d in registry.dimensions if not d.style]
 
 
 def make_population(
