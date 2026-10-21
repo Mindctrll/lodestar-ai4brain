@@ -4,6 +4,8 @@ import { median } from '../../lib/rng'
 import { button, el, markAnswer } from '../../taskhost/plugin'
 import { waitForResponse } from '../../taskhost/respond'
 import type { TrialRecord } from '../../taskhost/types'
+import { voiceAnswer } from '../../voice/answer'
+import type { SpokenAnswer } from '../../voice/spokenAnswer'
 
 export interface Chosen {
   index: number | null
@@ -38,13 +40,19 @@ export async function choose(
 }
 
 /** A text box (`recall-input`) with a Done button (`recall-done`); Enter also submits when
- * `multiline` is off. Resolves with what was typed when Done is pressed or time runs out. */
+ * `multiline` is off. With `say`, a "Say it" button adds a spoken answer to the box. Resolves with what was typed when Done is pressed or time runs out. */
 export async function typeIn(
   jsPsych: JsPsych,
   stage: HTMLElement,
   e2e: boolean,
   expected: string,
-  options: { label: string; deadlineMs?: number | null; multiline?: boolean; numeric?: boolean },
+  options: {
+    label: string
+    deadlineMs?: number | null
+    multiline?: boolean
+    numeric?: boolean
+    say?: { pick: (answer: SpokenAnswer) => string; maxMs?: number }
+  },
 ): Promise<{ text: string; rt: number | null; timedOut: boolean }> {
   const input = options.multiline ? el('textarea', 'ml-input') : el('input', 'type-input')
   input.dataset['testid'] = 'recall-input'
@@ -52,8 +60,9 @@ export async function typeIn(
   input.placeholder = options.label
   if (input instanceof HTMLInputElement && options.numeric) input.inputMode = 'numeric'
   const done = button('Done', 'recall-done')
+  const say = options.say && voiceAnswer(input, 'Say it', options.say.pick, options.say.maxMs)
   const row = el('div', 'type-row')
-  row.append(input, done)
+  row.append(input, ...(say ? [say.button] : []), done)
   stage.append(row)
   input.focus()
   if (!options.multiline) {
@@ -70,6 +79,7 @@ export async function typeIn(
       markAnswer(stage, e2e, `type:${expected}`)
     },
   })
+  say?.cancel()
   return { text: input.value.trim(), rt: response.rt, timedOut: response.key === null }
 }
 

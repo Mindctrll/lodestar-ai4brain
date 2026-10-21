@@ -42,9 +42,7 @@ const ListPlugin = makePlugin<ListItem>(
     input.placeholder = 'Type the words you remember, in any order'
     const done = button('Done', 'recall-done')
     // Saying the words is the same as typing them (registry modalities: voice).
-    const say = voiceAnswer('Say them', (text) => {
-      input.value = `${input.value} ${text}`.trim()
-    })
+    const say = voiceAnswer(input, 'Say them', (a) => a.transcript, 60_000)
     stage.append(input, say.button, done)
     input.focus()
     const started = performance.now()

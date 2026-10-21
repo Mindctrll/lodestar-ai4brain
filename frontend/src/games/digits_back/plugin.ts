@@ -45,6 +45,7 @@ const DigitsPlugin = makePlugin<DigitsItem>(
       label: 'Type the digits backwards',
       deadlineMs: 30_000,
       numeric: true,
+      say: { pick: (a) => a.digits.join('') },
     })
     const correct = digitsOnly(text) === backwards(digits)
     if (!practice)

@@ -4,6 +4,7 @@ import { shuffle, type Rng } from '../../lib/rng'
 import { button, el, itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
 import { wait } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
+import { voiceAnswer } from '../../voice/answer'
 import { scored, taps } from '../shared/ask'
 import rawConfig from './config.yaml?raw'
 
@@ -81,9 +82,10 @@ const TeachPlugin = makePlugin<TeachItem>('najma-teach-me', async ({ stage, item
   input.setAttribute('aria-label', 'Your explanation')
   input.placeholder = 'Explain it in your own words'
   const which = button('Ask what Najma means', 'teach-ask')
+  const say = voiceAnswer(input, 'Say it', (a) => a.transcript, 60_000)
   const done = button('Done', 'recall-done')
   const row = el('div', 'type-row')
-  row.append(which, done)
+  row.append(which, say.button, done)
   stage.append(el('p', 'game-prompt', ask), reply, input, row)
   let asked = false
   let askedFirst = false
@@ -116,6 +118,7 @@ const TeachPlugin = makePlugin<TeachItem>('najma-teach-me', async ({ stage, item
       },
     },
   )
+  say.cancel()
   const { score, covered } = rubric(input.value, item.topic)
   reply.textContent =
     score >= config.pass

@@ -1,48 +1,51 @@
-import { api } from '../api/client'
 import { button } from '../taskhost/plugin'
-import { listen, speechEngine, type Listening } from './speech'
+import { listenForAnswer, MicrophoneOff, type AnswerTurn, type SpokenAnswer } from './spokenAnswer'
 
 /** Answer a game out loud (docs/plan/12, spoken game modes): a "Say it" button for games whose
- * registry `modalities` include `voice`. Tap, speak, tap again; the transcript goes to `onText`.
- * Answers are scored from the transcript only. Typing always works too. */
+ * registry `modalities` include `voice`. Tap, speak, tap again (or wait `maxMs`); `pick` turns the
+ * answer into text that is added to `input`, so the game scores it like typing. Typing always
+ * works too; with the Microphone switch off the button just says so. */
 export function voiceAnswer(
+  input: HTMLInputElement | HTMLTextAreaElement,
   label: string,
-  onText: (text: string) => void,
+  pick: (answer: SpokenAnswer) => string,
+  maxMs = 20_000,
 ): { button: HTMLButtonElement; cancel: () => void } {
   const say = button(label, 'voice-answer')
-  let turn: Listening | null = null
+  let turn: AnswerTurn | null = null
   const reset = (title = '') => {
+    turn = null
     say.textContent = label
     say.disabled = false
     say.title = title
   }
+  const fill = (answer: SpokenAnswer) => {
+    const text = pick(answer)
+    if (text) {
+      input.value = `${input.value} ${text}`.trim()
+      input.dispatchEvent(new Event('input'))
+    }
+    reset(text ? '' : "I didn't catch that. Try again?")
+  }
   say.onclick = async () => {
     if (turn) {
       const current = turn
-      turn = null
       say.textContent = 'Working it out…'
       say.disabled = true
-      try {
-        const text = (await current.stop()).trim()
-        if (text) onText(text)
-        reset(text ? '' : "I didn't catch that. Try again?")
-      } catch (e) {
+      await current.stop().catch((e: unknown) => {
         reset(e instanceof Error ? e.message : String(e))
-      }
+      })
       return
     }
     try {
-      const consent = await api.consent()
-      if (!consent.switches.some((s) => s.id === 'microphone' && s.granted)) {
-        reset('Turn on the microphone switch in Settings first.')
-        say.textContent = 'Microphone is off'
-        say.disabled = true
-        return
-      }
-      turn = await listen(speechEngine(), () => undefined)
+      turn = await listenForAnswer({ maxMs, onAnswer: fill })
       say.textContent = 'Done talking'
     } catch (e) {
       reset(e instanceof Error ? e.message : String(e))
+      if (e instanceof MicrophoneOff) {
+        say.textContent = e.message
+        say.disabled = true
+      }
     }
   }
   return {

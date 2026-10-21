@@ -50,6 +50,7 @@ const BurstPlugin = makePlugin<BurstItem>(
       label: `Words starting with ${item.letter.toUpperCase()}`,
       deadlineMs: item.seconds * 1000,
       multiline: true,
+      say: { pick: (a) => a.words.join(' '), maxMs: item.seconds * 1000 },
     })
     const words = validWords(text, item.letter)
     const minutes = (rt ?? item.seconds * 1000) / 60_000
