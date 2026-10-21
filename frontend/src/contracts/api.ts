@@ -276,6 +276,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/decisions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Recent Decisions */
+    get: operations['recent_decisions_me_decisions_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/export': {
     parameters: {
       query?: never
@@ -328,6 +345,23 @@ export interface paths {
     post?: never
     /** Forget Memory */
     delete: operations['forget_memory_me_memories__collection___point_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/progress': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Progress */
+    get: operations['get_progress_progress_get']
+    put?: never
+    post?: never
+    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -412,6 +446,26 @@ export interface paths {
     put?: never
     /** Resume Session */
     post: operations['resume_session_sessions__session_id__resume_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/sessions/{session_id}/trace': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Session Trace
+     * @description What each node did in a session and how long it took (docs/plan/03, agent timeline).
+     */
+    get: operations['session_trace_sessions__session_id__trace_get']
+    put?: never
+    post?: never
     delete?: never
     options?: never
     head?: never
@@ -909,6 +963,21 @@ export interface components {
        */
       user_id: string
     }
+    /** ContextStrip */
+    ContextStrip: {
+      /**
+       * End
+       * Format: date-time
+       */
+      end: string
+      /** Label */
+      label: string
+      /**
+       * Start
+       * Format: date-time
+       */
+      start: string
+    }
     /** CoreLine */
     CoreLine: {
       /** Line */
@@ -954,6 +1023,27 @@ export interface components {
        * @enum {string}
        */
       status: 'ok' | 'rejected' | 'out_of_credit' | 'unchecked'
+    }
+    /**
+     * CurvePoint
+     * @description One day of a skill's history, in percent with its 80% range (progress curves).
+     */
+    CurvePoint: {
+      /**
+       * Day
+       * Format: date
+       */
+      day: string
+      /** Dim */
+      dim: string
+      /** High */
+      high: number
+      /** Low */
+      low: number
+      /** N */
+      n: number
+      /** Percent */
+      percent: number
     }
     /** DataExported */
     DataExported: {
@@ -1658,6 +1748,23 @@ export interface components {
       /** Sigma */
       sigma: number
     }
+    /**
+     * HourHeatmap
+     * @description Time of day x weekday, in the user's time zone: share of answers right. Cells with fewer
+     *     than `min_answers` answers are left empty rather than guessed.
+     */
+    HourHeatmap: {
+      /** Accuracy */
+      accuracy: (number | null)[][]
+      /** Answers */
+      answers: number[][]
+      /** Hours */
+      hours: string[]
+      /** Min Answers */
+      min_answers: number
+      /** Weekdays */
+      weekdays: string[]
+    }
     /** IngestResult */
     IngestResult: {
       /** Accepted */
@@ -2127,6 +2234,14 @@ export interface components {
        */
       timezone?: string | null
     }
+    /** ProgressView */
+    ProgressView: {
+      by_hour: components['schemas']['HourHeatmap']
+      by_week: components['schemas']['SkillWeekHeatmap']
+      /** Life Context */
+      life_context: components['schemas']['ContextStrip'][]
+      stats: components['schemas']['StatPills']
+    }
     /** ProviderCapabilities */
     ProviderCapabilities: {
       /**
@@ -2593,6 +2708,23 @@ export interface components {
         [key: string]: string
       }
     }
+    /**
+     * SkillWeekHeatmap
+     * @description Skill x week: rounds played, and the change in the estimate (percentage points).
+     */
+    SkillWeekHeatmap: {
+      /** Change */
+      change: (number | null)[][]
+      /** Rounds */
+      rounds: number[][]
+      /** Skills */
+      skills: string[]
+      /**
+       * Weeks
+       * @description Monday of each week, oldest first
+       */
+      weeks: string[]
+    }
     /** StartSession */
     StartSession: {
       /**
@@ -2606,6 +2738,20 @@ export interface components {
        * @enum {string}
        */
       trigger: 'voice' | 'ui' | 'cli' | 'schedule' | 'proactive'
+    }
+    /** StatPills */
+    StatPills: {
+      /** Rounds This Week */
+      rounds_this_week: number
+      /** Skills Measured */
+      skills_measured: number
+      /** Skills Total */
+      skills_total: number
+      /**
+       * Streak Days
+       * @description Days in a row with a session, up to today or yesterday
+       */
+      streak_days: number
     }
     /** SwitchInput */
     SwitchInput: {
@@ -2634,6 +2780,20 @@ export interface components {
       required: boolean
       /** Title */
       title: string
+    }
+    /** TraceRow */
+    TraceRow: {
+      /** Event */
+      event: string
+      /** Ms */
+      ms: number | null
+      /** Node */
+      node: string
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
     }
     /** TrialBatch */
     TrialBatch: {
@@ -2857,6 +3017,8 @@ export interface components {
        * Format: date-time
        */
       as_of: string
+      /** Curves */
+      curves?: components['schemas']['CurvePoint'][]
       /** Dims */
       dims: components['schemas']['DimensionView'][]
       /** History */
@@ -3431,6 +3593,39 @@ export interface operations {
       }
     }
   }
+  recent_decisions_me_decisions_get: {
+    parameters: {
+      query?: {
+        limit?: number
+      }
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Decision'][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   export_me_export_get: {
     parameters: {
       query?: never
@@ -3513,6 +3708,37 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_progress_progress_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ProgressView']
+        }
       }
       /** @description Validation Error */
       422: {
@@ -3676,6 +3902,39 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['SessionEvents']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  session_trace_sessions__session_id__trace_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        session_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TraceRow'][]
         }
       }
       /** @description Validation Error */

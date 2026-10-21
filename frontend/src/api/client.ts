@@ -1,14 +1,18 @@
 import type {
   AgentEvent,
+  AcsView,
   ConsentView,
   Decision,
+  ForecastView,
   GoalView,
   KeySaved,
   LlmOverview,
   LlmSelection,
   MyData,
   Persona,
+  ProgressView,
   Receipt,
+  TraceRow,
   Registry,
   TrialEvent,
   TwinView,
@@ -62,6 +66,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/** `?signin=<token>` (printed by `make seed`) signs this browser in as that user once, then the
+ * token leaves the address bar. For the demo user; everyone else signs up through the first-visit
+ * screens. */
+export function adoptSignIn(): void {
+  const url = new URL(window.location.href)
+  const token = url.searchParams.get('signin')
+  if (!token) return
+  memoryToken = token
+  setToken(token)
+  url.searchParams.delete('signin')
+  window.history.replaceState(null, '', url.toString())
 }
 
 export function hasUser(): boolean {
@@ -173,6 +190,11 @@ export const api = {
   exportData: () => download('/me/export', 'najma-export.json'),
   deleteEverything: () => request<Receipt>('/me', { method: 'DELETE' }),
   goals: () => request<GoalView[]>('/goals'),
+  progress: () => request<ProgressView>('/progress'),
+  forecast: (sessions = 5) => request<ForecastView[]>(`/forecast?sessions=${String(sessions)}`),
+  acs: () => request<AcsView>('/acs'),
+  decisions: (limit = 20) => request<Decision[]>(`/me/decisions?limit=${String(limit)}`),
+  trace: (sessionId: string) => request<TraceRow[]>(`/sessions/${sessionId}/trace`),
   sendTrials: (trials: TrialEvent[]) =>
     request<{ accepted: number; duplicates: number }>('/events', {
       method: 'POST',

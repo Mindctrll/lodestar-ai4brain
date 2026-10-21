@@ -930,6 +930,32 @@
         "title": "ContextAdded",
         "type": "object"
       },
+      "ContextStrip": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "start",
+          "end"
+        ],
+        "title": "ContextStrip",
+        "type": "object"
+      },
       "CoreLine": {
         "additionalProperties": false,
         "properties": {
@@ -1010,6 +1036,48 @@
           "status"
         ],
         "title": "CredentialSummary",
+        "type": "object"
+      },
+      "CurvePoint": {
+        "additionalProperties": false,
+        "description": "One day of a skill's history, in percent with its 80% range (progress curves).",
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "dim": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Dim",
+            "type": "string"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "number"
+          }
+        },
+        "required": [
+          "day",
+          "dim",
+          "percent",
+          "low",
+          "high",
+          "n"
+        ],
+        "title": "CurvePoint",
         "type": "object"
       },
       "DataExported": {
@@ -2564,6 +2632,66 @@
         "title": "HistoryRow",
         "type": "object"
       },
+      "HourHeatmap": {
+        "additionalProperties": false,
+        "description": "Time of day x weekday, in the user's time zone: share of answers right. Cells with fewer\nthan `min_answers` answers are left empty rather than guessed.",
+        "properties": {
+          "accuracy": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Accuracy",
+            "type": "array"
+          },
+          "answers": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Answers",
+            "type": "array"
+          },
+          "hours": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hours",
+            "type": "array"
+          },
+          "min_answers": {
+            "title": "Min Answers",
+            "type": "integer"
+          },
+          "weekdays": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "required": [
+          "weekdays",
+          "hours",
+          "accuracy",
+          "answers",
+          "min_answers"
+        ],
+        "title": "HourHeatmap",
+        "type": "object"
+      },
       "IngestResult": {
         "additionalProperties": false,
         "properties": {
@@ -3581,6 +3709,35 @@
         "title": "NewUser",
         "type": "object"
       },
+      "ProgressView": {
+        "additionalProperties": false,
+        "properties": {
+          "by_hour": {
+            "$ref": "#/components/schemas/HourHeatmap"
+          },
+          "by_week": {
+            "$ref": "#/components/schemas/SkillWeekHeatmap"
+          },
+          "life_context": {
+            "items": {
+              "$ref": "#/components/schemas/ContextStrip"
+            },
+            "title": "Life Context",
+            "type": "array"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/StatPills"
+          }
+        },
+        "required": [
+          "stats",
+          "life_context",
+          "by_week",
+          "by_hour"
+        ],
+        "title": "ProgressView",
+        "type": "object"
+      },
       "ProviderCapabilities": {
         "additionalProperties": false,
         "properties": {
@@ -4538,6 +4695,64 @@
         "title": "SkillPriors",
         "type": "object"
       },
+      "SkillWeekHeatmap": {
+        "additionalProperties": false,
+        "description": "Skill x week: rounds played, and the change in the estimate (percentage points).",
+        "properties": {
+          "change": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Change",
+            "type": "array"
+          },
+          "rounds": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Rounds",
+            "type": "array"
+          },
+          "skills": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "weeks": {
+            "description": "Monday of each week, oldest first",
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Weeks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "skills",
+          "weeks",
+          "rounds",
+          "change"
+        ],
+        "title": "SkillWeekHeatmap",
+        "type": "object"
+      },
       "StartSession": {
         "additionalProperties": false,
         "properties": {
@@ -4568,6 +4783,36 @@
           }
         },
         "title": "StartSession",
+        "type": "object"
+      },
+      "StatPills": {
+        "additionalProperties": false,
+        "properties": {
+          "rounds_this_week": {
+            "title": "Rounds This Week",
+            "type": "integer"
+          },
+          "skills_measured": {
+            "title": "Skills Measured",
+            "type": "integer"
+          },
+          "skills_total": {
+            "title": "Skills Total",
+            "type": "integer"
+          },
+          "streak_days": {
+            "description": "Days in a row with a session, up to today or yesterday",
+            "title": "Streak Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "streak_days",
+          "rounds_this_week",
+          "skills_measured",
+          "skills_total"
+        ],
+        "title": "StatPills",
         "type": "object"
       },
       "SwitchInput": {
@@ -4625,6 +4870,43 @@
           "granted"
         ],
         "title": "SwitchView",
+        "type": "object"
+      },
+      "TraceRow": {
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ms"
+          },
+          "node": {
+            "title": "Node",
+            "type": "string"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "event",
+          "ms",
+          "ts"
+        ],
+        "title": "TraceRow",
         "type": "object"
       },
       "TrialBatch": {
@@ -5056,6 +5338,13 @@
             "format": "date-time",
             "title": "As Of",
             "type": "string"
+          },
+          "curves": {
+            "items": {
+              "$ref": "#/components/schemas/CurvePoint"
+            },
+            "title": "Curves",
+            "type": "array"
           },
           "dims": {
             "items": {
@@ -6025,6 +6314,72 @@
         ]
       }
     },
+    "/me/decisions": {
+      "get": {
+        "operationId": "recent_decisions_me_decisions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Decision"
+                  },
+                  "title": "Response Recent Decisions Me Decisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recent Decisions",
+        "tags": [
+          "twin",
+          "sessions"
+        ]
+      }
+    },
     "/me/export": {
       "get": {
         "description": "A download generated now; nothing is saved on the server.",
@@ -6188,6 +6543,55 @@
         "summary": "Forget Memory",
         "tags": [
           "data rights"
+        ]
+      }
+    },
+    "/progress": {
+      "get": {
+        "operationId": "get_progress_progress_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Progress",
+        "tags": [
+          "twin"
         ]
       }
     },
@@ -6466,6 +6870,71 @@
         },
         "summary": "Resume Session",
         "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/trace": {
+      "get": {
+        "description": "What each node did in a session and how long it took (docs/plan/03, agent timeline).",
+        "operationId": "session_trace_sessions__session_id__trace_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TraceRow"
+                  },
+                  "title": "Response Session Trace Sessions  Session Id  Trace Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Trace",
+        "tags": [
+          "twin",
           "sessions"
         ]
       }

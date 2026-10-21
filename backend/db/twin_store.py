@@ -32,7 +32,13 @@ from backend.contracts.events import (
 )
 from backend.contracts.exercise import RoundResult
 from backend.contracts.trial import TrialEvent
-from backend.contracts.views import STILL_LEARNING_SIGMA, DimensionView, IngestResult, TwinView
+from backend.contracts.views import (
+    STILL_LEARNING_SIGMA,
+    CurvePoint,
+    DimensionView,
+    IngestResult,
+    TwinView,
+)
 from backend.db import tables as t
 from backend.registry.models import Registry
 from backend.scoring.kalman_elo import Belief, drift, update_item_difficulty
@@ -581,4 +587,10 @@ async def read_twin(
             .order_by(t.history.c.day, t.history.c.dim)
         )
     ]
-    return TwinView(user_id=user_id, as_of=now, dims=dims, history=history)
+    curves = []
+    for h in history:
+        pr = norms.percentile(h.dim, Belief(h.mu, h.sigma))
+        curves.append(
+            CurvePoint(day=h.day, dim=h.dim, percent=pr.value, low=pr.low, high=pr.high, n=h.n)
+        )
+    return TwinView(user_id=user_id, as_of=now, dims=dims, history=history, curves=curves)

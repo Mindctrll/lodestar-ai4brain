@@ -7,6 +7,7 @@ events written here.
 
 import argparse
 import random
+import secrets
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -15,6 +16,7 @@ from sqlalchemy import Connection, insert, select
 
 from backend.db import tables as t
 from backend.db.engine import get_engine
+from backend.db.twin_store import hash_token
 from backend.registry.loader import load_registry
 
 DEMO_NAME = "Amira"
@@ -196,20 +198,37 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
     return user_id
 
 
+def issue_token(conn: Connection, user_id: UUID) -> str:
+    """A bearer token for the demo user, so the browser can sign in as them."""
+    token = secrets.token_urlsafe(32)
+    conn.execute(insert(t.user_tokens).values(token_hash=hash_token(token), user_id=user_id))
+    return token
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reset", action="store_true", help="delete earlier demo users first")
+    parser.add_argument(
+        "--token", action="store_true", help="print a sign-in token and link for the demo user"
+    )
     args = parser.parse_args()
     with get_engine().begin() as conn:
+        existing = conn.execute(
+            select(t.users.c.user_id).where(t.users.c.display_name == DEMO_NAME)
+        ).scalar_one_or_none()
         if args.reset:
             conn.execute(t.users.delete().where(t.users.c.display_name == DEMO_NAME))
-        elif conn.execute(
-            select(t.users.c.user_id).where(t.users.c.display_name == DEMO_NAME)
-        ).first():
-            print(f"Demo user {DEMO_NAME} already exists; use --reset to recreate.")
-            return
-        user_id = seed_demo_user(conn)
-    print(f"Seeded demo user {DEMO_NAME}: {user_id}")
+            existing = None
+        if existing is None:
+            user_id = seed_demo_user(conn)
+            print(f"Seeded demo user {DEMO_NAME}: {user_id}")
+        else:
+            user_id = existing
+            print(f"Demo user {DEMO_NAME} already exists ({user_id}); --reset recreates it.")
+        if args.token:
+            token = issue_token(conn, user_id)
+            print(f"TOKEN={token}")
+            print(f"Sign in as {DEMO_NAME}: http://localhost:5173/?signin={token}")
 
 
 if __name__ == "__main__":

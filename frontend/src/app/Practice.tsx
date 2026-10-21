@@ -1,0 +1,222 @@
+import { useState } from 'react'
+
+import { api } from '../api/client'
+import type { Registry } from '../api/types'
+import { GAMES } from '../games'
+import { GameFrame } from '../taskhost/GameFrame'
+import { Chat } from './Chat'
+import { Cited } from './Cited'
+import type { useSession } from './useSession'
+
+/** `?ask=...` starts the session with that request, as if the user had said it. */
+function askFromUrl(): string | undefined {
+  const ask = new URLSearchParams(window.location.search).get('ask')
+  return ask?.trim() ? ask.trim() : undefined
+}
+
+function AfterGameLabels({
+  sessionId,
+  roundId,
+  monitor,
+}: {
+  sessionId: string
+  roundId: string | null
+  monitor: { decisionId: string; chosen: string } | null
+}) {
+  const [mood, setMood] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(false)
+  const send = (kind: 'mood' | 'was_i_right', value: string, extra: object) => {
+    void api.label({ session_id: sessionId, kind, value, ...extra }).catch(() => undefined)
+  }
+  const guessed = monitor && (monitor.chosen === 'ease' || monitor.chosen === 'break')
+  return (
+    <div className="labels">
+      <p className="muted">How did that feel?</p>
+      <div className="mood" role="group" aria-label="Mood">
+        {(
+          [
+            ['good', '😀 Good'],
+            ['ok', '😐 OK'],
+            ['tough', '😣 Tough'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={mood === value}
+            disabled={mood !== null}
+            onClick={() => {
+              setMood(value)
+              send('mood', value, roundId ? { round_id: roundId } : {})
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {guessed && !answered && (
+        <p className="was-i-right">
+          I thought that one was hard for you. Was I right?{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setAnswered(true)
+              send('was_i_right', 'yes', { decision_id: monitor.decisionId })
+            }}
+          >
+            Yes
+          </button>{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setAnswered(true)
+              send('was_i_right', 'no', { decision_id: monitor.decisionId })
+            }}
+          >
+            No
+          </button>
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** The practice flow on Home: suggestion with its why, the game, the after-game coach and labels,
+ * and the conversation with Najma. */
+export function Practice({
+  session,
+  registry,
+  setWhy,
+}: {
+  session: ReturnType<typeof useSession>
+  registry: Registry | null
+  setWhy: (decisionId: string) => void
+}) {
+  const { state, start, send, answer, nextGame, play, finish, resumeSaved, skipSaved } = session
+  const game = state.spec ? GAMES[state.spec.game_id] : undefined
+  const skillNames = (gameId: string): string[] => {
+    const g = registry?.games.find((x) => x.id === gameId)
+    if (!g || !registry) return []
+    return Object.keys(g.dims).map((d) => registry.dimensions.find((x) => x.id === d)?.name ?? d)
+  }
+  return (
+    <>
+      {state.phase === 'home' && (
+        <section className="card" data-testid="start">
+          <h2>Najma</h2>
+          <p>
+            A practice coach for how you focus, remember and reason. It doesn&apos;t assess medical
+            or psychological conditions.
+          </p>
+          <button type="button" className="primary" onClick={() => void start(askFromUrl())}>
+            Start a session
+          </button>
+        </section>
+      )}
+
+      {state.phase === 'resumable' && state.spec && (
+        <section className="card" data-testid="resume">
+          <h2>Welcome back</h2>
+          <p>
+            You were in the middle of {GAMES[state.spec.game_id]?.name ?? state.spec.game_id}.
+            Resume or skip?
+          </p>
+          <div className="flex gap-2">
+            <button type="button" className="primary" onClick={() => void resumeSaved()}>
+              Resume
+            </button>
+            <button type="button" onClick={() => void skipSaved()}>
+              Skip
+            </button>
+          </div>
+        </section>
+      )}
+
+      {state.phase === 'starting' && state.chat.length === 0 && (
+        <p className="card">Najma is choosing your first game…</p>
+      )}
+
+      {state.phase === 'ready' && state.spec && (
+        <section className="card" data-testid="suggestion">
+          <h2>Next: {game?.name ?? state.spec.game_id}</h2>
+          {state.reason && (
+            <p className="reason">
+              {state.reason}{' '}
+              {state.reasonDecision && (
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    if (state.reasonDecision) setWhy(state.reasonDecision)
+                  }}
+                >
+                  Why?
+                </button>
+              )}
+            </p>
+          )}
+          {game ? (
+            <button type="button" className="primary" onClick={play}>
+              Let&apos;s go
+            </button>
+          ) : (
+            <p role="alert">This game isn&apos;t ready in the browser yet.</p>
+          )}
+        </section>
+      )}
+
+      {state.phase === 'playing' && state.spec && state.sessionId && game && (
+        <GameFrame
+          key={state.spec.round_id}
+          spec={state.spec}
+          sessionId={state.sessionId}
+          game={game}
+          skills={skillNames(state.spec.game_id)}
+          onFinish={finish}
+        />
+      )}
+
+      {(state.phase === 'scoring' || state.phase === 'after' || state.phase === 'ended') && (
+        <section className="card" data-testid="after-game">
+          <h2>{state.phase === 'ended' ? 'Session done' : 'How that went'}</h2>
+          {state.says.length === 0 && <p className="muted">Najma is looking at your round…</p>}
+          <div className="coach" data-testid="coach">
+            {state.says.map((line, i) => (
+              <p key={i}>
+                <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
+              </p>
+            ))}
+          </div>
+          {state.sessionId && state.says.length > 0 && (
+            <AfterGameLabels
+              key={state.lastRoundId ?? 'none'}
+              sessionId={state.sessionId}
+              roundId={state.lastRoundId}
+              monitor={state.lastMonitor}
+            />
+          )}
+          {state.phase === 'after' && state.spec && (
+            <button type="button" className="primary" onClick={play}>
+              Next game
+            </button>
+          )}
+          {state.phase === 'ended' && (
+            <button type="button" className="primary" onClick={() => void start()}>
+              Start another session
+            </button>
+          )}
+        </section>
+      )}
+
+      {!['playing', 'resumable', 'error'].includes(state.phase) && (
+        <Chat state={state} send={send} answer={answer} nextGame={nextGame} onWhy={setWhy} />
+      )}
+
+      {state.phase === 'error' && (
+        <p role="alert" className="card">
+          Couldn&apos;t reach Najma: {state.error}
+        </p>
+      )}
+    </>
+  )
+}

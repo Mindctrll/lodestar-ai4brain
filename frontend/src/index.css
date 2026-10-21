@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Design tokens. WP2.5 sets the final look from design/reference.png. */
+/* Design tokens, from design/reference.png: light shell, white cards, one blue accent. */
 @theme {
   --color-surface: #f7f7f8;
   --color-card: #ffffff;
@@ -23,6 +23,9 @@ body {
   max-width: 56rem;
   margin: 0 auto;
   padding: 1.5rem 1rem 4rem;
+}
+.app--narrow {
+  max-width: 40rem;
 }
 .app__header h1 {
   font-size: 2rem;
@@ -587,4 +590,333 @@ button.danger {
   border: 1px solid var(--color-line);
   border-radius: 0.5rem;
   font: inherit;
+}
+
+/* Dashboard shell (docs/plan/13, design/reference.png) */
+.shell {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  min-height: 100vh;
+  /* The sidebar's white runs the full height of long pages. */
+  background: linear-gradient(90deg, var(--color-card) 15rem, var(--color-surface) 15rem);
+}
+.sidebar {
+  background: var(--color-card);
+  border-right: 1px solid var(--color-line);
+  padding: 1.75rem 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.brand {
+  font-family: ui-serif, Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 1.75rem 0.6rem;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.nav-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.6rem;
+  color: var(--color-ink);
+}
+.nav-item:hover {
+  background: var(--color-surface);
+}
+.nav-item[aria-current='page'] {
+  background: var(--color-accent);
+  color: white;
+}
+.sidebar__note {
+  margin: 1.5rem 0 0 0.6rem;
+}
+.main {
+  padding: 1.75rem 2rem 4rem;
+  min-width: 0;
+}
+.page-head h1 {
+  font-size: 2.1rem;
+  font-weight: 600;
+  margin: 0.15rem 0 0.75rem;
+}
+.pills {
+  list-style: none;
+  display: inline-flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+}
+.pills li {
+  padding: 0.25rem 1rem;
+  color: var(--color-muted);
+}
+.pills li + li {
+  border-left: 1px solid var(--color-line);
+}
+.pills strong {
+  color: var(--color-ink);
+  font-size: 1.15rem;
+  margin-right: 0.2rem;
+}
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+.grid--home {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: start;
+}
+.grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.shell--playing .grid--home {
+  grid-template-columns: minmax(0, 1fr);
+}
+.card--sky {
+  background: #0b1026;
+  border-color: #0b1026;
+  color: #e9edff;
+}
+.card--sky h2 {
+  color: #ffffff;
+}
+.sky svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.sky--compact .sky__caption {
+  display: none;
+}
+.sky__caption {
+  color: #aab4dc;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+.sky__label {
+  fill: #dfe5ff;
+  font-size: 12px;
+}
+.sky__value {
+  fill: #9fb0ea;
+  font-size: 11px;
+}
+.constellation--link {
+  cursor: pointer;
+}
+.constellation--link:focus-visible {
+  outline: 2px solid #ffd479;
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sky svg {
+    animation: sky-in 0.6s ease-out;
+  }
+  @keyframes sky-in {
+    from {
+      opacity: 0.6;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+.chart {
+  width: 100%;
+}
+.curves {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1rem;
+}
+.curves__item h3,
+.skill h3 {
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem;
+}
+.small {
+  font-size: 0.85rem;
+}
+.goals {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.goal__head {
+  display: flex;
+  justify-content: space-between;
+}
+.goal__bar,
+.range-bar {
+  position: relative;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-line);
+  margin: 0.4rem 0;
+  overflow: hidden;
+}
+.goal__bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-accent);
+  border-radius: 999px;
+}
+.range-bar {
+  overflow: visible;
+}
+.range-bar__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #9cb8f5;
+  border-radius: 999px;
+}
+.range-bar__dot {
+  position: absolute;
+  top: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: -0.4rem 0 0 -0.4rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid white;
+}
+.acs__parts {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.acs__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.badge--established {
+  border-color: #b7e4c7;
+}
+.badge--experimental {
+  border-style: dashed;
+}
+.graph {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.graph__lane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.graph__title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.graph__node {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  transition: background 0.2s;
+}
+.graph__node--running {
+  background: #fff4d6;
+  border-color: #f0c050;
+}
+.graph__node--done {
+  background: #e8f0ff;
+  border-color: #9cb8f5;
+}
+.graph__node--error {
+  background: #fde8e4;
+  border-color: var(--color-wrong);
+}
+.decisions {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.trace {
+  width: 100%;
+  font-size: 0.85rem;
+  border-collapse: collapse;
+}
+.trace th,
+.trace td {
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.why {
+  position: sticky;
+  bottom: 1rem;
+  box-shadow: 0 10px 30px rgba(20, 20, 40, 0.15);
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    background: var(--color-surface);
+  }
+  .pills {
+    border-radius: 1rem;
+  }
+  .pills li {
+    padding: 0.2rem 0.6rem;
+  }
+  .pills li + li {
+    border-left: none;
+  }
+  .sidebar {
+    position: static;
+    height: auto;
+    padding: 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .brand {
+    margin: 0 0 0.5rem 0.4rem;
+    font-size: 1.3rem;
+  }
+  .sidebar ul {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .nav-item {
+    white-space: nowrap;
+  }
+  .main {
+    padding: 1rem;
+  }
+  .grid--home,
+  .grid--two,
+  .graph {
+    grid-template-columns: 1fr;
+  }
 }

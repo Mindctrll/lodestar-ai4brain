@@ -24,11 +24,23 @@ class DimensionView(Contract):
     still_learning: bool = Field(description="Shown greyed: 'still learning about you'")
 
 
+class CurvePoint(Contract):
+    """One day of a skill's history, in percent with its 80% range (progress curves)."""
+
+    day: dt.date
+    dim: DimensionId
+    percent: float
+    low: float
+    high: float
+    n: int
+
+
 class TwinView(Contract):
     user_id: UUID
     as_of: AwareDatetime
     dims: list[DimensionView]
     history: list[HistoryRow]
+    curves: list[CurvePoint] = Field(default_factory=list)
 
 
 class AcsComponentView(Contract):
@@ -89,3 +101,50 @@ class ForecastView(Contract):
     high: float
     model_version: str
     note: str
+
+
+class StatPills(Contract):
+    streak_days: int = Field(description="Days in a row with a session, up to today or yesterday")
+    rounds_this_week: int
+    skills_measured: int
+    skills_total: int
+
+
+class ContextStrip(Contract):
+    label: str
+    start: AwareDatetime
+    end: AwareDatetime
+
+
+class SkillWeekHeatmap(Contract):
+    """Skill x week: rounds played, and the change in the estimate (percentage points)."""
+
+    skills: list[DimensionId]
+    weeks: list[dt.date] = Field(description="Monday of each week, oldest first")
+    rounds: list[list[int]]
+    change: list[list[float | None]]
+
+
+class HourHeatmap(Contract):
+    """Time of day x weekday, in the user's time zone: share of answers right. Cells with fewer
+    than `min_answers` answers are left empty rather than guessed."""
+
+    weekdays: list[str]
+    hours: list[str]
+    accuracy: list[list[float | None]]
+    answers: list[list[int]]
+    min_answers: int
+
+
+class ProgressView(Contract):
+    stats: StatPills
+    life_context: list[ContextStrip]
+    by_week: SkillWeekHeatmap
+    by_hour: HourHeatmap
+
+
+class TraceRow(Contract):
+    node: str
+    event: str
+    ms: float | None
+    ts: AwareDatetime

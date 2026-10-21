@@ -19,6 +19,8 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "echarts": "6.1.0",
+    "echarts-for-react": "3.0.6",
     "jspsych": "8.3.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",

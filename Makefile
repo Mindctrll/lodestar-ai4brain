@@ -60,8 +60,8 @@ format: ## auto-format backend and frontend
 migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postgres)
 	uv run alembic upgrade head
 
-seed: ## add the demo user (Amira) with three weeks of practice
-	uv run python -m backend.db.seed
+seed: ## add the demo user (Amira) with three weeks of practice; prints a sign-in link
+	uv run python -m backend.db.seed --token
 
 pool: ## fill agent.content_pool so play never waits on an LLM
 	uv run python -m backend.generation.pool

@@ -18,6 +18,12 @@ export type KeySaved = Schemas['KeySaved']
 export type MyData = Schemas['MyData']
 export type Receipt = Schemas['Receipt']
 export type Persona = 'zitouna' | 'barq' | 'hikma' | 'sahbi'
+export type ProgressView = Schemas['ProgressView']
+export type ForecastView = Schemas['ForecastView']
+export type AcsView = Schemas['AcsView']
+export type TraceRow = Schemas['TraceRow']
+export type DimensionView = Schemas['DimensionView']
+export type Dimension = Schemas['Dimension']
 
 /** A write Najma wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
 export interface ConfirmRequest {
