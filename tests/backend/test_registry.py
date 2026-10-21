@@ -26,12 +26,13 @@ def registry() -> Registry:
     return load_registry()
 
 
-def test_dimensions_match_plan(registry: Registry) -> None:
-    assert {d.id for d in registry.dimensions} == PLAN_DIMENSIONS
+# The plan's lists are a floor: a skill or core game added later is a registry edit (WP4.4).
+def test_dimensions_include_the_plan(registry: Registry) -> None:
+    assert {d.id for d in registry.dimensions} >= PLAN_DIMENSIONS
 
 
-def test_p1_games_match_plan(registry: Registry) -> None:
-    assert {g.id for g in registry.games if g.phase == "P1"} == PLAN_P1_GAMES
+def test_p1_games_include_the_plan(registry: Registry) -> None:
+    assert {g.id for g in registry.games if g.phase == "P1"} >= PLAN_P1_GAMES
 
 
 def test_core_set_covers_established_skills_except_sustained_attention(
@@ -117,9 +118,9 @@ def test_unknown_dimension_is_rejected(registry: Registry) -> None:
         Registry.model_validate(registry.model_dump() | {"games": [*registry.games, bad]})
 
 
-def test_registry_endpoint_hides_test_provider() -> None:
+def test_registry_endpoint_hides_test_provider(registry: Registry) -> None:
     body = TestClient(app).get("/registry").json()
-    assert len(body["dimensions"]) == 16
+    assert len(body["dimensions"]) == len(registry.dimensions)
     assert "stub" not in {p["id"] for p in body["providers"]}
 
 

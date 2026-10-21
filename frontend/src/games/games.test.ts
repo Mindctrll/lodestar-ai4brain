@@ -175,5 +175,5 @@ test('content games refuse to start without server content', () => {
       /server/,
     )
   }
-  expect(Object.keys(GAMES)).toHaveLength(43)
+  // The exact list of games is checked against the registry in registry.test.ts.
 })

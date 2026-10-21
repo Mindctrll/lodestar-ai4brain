@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from backend.agent.nodes.play import core_games_by_dim
 from backend.agent.runner import SessionRunner
 from backend.db import tables as t
 from backend.registry.loader import load_registry
@@ -16,6 +17,7 @@ from tests.backend.agent.test_graph import collect, interrupt_of, play
 
 REGISTRY = load_registry()
 CORE = REGISTRY.core_skills()
+POOL_DIMS = set(core_games_by_dim(REGISTRY))  # every skill the default pool can pick
 
 
 async def returning_user(engine: AsyncEngine, days_ago: float = 1.0, sigma: float = 0.5) -> UUID:
@@ -45,7 +47,7 @@ async def returning_user(engine: AsyncEngine, days_ago: float = 1.0, sigma: floa
                 scored_at=then,
             )
         )
-        for dim in CORE | {"short_term_memory", "cognitive_flexibility", "numerical_thinking"}:
+        for dim in POOL_DIMS:
             await conn.execute(
                 t.dimension_state.insert().values(
                     user_id=user_id, dim=dim, mu=0.0, sigma=sigma, n=40, last_practised=then
