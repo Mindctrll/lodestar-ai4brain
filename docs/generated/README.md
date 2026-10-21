@@ -8,7 +8,7 @@ Written by `make docs` from the registry and the code; `tests/backend/test_docs_
 - [Data policy](data-policy.md)
 - [Model cards](model-cards.md)
 
-## The 16 skills
+## The 17 skills
 
 | Skill | Plain meaning | Evidence | In overall |
 |---|---|---|---|
@@ -28,3 +28,4 @@ Written by `make docs` from the registry and the code; `tests/backend/test_docs_
 | [Decision style under risk](dimensions/decision_style.md) | Cautious or bold | moderate | no |
 | [Self-awareness of accuracy](dimensions/accuracy_awareness.md) | Knowing when you're right | experimental | no |
 | [Creativity](dimensions/creativity.md) | Coming up with ideas | experimental | no |
+| [Rhythm and timing](dimensions/timing.md) | Feeling a steady beat | experimental | no |
