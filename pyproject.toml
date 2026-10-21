@@ -77,5 +77,5 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
-files = ["backend/agent", "backend/scoring", "backend/contracts", "backend/registry", "backend/generation"]
+files = ["backend/agent", "backend/scoring", "backend/contracts", "backend/registry", "backend/generation", "backend/acs"]
 plugins = ["pydantic.mypy"]

@@ -17,7 +17,10 @@ from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
+from backend.acs.events import Observation, from_trials, iteration
+from backend.contracts.acs import AcsEvent
 from backend.contracts.events import (
+    AcsObserved,
     DimensionChange,
     HistoryRow,
     RoundCompleted,
@@ -326,6 +329,26 @@ async def score_round_tx(
                 scored_at=now,
             )
         )
+        previous = (
+            await conn.execute(
+                select(t.rounds.c.score)
+                .where(
+                    t.rounds.c.user_id == user_id,
+                    t.rounds.c.game_id == game.id,
+                    t.rounds.c.round_id != result.round_id,
+                    t.rounds.c.scored_at.is_not(None),
+                )
+                .order_by(t.rounds.c.scored_at.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        if outcome.quality.trust > 0:
+            observations = from_trials(game.id, trials) + iteration(
+                game.id, previous, outcome.mean_score
+            )
+            await record_acs(
+                conn, user_id, round_row.session_id, observations, result.round_id, now
+            )
         if outcome.quality.trust > 0 and loads:
             primary = max(loads, key=lambda d: loads[d])
             await _learn_item_difficulty(conn, game.id, outcome, before[primary].sigma)
@@ -333,6 +356,56 @@ async def score_round_tx(
             text("SELECT pg_notify(:c, :u)"), {"c": NOTIFY_CHANNEL, "u": str(user_id)}
         )
     return ScoredRound(result.round_id, outcome, changes, twin_event_id)
+
+
+async def record_acs(
+    conn: AsyncConnection,
+    user_id: UUID,
+    session_id: UUID | None,
+    observations: Sequence[Observation],
+    round_id: UUID | None,
+    now: datetime,
+) -> None:
+    """ACS observations: a typed row each, plus an acs.observed event (docs/plan/11)."""
+    for obs in observations:
+        await conn.execute(
+            t.acs_observations.insert().values(
+                user_id=user_id,
+                component=obs.component,
+                success=obs.success,
+                source=obs.source,
+                round_id=round_id,
+                ts=now,
+            )
+        )
+        await append_event(
+            conn,
+            AcsObserved(
+                user_id=user_id,
+                session_id=session_id,
+                ts=now,
+                payload=AcsEvent(
+                    component=obs.component,
+                    success=obs.success,
+                    source=obs.source,
+                    round_id=round_id,
+                    ts=now,
+                ),
+            ),
+        )
+
+
+async def acs_counts(conn: AsyncConnection, user_id: UUID) -> dict[str, tuple[int, int]]:
+    rows = await conn.execute(
+        select(
+            t.acs_observations.c.component,
+            func.count().filter(t.acs_observations.c.success.is_(True)),
+            func.count(),
+        )
+        .where(t.acs_observations.c.user_id == user_id)
+        .group_by(t.acs_observations.c.component)
+    )
+    return {r[0]: (int(r[1]), int(r[2])) for r in rows}
 
 
 async def _apply_changes(

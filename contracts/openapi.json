@@ -1,6 +1,62 @@
 {
   "components": {
     "schemas": {
+      "AcsComponentView": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "enough_data": {
+            "title": "Enough Data",
+            "type": "boolean"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opportunities": {
+            "title": "Opportunities",
+            "type": "integer"
+          },
+          "score": {
+            "description": "Posterior mean, 0-1",
+            "title": "Score",
+            "type": "number"
+          },
+          "successes": {
+            "title": "Successes",
+            "type": "integer"
+          },
+          "weight": {
+            "description": "Effective weight; 0 while there isn't enough data",
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "successes",
+          "opportunities",
+          "score",
+          "low",
+          "high",
+          "weight",
+          "enough_data"
+        ],
+        "title": "AcsComponentView",
+        "type": "object"
+      },
       "AcsEvent": {
         "additionalProperties": false,
         "description": "One opportunity for a component; `success` says whether the user took it well.",
@@ -113,6 +169,60 @@
           "payload"
         ],
         "title": "AcsObserved",
+        "type": "object"
+      },
+      "AcsView": {
+        "additionalProperties": false,
+        "description": "The AI Collaboration Score (docs/plan/11): a value with its 80% range, or none yet.",
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/AcsComponentView"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "required": [
+          "score",
+          "low",
+          "high",
+          "components"
+        ],
+        "title": "AcsView",
         "type": "object"
       },
       "AffectEstimated": {
@@ -4016,6 +4126,55 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/acs": {
+      "get": {
+        "operationId": "get_acs_acs_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Acs",
+        "tags": [
+          "twin"
+        ]
+      }
+    },
     "/events": {
       "post": {
         "operationId": "post_events_events_post",

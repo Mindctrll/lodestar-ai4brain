@@ -30,6 +30,27 @@ class TwinView(Contract):
     history: list[HistoryRow]
 
 
+class AcsComponentView(Contract):
+    code: str
+    name: str
+    successes: int
+    opportunities: int
+    score: float = Field(description="Posterior mean, 0-1")
+    low: float
+    high: float
+    weight: float = Field(description="Effective weight; 0 while there isn't enough data")
+    enough_data: bool
+
+
+class AcsView(Contract):
+    """The AI Collaboration Score (docs/plan/11): a value with its 80% range, or none yet."""
+
+    score: float | None
+    low: float | None
+    high: float | None
+    components: list[AcsComponentView]
+
+
 class CreatedUser(Contract):
     user_id: UUID
     token: str = Field(description="Bearer token; shown once, stored only as a hash")

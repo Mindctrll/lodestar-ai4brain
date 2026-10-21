@@ -14,14 +14,15 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command, StreamMode
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from backend.acs.events import BREAK_MINUTES, Observation
 from backend.agent.context import NajmaContext, Services
 from backend.agent.state import NajmaState
 from backend.contracts.events import SessionStarted, SessionStartedPayload
 from backend.db import tables as t
 from backend.db.llm_store import get_selection
-from backend.db.twin_store import append_event
+from backend.db.twin_store import append_event, record_acs
 
 STREAM_MODES: list[StreamMode] = ["updates", "custom"]
 
@@ -43,6 +44,7 @@ class SessionRunner:
 
     async def create_session(self, user_id: UUID, trigger: str) -> UUID:
         async with self.services.engine.begin() as conn:
+            await self._judge_last_break(conn, user_id)
             session_id: UUID = (
                 await conn.execute(
                     t.sessions.insert()
@@ -63,6 +65,44 @@ class SessionRunner:
                 ),
             )
         return session_id
+
+    async def _judge_last_break(self, conn: Any, user_id: UUID) -> None:
+        """ACS responsible use: if the last session ended with a suggested break, starting again
+        within 10 minutes means the break wasn't taken (docs/plan/11)."""
+        last = (
+            await conn.execute(
+                select(t.sessions.c.session_id, t.sessions.c.ended_at)
+                .where(t.sessions.c.user_id == user_id, t.sessions.c.ended_at.is_not(None))
+                .order_by(t.sessions.c.started_at.desc())
+                .limit(1)
+            )
+        ).one_or_none()
+        if last is None:
+            return
+        verdict = (
+            await conn.execute(
+                select(t.decisions.c.chosen)
+                .where(t.decisions.c.session_id == last.session_id, t.decisions.c.node == "monitor")
+                .order_by(t.decisions.c.ts.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        judged = (
+            await conn.execute(
+                select(func.count())
+                .select_from(t.acs_observations)
+                .where(
+                    t.acs_observations.c.user_id == user_id,
+                    t.acs_observations.c.source == f"break:{last.session_id}",
+                )
+            )
+        ).scalar_one()
+        if verdict != "break" or judged:
+            return
+        now = datetime.now(UTC)
+        took_it = (now - last.ended_at).total_seconds() >= BREAK_MINUTES * 60
+        obs = Observation("R", took_it, f"break:{last.session_id}")
+        await record_acs(conn, user_id, last.session_id, [obs], None, now)
 
     async def _session(self, user_id: UUID, session_id: UUID) -> tuple[str, str, str]:
         async with self.services.engine.connect() as conn:

@@ -3,11 +3,25 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
+from backend.acs.score import score
 from backend.api.deps import Conn, CurrentUser, Engine
 from backend.contracts.common import Contract
 from backend.contracts.trial import TrialEvent
-from backend.contracts.views import CreatedUser, IngestResult, TwinView
-from backend.db.twin_store import ForeignRound, RoundNotFound, create_user, read_twin, record_trials
+from backend.contracts.views import (
+    AcsComponentView,
+    AcsView,
+    CreatedUser,
+    IngestResult,
+    TwinView,
+)
+from backend.db.twin_store import (
+    ForeignRound,
+    RoundNotFound,
+    acs_counts,
+    create_user,
+    read_twin,
+    record_trials,
+)
 
 router = APIRouter()
 
@@ -37,6 +51,30 @@ async def post_events(batch: TrialBatch, user_id: CurrentUser, engine: Engine) -
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "That round belongs to someone else"
         ) from exc
+
+
+@router.get("/acs", response_model=AcsView, tags=["twin"])
+async def get_acs(user_id: CurrentUser, conn: Conn) -> AcsView:
+    result = score(await acs_counts(conn, user_id))  # type: ignore[arg-type]  # str keys from SQL
+    return AcsView(
+        score=result.value,
+        low=result.low,
+        high=result.high,
+        components=[
+            AcsComponentView(
+                code=c.code,
+                name=c.name,
+                successes=c.successes,
+                opportunities=c.opportunities,
+                score=c.mean,
+                low=c.low,
+                high=c.high,
+                weight=c.weight,
+                enough_data=c.enough,
+            )
+            for c in result.components
+        ],
+    )
 
 
 @router.get("/twin", response_model=TwinView, tags=["twin"])
