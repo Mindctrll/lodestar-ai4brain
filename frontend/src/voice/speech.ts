@@ -2,11 +2,16 @@ import { API_BASE, ApiError, getToken } from '../api/client'
 
 /** Speech to text (docs/plan/12, Voice stack). "browser" uses the browser's own recognition,
  * which may send audio to its maker (Chrome: Google). "private" records here, converts to 16 kHz
- * WAV, and transcribes on Najma's server, where the audio is not kept. */
-export type SpeechEngine = 'browser' | 'private'
+ * WAV, and transcribes on Najma's server, where the audio is not kept. "device" runs Whisper in
+ * this browser (Transformers.js), so the audio never leaves the device. */
+export type SpeechEngine = 'browser' | 'private' | 'device'
 
 const ENGINE_KEY = 'najma.voice.engine'
 const RATE = 16_000
+const WHISPER_MODEL = 'onnx-community/whisper-base.en'
+// A turn started by the wake word ends by itself after this much quiet once speech has begun.
+const QUIET_MS = 1_200
+const QUIET_RMS = 0.01
 const TAP_WORKLET = `class Tap extends AudioWorkletProcessor {
   process(inputs) {
     const channel = inputs[0] && inputs[0][0]
@@ -48,7 +53,7 @@ export function browserRecognitionAvailable(): boolean {
 export function speechEngine(): SpeechEngine {
   try {
     const saved = localStorage.getItem(ENGINE_KEY)
-    if (saved === 'browser' || saved === 'private') return saved
+    if (saved === 'browser' || saved === 'private' || saved === 'device') return saved
   } catch {
     // no storage: fall through
   }
@@ -61,6 +66,28 @@ export function setSpeechEngine(engine: SpeechEngine): void {
   } catch {
     // private mode: the choice lasts for this page only
   }
+  if (engine === 'device') void loadWhisper().catch(() => undefined)
+}
+
+type Transcriber = (audio: Float32Array) => Promise<string>
+let whisper: Promise<Transcriber> | null = null
+
+/** Whisper base.en in the browser: a one-time download of about 80 MB (q8), cached by the
+ * browser, in its own chunk. */
+export function loadWhisper(): Promise<Transcriber> {
+  whisper ??= import('@huggingface/transformers')
+    .then(async ({ pipeline }) => {
+      const asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL, { dtype: 'q8' })
+      return async (audio: Float32Array) => {
+        const out = (await asr(audio)) as { text: string } | { text: string }[]
+        return (Array.isArray(out) ? (out[0]?.text ?? '') : out.text).trim()
+      }
+    })
+    .catch((e: unknown) => {
+      whisper = null
+      throw e
+    })
+  return whisper
 }
 
 /** 16-bit PCM WAV, mono: the only format the private engine accepts. */
@@ -96,7 +123,7 @@ export interface Listening {
   cancel(): void
 }
 
-function listenInBrowser(onInterim: (text: string) => void): Listening {
+function listenInBrowser(onInterim: (text: string) => void, onQuiet?: () => void): Listening {
   const Ctor = recognitionCtor()
   if (!Ctor)
     throw new Error("This browser can't recognise speech; choose private voice in Settings.")
@@ -121,7 +148,10 @@ function listenInBrowser(onInterim: (text: string) => void): Listening {
   }
   rec.onerror = (e) =>
     fail?.(new Error(e.error === 'not-allowed' ? 'Microphone blocked by the browser.' : e.error))
-  rec.onend = () => settle?.(finalText.trim())
+  rec.onend = () => {
+    settle?.(finalText.trim())
+    onQuiet?.() // the browser stops by itself after a pause
+  }
   rec.start()
   return {
     stop: () => {
@@ -134,7 +164,11 @@ function listenInBrowser(onInterim: (text: string) => void): Listening {
   }
 }
 
-async function listenPrivately(): Promise<Listening> {
+/** Record 16 kHz mono samples here; nothing leaves the page until `stop()` hands them over. */
+async function record(onQuiet?: () => void): Promise<{
+  stop: () => Promise<Float32Array>
+  cancel: () => void
+}> {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } })
   const context = new AudioContext({ sampleRate: RATE })
   const source = context.createMediaStreamSource(stream)
@@ -144,8 +178,20 @@ async function listenPrivately(): Promise<Listening> {
   await context.audioWorklet.addModule(module)
   URL.revokeObjectURL(module)
   const tap = new AudioWorkletNode(context, 'najma-tap')
+  let spoke = false
+  let quietSince = 0
   tap.port.onmessage = (e: MessageEvent<Float32Array>) => {
     chunks.push(e.data)
+    if (!onQuiet) return
+    const loud = Math.sqrt(e.data.reduce((n, x) => n + x * x, 0) / e.data.length) > QUIET_RMS
+    const now = performance.now()
+    if (loud) {
+      spoke = true
+      quietSince = now
+    } else if (spoke && now - quietSince > QUIET_MS) {
+      spoke = false
+      onQuiet()
+    }
   }
   const silent = context.createGain()
   silent.gain.value = 0 // keeps the graph running without playing the microphone back
@@ -163,27 +209,13 @@ async function listenPrivately(): Promise<Listening> {
   return {
     stop: async () => {
       await close()
-      const total = chunks.reduce((n, c) => n + c.length, 0)
-      const samples = new Float32Array(total)
+      const samples = new Float32Array(chunks.reduce((n, c) => n + c.length, 0))
       let at = 0
       for (const c of chunks) {
         samples.set(c, at)
         at += c.length
       }
-      const token = getToken()
-      const response = await fetch(`${API_BASE}/voice/transcribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'audio/wav',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: encodeWav(samples),
-      })
-      if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { detail?: string }
-        throw new ApiError(response.status, body.detail ?? response.statusText)
-      }
-      return ((await response.json()) as { text: string }).text
+      return samples
     },
     cancel: () => {
       void close()
@@ -191,9 +223,39 @@ async function listenPrivately(): Promise<Listening> {
   }
 }
 
+async function transcribeOnServer(samples: Float32Array): Promise<string> {
+  const token = getToken()
+  const response = await fetch(`${API_BASE}/voice/transcribe`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'audio/wav',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: encodeWav(samples),
+  })
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { detail?: string }
+    throw new ApiError(response.status, body.detail ?? response.statusText)
+  }
+  return ((await response.json()) as { text: string }).text
+}
+
+async function transcribeOnDevice(samples: Float32Array): Promise<string> {
+  return (await loadWhisper())(samples)
+}
+
+/** Start a listening turn. With `onQuiet`, the turn tells its caller when the person has
+ * stopped talking (used after the wake word, where nobody taps to send). */
 export async function listen(
   engine: SpeechEngine,
   onInterim: (text: string) => void,
+  onQuiet?: () => void,
 ): Promise<Listening> {
-  return engine === 'browser' ? listenInBrowser(onInterim) : listenPrivately()
+  if (engine === 'browser') return listenInBrowser(onInterim, onQuiet)
+  const recording = await record(onQuiet)
+  const transcribe = engine === 'device' ? transcribeOnDevice : transcribeOnServer
+  return {
+    stop: async () => transcribe(await recording.stop()),
+    cancel: recording.cancel,
+  }
 }

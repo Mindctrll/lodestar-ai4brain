@@ -4,6 +4,7 @@ import { shuffle } from '../../lib/rng'
 import { button, el, itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
 import { wait, waitForResponse } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
+import { voiceAnswer } from '../../voice/answer'
 import rawConfig from './config.yaml?raw'
 
 const config = parse(rawConfig) as { fallback_words: string[] }
@@ -40,7 +41,11 @@ const ListPlugin = makePlugin<ListItem>(
     input.setAttribute('aria-label', 'Type the words you remember')
     input.placeholder = 'Type the words you remember, in any order'
     const done = button('Done', 'recall-done')
-    stage.append(input, done)
+    // Saying the words is the same as typing them (registry modalities: voice).
+    const say = voiceAnswer('Say them', (text) => {
+      input.value = `${input.value} ${text}`.trim()
+    })
+    stage.append(input, say.button, done)
     input.focus()
     const started = performance.now()
     await waitForResponse(jsPsych, {
@@ -51,6 +56,7 @@ const ListPlugin = makePlugin<ListItem>(
         markAnswer(stage, e2e, `type:${item.words.join(' ')}`)
       },
     })
+    say.cancel()
     const got = recalled(input.value, item.words)
     const rt = performance.now() - started
     return item.words.map((w, i) => ({
@@ -75,8 +81,8 @@ export function metrics(trials: TrialRecord[]): Record<string, number> {
 export const game: GameModule = {
   id: 'market_list',
   name: 'Market List',
-  instructions: 'Words will flash one at a time. Afterwards, type every word you remember.',
-  keysHint: 'Type the words, then press Done.',
+  instructions: 'Words will flash one at a time. Afterwards, type or say every word you remember.',
+  keysHint: 'Type the words (or tap Say them and speak), then press Done.',
   timeline({ spec, rng, e2e }) {
     const lists = (spec.content?.['lists'] as string[][] | undefined) ?? [
       shuffle(rng, config.fallback_words).slice(0, Math.round(spec.knobs['list_length'] ?? 8)),

@@ -1,6 +1,7 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import type { ExerciseSpec, RoundResult } from '../api/types'
+import { coachSays, stopSpeaking } from '../voice/tts'
 import type { GameModule } from './types'
 import { TaskHost, type TaskControls } from './TaskHost'
 
@@ -20,6 +21,12 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
   const [struggling, setStruggling] = useState(false)
   const [progress, setProgress] = useState<[number, number]>([0, 0])
   const controls = useRef<TaskControls | null>(null)
+
+  // Voice coaching (docs/plan/12): when Najma speaks, she reads the instructions out loud.
+  useEffect(() => {
+    coachSays(`${game.name}. ${game.instructions}`)
+    return stopSpeaking
+  }, [game])
 
   return (
     <section className="game-frame" aria-label={game.name}>
@@ -51,6 +58,8 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
             type="button"
             className="primary"
             onClick={() => {
+              stopSpeaking()
+              coachSays('Ready. Go!')
               setStarted(true)
             }}
             autoFocus

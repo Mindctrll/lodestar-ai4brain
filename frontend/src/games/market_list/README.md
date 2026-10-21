@@ -5,7 +5,8 @@
 **Paradigm:** immediate free recall of a word list (as in classic list-learning tasks). The
 words are generated on the server for a theme (for example "football", UW4) and checked.
 
-**What you do:** words flash one at a time. Then type all the ones you remember, in any order.
+**What you do:** words flash one at a time. Then type or say all the ones you remember, in any
+order ("Say them" uses the voice engine chosen in Settings; the transcript is scored like typing).
 
 **Metrics:** words recalled out of the list (each word is scored on its own).
 

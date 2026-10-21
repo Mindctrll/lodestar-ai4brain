@@ -16,6 +16,13 @@
 - **Themed requests:** a themed request goes to a game that takes themes (`themable` in the registry, Market List today). "Give me a memory game about football" gives "Football memory, coming up: Market List" with the curated football words.
 - **Test:** the e2e test plays `tests/fixtures/voice/*.wav` (synthesised with Kokoro-82M) through Chromium's fake microphone.
 
+**As built (WP3.4).**
+- **"Hey Najma":** Porcupine Web 4.0.1 (`frontend/src/voice/wake.ts`). The person pastes their own Picovoice AccessKey and uploads a "Hey Najma" keyword file (.ppn for Web, made in the Picovoice Console) in Settings → Voice. Both stay in that browser's storage and are never sent to Najma's server (rule 9; the screen shows only the last 4 characters; a test checks no request carries the key). The engine only runs when it's set up and the microphone switch is on. A wake turn ends by itself after 1.2 s of quiet. With no key, or if the engine can't start, the orb says so and tap-to-talk works exactly as before (tested). `porcupine_params.pv` (Apache-2.0) ships as a Vite asset.
+- **False-trigger test:** `frontend/src/voice/wake.test.ts` runs the real engine over background audio and counts detections (allowed: 1 per 30 minutes; Picovoice targets under 1 per 10 hours). It skips unless `PORCUPINE_ACCESS_KEY` and `PORCUPINE_KEYWORD_PPN` are set. By default it uses about 3 minutes built from the speech fixtures and quiet noise; set `WAKE_BACKGROUND_WAV` for the 30-minute run (`tests/fixtures/voice/README.md`).
+- **Private, on this device:** a third listening choice runs Whisper base.en (q8, about 80 MB once) in the browser with Transformers.js 4.3.1, so the audio never leaves the device. The server "Private" mode stays as it was, and "Your browser" stays the default.
+- **Natural voices:** Kokoro-82M through kokoro-js 1.2.1 (q8, about 90 MB once), one voice per coach (Zitouna `af_heart`, Barq `am_puck`, Hikma `bm_george`, Sahbi `am_michael`) at the coach's rate. Lines play one after another; if the model can't load, the browser's voice says the line. kokoro-js brings its own Transformers.js 3.x; both load as separate lazy chunks, so neither is in the main bundle.
+- **Voice-guided games:** when replies are spoken, Najma reads each game's name and instructions and says "Ready. Go!" on Start. Market List now lists `voice` in its modalities and has a "Say them" button: the transcript is added to the answer box and scored like typing. `voiceAnswer()` in `frontend/src/voice/answer.ts` is the same button for the spoken games (Word Burst, Digits Back, Teach Me).
+
 Audio is discarded after transcription. Transcripts are kept 30 days unless the user pins them (`14`).
 
 ## Frustration and fatigue: the main path (no camera, no mic)

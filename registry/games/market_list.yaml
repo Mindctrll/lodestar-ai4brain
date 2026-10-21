@@ -27,6 +27,7 @@ content: llm
 modalities:
 - keyboard
 - touch
+- voice  # say the words (WP3.4)
 acs_hooks: []
 practice_trials: 3
 available: true

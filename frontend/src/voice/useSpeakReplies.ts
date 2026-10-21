@@ -2,12 +2,15 @@ import { useEffect, useRef } from 'react'
 
 import type { Persona } from '../api/types'
 import type { SessionState } from '../app/useSession'
-import { speak } from './tts'
+import { setCoachVoice, speak } from './tts'
 
 /** Speak Najma's new lines (chat replies and the after-game coach) in the coach's voice. The
  * same lines are always on screen. */
 export function useSpeakReplies(state: SessionState, persona: Persona, enabled: boolean): void {
   const spoken = useRef({ chat: 0, says: 0 })
+  useEffect(() => {
+    setCoachVoice(persona, enabled)
+  }, [persona, enabled])
   useEffect(() => {
     const najma = state.chat.filter((l) => l.who === 'najma')
     // Both lists start again (a new session, a new round): count from the start then.

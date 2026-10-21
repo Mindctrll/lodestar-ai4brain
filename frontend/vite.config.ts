@@ -22,5 +22,12 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Picovoice's packages have only a "module" field, which Node-side resolution ignores.
+    alias: [
+      {
+        find: /^@picovoice\/(porcupine-web|web-voice-processor)$/,
+        replacement: '@picovoice/$1/dist/esm/index.js',
+      },
+    ],
   },
 })

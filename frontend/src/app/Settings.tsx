@@ -8,7 +8,8 @@ import {
   speechEngine,
   type SpeechEngine,
 } from '../voice/speech'
-import { canSpeak, speakReplies } from '../voice/tts'
+import { canSpeak, setVoiceKind, speakReplies, voiceKind, type VoiceKind } from '../voice/tts'
+import { maskedKey, saveWakeSetup, WAKE_LABEL, wakeSetup } from '../voice/wake'
 
 type Tab = 'privacy' | 'voice' | 'ai' | 'data' | 'terminal'
 
@@ -476,10 +477,91 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
   )
 }
 
+/** "Hey Najma" (docs/plan/12): the person's own Picovoice AccessKey and keyword file. Both stay
+ * in this browser and are never sent to Najma's server; only the last 4 characters are shown. */
+function WakeWord() {
+  const [saved, setSaved] = useState(wakeSetup)
+  const [key, setKey] = useState('')
+  const [keyword, setKeyword] = useState<string | null>(null)
+  if (saved)
+    return (
+      <p>
+        On, with key <code>{maskedKey(saved.accessKey)}</code>.{' '}
+        <button
+          type="button"
+          onClick={() => {
+            saveWakeSetup(null)
+            setSaved(null)
+          }}
+        >
+          Turn off and forget the key
+        </button>
+      </p>
+    )
+  return (
+    <form
+      aria-label="Wake word"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!keyword) return
+        const setup = { accessKey: key.trim(), keyword }
+        saveWakeSetup(setup)
+        setSaved(setup)
+        setKey('')
+      }}
+    >
+      <p className="muted">
+        Off. To say &ldquo;{WAKE_LABEL}&rdquo; instead of tapping, add your own Picovoice AccessKey
+        and a &ldquo;{WAKE_LABEL}&rdquo; keyword file for Web, both from{' '}
+        <a href="https://console.picovoice.ai/" target="_blank" rel="noreferrer">
+          the Picovoice Console
+        </a>
+        . The wake word is heard on this device only; Picovoice checks the key, and Najma&apos;s
+        server never sees it.
+      </p>
+      <label htmlFor="wake-key">Picovoice AccessKey</label>
+      <input
+        id="wake-key"
+        type="password"
+        autoComplete="off"
+        value={key}
+        onChange={(e) => {
+          setKey(e.target.value)
+        }}
+      />
+      <label htmlFor="wake-file">Keyword file (.ppn, Web)</label>
+      <input
+        id="wake-file"
+        type="file"
+        accept=".ppn"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (!file) return
+          void file.arrayBuffer().then((bytes) => {
+            setKeyword(btoa(String.fromCharCode(...new Uint8Array(bytes))))
+          })
+        }}
+      />
+      <button
+        type="submit"
+        className="primary"
+        disabled={key.trim().length < 8 || keyword === null}
+      >
+        Turn on the wake word
+      </button>
+    </form>
+  )
+}
+
 /** How Najma listens and speaks (docs/plan/12). */
 function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
   const [engine, setEngine] = useState<SpeechEngine>(speechEngine)
   const [speakOn, setSpeakOn] = useState(speakReplies)
+  const [kind, setKind] = useState<VoiceKind>(voiceKind)
+  const pickKind = (next: VoiceKind) => {
+    setVoiceKind(next)
+    setKind(next)
+  }
   return (
     <div data-testid="voice-settings">
       <h3>Listening</h3>
@@ -527,7 +609,30 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
             </span>
           </label>
         </li>
+        <li>
+          <label className="switch">
+            <input
+              type="radio"
+              name="engine"
+              checked={engine === 'device'}
+              onChange={() => {
+                setSpeechEngine('device')
+                setEngine('device')
+              }}
+            />
+            <span>
+              <strong>Private, on this device</strong>
+              <br />
+              <span className="muted">
+                Turned into text in this browser; the audio never leaves your device. A one-time
+                download of about 80 MB, and slower on older computers. English only for now.
+              </span>
+            </span>
+          </label>
+        </li>
       </ul>
+      <h3>Wake word</h3>
+      <WakeWord />
       <h3>Speaking</h3>
       <label className="switch">
         <input
@@ -543,10 +648,50 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
           <strong>Speak Najma&apos;s replies</strong>
           <br />
           <span className="muted">
-            In your coach&apos;s voice. Everything spoken is also shown as text.
+            In your coach&apos;s voice, and Najma reads game instructions out loud. Everything
+            spoken is also shown as text.
           </span>
         </span>
       </label>
+      <ul className="switches">
+        <li>
+          <label className="switch">
+            <input
+              type="radio"
+              name="voice-kind"
+              checked={kind === 'browser'}
+              onChange={() => {
+                pickKind('browser')
+              }}
+            />
+            <span>
+              <strong>Your browser&apos;s voices</strong>
+              <br />
+              <span className="muted">Ready at once; they sound different on each device.</span>
+            </span>
+          </label>
+        </li>
+        <li>
+          <label className="switch">
+            <input
+              type="radio"
+              name="voice-kind"
+              checked={kind === 'natural'}
+              onChange={() => {
+                pickKind('natural')
+              }}
+            />
+            <span>
+              <strong>Natural voices</strong>
+              <br />
+              <span className="muted">
+                A voice for each coach, made in this browser (Kokoro). A one-time download of about
+                90 MB.
+              </span>
+            </span>
+          </label>
+        </li>
+      </ul>
     </div>
   )
 }
