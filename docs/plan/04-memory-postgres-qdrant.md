@@ -130,7 +130,7 @@ One `query_points` call:
 
 1. **Prefetch** dense top-30 and sparse top-30, both filtered by `user_id`.
 2. **Fuse** with reciprocal rank fusion (RRF).
-3. **Rescore** with a formula: relevance × importance × exponential time decay on `created_at`.
+3. **Rescore** with a formula: fused rank × relevance gate × importance × time decay on `created_at`. The gate is the dense cosine rescaled from 0.55 (where unrelated short texts sit with bge-small) to 1, because fusion ranks carry no absolute relevance; the decay has a floor of 0.25 so a relevant old memory still counts.
 4. **Diversify** with MMR so the top 5 aren't five versions of the same memory.
 
 Every call goes through `memory.search(user_id, ...)`, which always adds the `user_id` filter. The shared `knowledge` collection has its own read-only helper, `memory.search_knowledge(...)`, and holds no user data.

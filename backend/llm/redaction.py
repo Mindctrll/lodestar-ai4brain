@@ -48,6 +48,14 @@ def redact(text: str) -> str:
 _installed = False
 
 
+def _redact_arg(value: Any) -> Any:
+    if value is None or isinstance(value, bool | int | float):
+        return value
+    text = str(value)
+    cleaned = redact(text)
+    return value if cleaned == text else cleaned
+
+
 def install() -> None:
     """Redact every log record at creation, whichever logger or handler it goes to."""
     global _installed
@@ -57,11 +65,14 @@ def install() -> None:
 
     def factory(*args: Any, **kwargs: Any) -> logging.LogRecord:
         record = base_factory(*args, **kwargs)
-        try:
-            message = record.getMessage()
-        except Exception:  # a malformed log call must not break logging
-            return record
-        record.msg, record.args = redact(message), None
+        # Redact the template and each argument in place; handlers such as uvicorn's access log
+        # unpack record.args, so its shape must stay the same.
+        if isinstance(record.msg, str):
+            record.msg = redact(record.msg)
+        if isinstance(record.args, tuple):
+            record.args = tuple(_redact_arg(a) for a in record.args)
+        elif isinstance(record.args, dict):
+            record.args = {k: _redact_arg(v) for k, v in record.args.items()}
         if record.exc_info and record.exc_info[1] is not None:
             record.exc_text = redact(logging.Formatter().formatException(record.exc_info))
         return record

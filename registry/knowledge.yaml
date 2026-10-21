@@ -1,0 +1,39 @@
+# Coaching tips written by the team (docs/plan/09, "Coaching content beyond numbers"). Loaded into
+# the shared Qdrant `knowledge` collection. General practice and wellbeing advice only, never
+# medical advice. Each tip names its source; check new ones before adding them.
+
+- id: K-chunking
+  dim: working_memory
+  text: Grouping items into small chunks, like reading a phone number as 3 parts, helps you hold longer lists in mind.
+  source: Cowan (2001), The magical number 4 in short-term memory, Behavioral and Brain Sciences
+  evidence_level: established
+
+- id: K-spacing
+  dim: null
+  text: Short practice spread over several days usually sticks better than one long session.
+  source: Cepeda et al. (2006), Distributed practice in verbal recall tasks, Psychological Bulletin
+  evidence_level: established
+
+- id: K-retrieval
+  dim: short_term_memory
+  text: Trying to recall something, rather than just re-reading it, strengthens memory for it.
+  source: Roediger & Karpicke (2006), Test-enhanced learning, Psychological Science
+  evidence_level: established
+
+- id: K-sleep
+  dim: null
+  text: A good night's sleep after practising helps what you practised settle in.
+  source: Diekelmann & Born (2010), The memory function of sleep, Nature Reviews Neuroscience
+  evidence_level: established
+
+- id: K-breaks
+  dim: sustained_attention
+  text: Brief breaks during a long task can help you stay focused for longer.
+  source: Ariga & Lleras (2011), Brief and rare mental breaks keep you focused, Cognition
+  evidence_level: moderate
+
+- id: K-speed-accuracy
+  dim: inhibition
+  text: When mistakes start piling up in a fast game, slowing down slightly often brings accuracy back.
+  source: Heitz (2014), The speed-accuracy tradeoff, Frontiers in Neuroscience
+  evidence_level: established

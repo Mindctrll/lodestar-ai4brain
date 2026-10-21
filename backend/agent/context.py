@@ -5,13 +5,14 @@ and the services nodes need.
 """
 
 from dataclasses import dataclass, field
-from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.contracts.llm import LlmSelection
 from backend.llm.factory import LlmFactory
+from backend.memory.notes import Notes
+from backend.memory.store import MemoryStore
 from backend.registry.models import Registry
 from backend.scoring.norms import Norms
 
@@ -22,7 +23,8 @@ class Services:
     registry: Registry
     llm: LlmFactory
     norms: Norms = field(default_factory=Norms)
-    memory: Any | None = None  # QdrantStore, from WP1.5
+    memory: MemoryStore | None = None  # None when Qdrant is unavailable
+    notes: Notes | None = None
 
 
 @dataclass(frozen=True)

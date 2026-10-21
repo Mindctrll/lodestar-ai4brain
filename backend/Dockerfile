@@ -7,11 +7,15 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    FASTEMBED_CACHE_PATH=/opt/fastembed
 
 WORKDIR /app
 COPY pyproject.toml uv.lock .python-version README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
+# Bake the local embedding models into the image (no download at first request).
+RUN python -c "from fastembed import TextEmbedding, SparseTextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5'); SparseTextEmbedding('Qdrant/bm25')" \
+    && chmod -R a+rX /opt/fastembed
 
 RUN useradd --create-home --uid 1000 najma && mkdir -p /app/memory /app/models && chown najma /app/memory /app/models
 COPY alembic.ini ./

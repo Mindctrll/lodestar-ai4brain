@@ -1,23 +1,43 @@
 """FastAPI entry point. `create_app` wires the routes; the lifespan opens the database pools, the
 LangGraph Postgres checkpointer and the LLM factory."""
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
+from qdrant_client import AsyncQdrantClient
 
 from backend.agent.context import Services
 from backend.agent.graph import checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
 from backend.api import llm, registry, sessions, twin
 from backend.api.llm import llm_factory_dep
-from backend.config import get_settings
+from backend.config import Settings, get_settings
 from backend.db.engine import get_async_engine, libpq_url
 from backend.llm import redaction
 from backend.llm.factory import LlmFactory
-from backend.registry.loader import load_registry
+from backend.memory.embeddings import Embedder
+from backend.memory.langgraph_store import QdrantStore
+from backend.memory.notes import Notes
+from backend.memory.store import MemoryStore
+from backend.registry.loader import load_knowledge_items, load_registry
+
+log = logging.getLogger(__name__)
+
+
+async def _memory(settings: Settings) -> tuple[MemoryStore | None, QdrantStore | None]:
+    """Qdrant-backed memory, or (None, None) if Qdrant is down: sessions continue without it."""
+    try:
+        memory = MemoryStore(AsyncQdrantClient(url=settings.qdrant_url, timeout=5), Embedder())
+        await memory.ensure_collections()
+        await memory.load_knowledge(load_knowledge_items())
+    except Exception:
+        log.warning("Qdrant unavailable; memory is off for this run", exc_info=True)
+        return None, None
+    return memory, QdrantStore(memory)
 
 
 @asynccontextmanager
@@ -32,10 +52,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         open=False,
     )
     await pool.open()
-    services = Services(engine=engine, registry=reg, llm=LlmFactory(reg, settings, engine))
+    memory, store = await _memory(settings)
+    services = Services(
+        engine=engine,
+        registry=reg,
+        llm=LlmFactory(reg, settings, engine),
+        memory=memory,
+        notes=Notes(settings.memory_dir),
+    )
     app.state.services = services
     app.state.runner = SessionRunner(
-        compile_graph(checkpointer(pool)), services, settings.local_model
+        compile_graph(checkpointer(pool), store), services, settings.local_model
     )
     try:
         yield

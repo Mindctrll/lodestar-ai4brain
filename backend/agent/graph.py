@@ -10,6 +10,7 @@ from typing import Any
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.store.base import BaseStore
 from langgraph.types import Send
 
 from backend.agent.context import NajmaContext
@@ -115,6 +116,6 @@ def checkpointer(pool: Any) -> BaseCheckpointSaver[Any]:
 
 
 def compile_graph(
-    checkpointer: BaseCheckpointSaver[Any] | None,
+    checkpointer: BaseCheckpointSaver[Any] | None, store: BaseStore | None = None
 ) -> CompiledStateGraph[NajmaState, NajmaContext, Any, Any]:
-    return build_graph().compile(checkpointer=checkpointer, name="najma")
+    return build_graph().compile(checkpointer=checkpointer, store=store, name="najma")

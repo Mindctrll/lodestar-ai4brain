@@ -23,6 +23,7 @@ from backend.contracts.facts import CoachReply, Fact, FactsPacket
 from backend.db import tables as t
 from backend.db.twin_store import append_event
 from backend.llm.factory import NoModelAvailable
+from backend.memory.consolidate import consolidate_user
 from backend.scoring.kalman_elo import Belief
 
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
@@ -164,8 +165,48 @@ async def respond(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
 
 @traced("remember")
 async def remember(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    # Salience scoring and Qdrant writes arrive with WP1.5.
-    return {}
+    """Score salience and keep what's worth remembering (docs/plan/04, "What gets remembered").
+    Routine rounds are not stored in Qdrant; they stay in twin.events."""
+    ctx = runtime.context
+    store = runtime.store
+    if store is None:
+        return {}
+    registry = ctx.services.registry
+    moments: list[tuple[str, str, float, list[str]]] = []  # text, kind, importance, dims
+    said = next((m.text for m in reversed(state.messages) if m.type == "human"), "")
+    about_self = bool(said) and len(said) > 12 and re.search(r"\b(i|i'm|my|me)\b", said, re.I)
+    personal = state.intent and state.intent.kind in ("life_context", "goal", "settings", "chat")
+    if about_self and personal:
+        moments.append((f'Said: "{said.strip()[:200]}"', "self_statement", 0.9, []))
+    last = state.rounds[-1] if state.rounds and state.last_round else None
+    if last is not None and last.status == "stopped":
+        game = registry.game(last.game_id).name
+        moments.append(
+            (f"Stopped {game} early ({last.stop_reason or 'no reason'})", "struggle", 0.6, [])
+        )
+    if state.last_round is not None:
+        for change in state.last_round.changes:
+            before, _, _ = _pct(ctx, change.dim, change.mu_before, change.sigma_before)
+            after, _, _ = _pct(ctx, change.dim, change.mu_after, change.sigma_after)
+            if abs(after - before) >= 10:
+                name = registry.dimension(change.dim).name
+                moments.append(
+                    (f"Big change in {name}: {before}% to {after}%", "milestone", 0.6, [change.dim])
+                )
+    degraded: list[str] = []
+    for text, kind, importance, dims in moments:
+        key = f"{ctx.session_id}-{len(state.rounds)}-{kind}"
+        try:
+            await store.aput(
+                ("users", str(ctx.user_id), "episodic"),
+                key,
+                {"text": text, "kind": kind, "importance": importance, "dims": dims},
+            )
+            emit({"kind": "memory", "text": text})
+        except Exception as exc:
+            degraded = [f"memory:{type(exc).__name__}->skipped"]
+            break
+    return {"degraded": degraded} if degraded else {}
 
 
 def after_remember(state: NajmaState) -> str:
@@ -211,4 +252,17 @@ async def consolidate(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict
             ),
         )
     emit({"kind": "session", "status": "ended", "rounds": len(state.rounds)})
+    services = ctx.services
+    if services.memory is None or services.notes is None:
+        return {"degraded": ["memory:unavailable->skipped"]}
+    games = ", ".join(dict.fromkeys(services.registry.game(r.game_id).name for r in state.rounds))
+    highlights = " ".join(f.text + "." for f in (state.facts.facts if state.facts else [])[:2])
+    summary = f"Session on {now:%d %b %Y}: played {games or 'no games'}. {highlights}".strip()
+    header = [f"Prefers the {state.persona.capitalize()} coach"]
+    try:
+        await consolidate_user(
+            services.memory, services.notes, ctx.user_id, summary=summary, header_lines=header
+        )
+    except Exception as exc:
+        return {"degraded": [f"memory:{type(exc).__name__}->skipped"]}
     return {}

@@ -27,6 +27,12 @@ def load_registry_from(root: Path) -> Registry:
     )
 
 
+def load_knowledge_items() -> list[dict[str, Any]]:
+    """Team-written coaching tips for the shared knowledge collection."""
+    items: list[dict[str, Any]] = _read(Path(get_settings().registry_dir) / "knowledge.yaml")
+    return items
+
+
 @lru_cache
 def load_registry() -> Registry:
     return load_registry_from(Path(get_settings().registry_dir))

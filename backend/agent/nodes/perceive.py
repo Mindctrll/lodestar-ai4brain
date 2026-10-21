@@ -60,7 +60,9 @@ async def recall_memory(state: NajmaState, runtime: Runtime[NajmaContext]) -> di
         return {}
 
     async def work() -> dict[str, Any]:
-        query = state.messages[-1].text if state.messages else "session start"
+        said = [m.text for m in state.messages if m.type == "human"]
+        # Without a message, look for what usually shapes a session: plans, goals, how they feel.
+        query = said[-1] if said else "my exams, goals, plans, preferences and how I feel lately"
         return {"memories": await memory.recall(runtime.context.user_id, query)}
 
     return await _guarded("recall_memory", work())

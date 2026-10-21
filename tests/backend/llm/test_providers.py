@@ -111,3 +111,14 @@ def test_redaction_masks_registered_and_known_shapes(caplog: pytest.LogCaptureFi
     assert REDACTED in text
     assert REDACTED in redact("x-goog-api-key: AIzaSy0123456789012345678901")
     assert scrub({"a": [secret]}) == {"a": [REDACTED]}
+
+
+def test_redaction_keeps_record_args_shape() -> None:
+    """uvicorn's access formatter unpacks record.args, so redaction must keep the tuple."""
+    install()
+    record = logging.getLogger("uvicorn.access").makeRecord(
+        "uvicorn.access", logging.INFO, __file__, 1, '%s - "%s %s HTTP/%s" %d',
+        ("127.0.0.1:5000", "GET", "/health?token=abcdefgh12345678", "1.1", 200), None,
+    )  # fmt: skip
+    assert isinstance(record.args, tuple) and len(record.args) == 5 and record.args[4] == 200
+    assert "abcdefgh12345678" not in record.getMessage()
