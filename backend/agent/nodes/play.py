@@ -13,13 +13,13 @@ from langgraph.types import interrupt
 from sqlalchemy import any_, func, literal, select
 
 from backend.agent import experiments
-from backend.agent.affect import estimate
+from backend.agent.affect import estimate, recent_cues
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.nodes.talk import emit_reply
 from backend.agent.state import NajmaState
 from backend.agent.telemetry import emit, record_decision, traced
-from backend.contracts.affect import AffectReading
+from backend.contracts.affect import AffectReading, AffectSource
 from backend.contracts.decision import Candidate, Decision
 from backend.contracts.events import AffectEstimated
 from backend.contracts.exercise import ExerciseSpec, RoundResult
@@ -696,6 +696,7 @@ async def _experiment_round_done(runtime: Runtime[NajmaContext]) -> None:
 
 FATIGUE_Z = 1.5  # docs/plan/10: a sustained rise past 1.5 SD against the session's start
 FRUSTRATION_P = 0.7
+CUE_WINDOW = timedelta(minutes=10)  # server clock: browser clocks drift
 
 
 async def session_fatigue(ctx: NajmaContext) -> float:
@@ -743,9 +744,19 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
     last = rounds[-1] if rounds else None
     stopped = sum(1 for r in rounds if r.status == "stopped")
     accuracy = state.last_round.accuracy if state.last_round else None
-    affect = estimate(last, accuracy, await session_fatigue(runtime.context))
-    frustration, fatigue = affect.frustration_p, affect.fatigue_p
-    await _log_affect(runtime.context, affect, now)
+    ctx = runtime.context
+    fatigue_now = await session_fatigue(ctx)
+    # Easing and stopping follow behaviour alone. Optional camera and voice cues (fused at 0.3 at
+    # most) can only add a break suggestion and soften the coach's tone (docs/plan/12).
+    behaviour = estimate(last, accuracy, fatigue_now)
+    frustration, fatigue = behaviour.frustration_p, behaviour.fatigue_p
+    cues: list[tuple[AffectSource, float]] = []
+    if last is not None and ctx.consent & {"camera", "voice_tone"}:
+        async with ctx.services.engine.connect() as conn:
+            since = now - CUE_WINDOW
+            cues = await recent_cues(conn, ctx.user_id, ctx.session_id, since, ctx.consent)
+    affect = estimate(last, accuracy, fatigue_now, cues) if cues else behaviour
+    await _log_affect(ctx, affect, now)
     minutes = (now - state.started_at).total_seconds() / 60 if state.started_at else 0.0
     budget = state.budget
     verdict: Verdict
@@ -754,6 +765,8 @@ async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
             verdict, reason = "ease", "That one looked tough. Let's do something lighter."
         else:
             verdict, reason = "break", "That one looked tough. A short break would help."
+    elif affect.frustration_p > FRUSTRATION_P and len(rounds) < budget.max_rounds:
+        verdict, reason = "break", "That one looked tough. A short break could help."
     elif fatigue >= 0.8:
         verdict = "end"
         reason = "Your answers are slowing down compared with the start. Good place to stop."

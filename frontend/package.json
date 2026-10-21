@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
+    "@mediapipe/tasks-vision": "1.1.1",
     "@picovoice/porcupine-web": "4.0.1",
     "@picovoice/web-voice-processor": "4.0.10",
     "echarts": "6.1.0",

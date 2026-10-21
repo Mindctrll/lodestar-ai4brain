@@ -19,7 +19,8 @@ NOW = datetime(2026, 10, 21, 20, 0, tzinfo=UTC)
 # docs/plan/04, "Event types" (experiment.* expanded).
 PLAN_EVENT_TYPES = {
     "session.started", "trial.recorded", "round.completed", "twin.updated", "acs.observed",
-    "affect.estimated", "affect.labelled", "context.added", "goal.set", "experiment.started",
+    "affect.estimated", "affect.labelled", "affect.biometric.cue", "context.added", "goal.set",
+    "experiment.started",
     "experiment.session_logged", "experiment.completed", "consent.changed", "memory.written",
     "settings.changed",
     "session.ended", "data.exported", "twin.snapshot", "llm.selection_changed",
@@ -115,7 +116,8 @@ def test_profile_code_never_imports_affect() -> None:
     """AGENTS.md rule 3: no code path from biometric or affect signals to the Brain Twin."""
     for root in (Path("backend/scoring"), Path("backend/db")):
         for path in root.rglob("*.py"):
-            assert "backend.contracts.affect" not in _imports(path), path
+            assert not {"backend.contracts.affect", "backend.agent.affect"} & _imports(path), path
+            assert "affect.biometric" not in path.read_text(encoding="utf-8"), path
 
 
 def test_openapi_file_is_up_to_date() -> None:

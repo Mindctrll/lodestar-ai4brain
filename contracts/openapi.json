@@ -225,6 +225,70 @@
         "title": "AcsView",
         "type": "object"
       },
+      "AffectBiometricCue": {
+        "additionalProperties": false,
+        "description": "A coarse camera or voice cue (WP3.5, WP3.9). Event log only: AGENTS.md rule 3.",
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/BiometricCues"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "affect.biometric.cue",
+            "default": "affect.biometric.cue",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "AffectBiometricCue",
+        "type": "object"
+      },
       "AffectEstimated": {
         "additionalProperties": false,
         "properties": {
@@ -559,7 +623,7 @@
       },
       "BiometricCues": {
         "additionalProperties": false,
-        "description": "Coarse local cues, only when their consent switches are on. Never stored as raw data.",
+        "description": "Coarse local cues, only when their consent switches are on. Never stored as raw data.\nLogged as `affect.biometric.cue`; nothing reads that event into the profile (rule 3).",
         "properties": {
           "strain_cue": {
             "anyOf": [
@@ -1077,6 +1141,49 @@
           "status"
         ],
         "title": "CredentialSummary",
+        "type": "object"
+      },
+      "CueInput": {
+        "additionalProperties": false,
+        "properties": {
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "strain_cue": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Camera, one per 10 s",
+            "title": "Strain Cue"
+          },
+          "voice_strain_cue": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Voice, per utterance",
+            "title": "Voice Strain Cue"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "title": "CueInput",
         "type": "object"
       },
       "CurvePoint": {
@@ -1683,6 +1790,7 @@
         "discriminator": {
           "mapping": {
             "acs.observed": "#/components/schemas/AcsObserved",
+            "affect.biometric.cue": "#/components/schemas/AffectBiometricCue",
             "affect.estimated": "#/components/schemas/AffectEstimated",
             "affect.labelled": "#/components/schemas/AffectLabelled",
             "consent.changed": "#/components/schemas/ConsentChanged",
@@ -1725,6 +1833,9 @@
           },
           {
             "$ref": "#/components/schemas/AffectLabelled"
+          },
+          {
+            "$ref": "#/components/schemas/AffectBiometricCue"
           },
           {
             "$ref": "#/components/schemas/ContextAdded"
@@ -6106,6 +6217,59 @@
         "summary": "Get Acs",
         "tags": [
           "twin"
+        ]
+      }
+    },
+    "/affect/cues": {
+      "post": {
+        "description": "Each cue needs its own switch (camera, voice tone); a cue whose switch is off is refused.\nValues are rounded to one decimal so only a coarse number is ever kept.",
+        "operationId": "post_cues_affect_cues_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CueInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Cues",
+        "tags": [
+          "affect"
         ]
       }
     },

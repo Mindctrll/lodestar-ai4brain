@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
+import { useCameraCues } from '../affect/camera'
 import type { ExerciseSpec, RoundResult } from '../api/types'
 import { coachSays, stopSpeaking } from '../voice/tts'
 import type { GameModule } from './types'
@@ -21,6 +22,7 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
   const [struggling, setStruggling] = useState(false)
   const [progress, setProgress] = useState<[number, number]>([0, 0])
   const controls = useRef<TaskControls | null>(null)
+  useCameraCues(started) // only with the camera switch on; frames never leave the browser
 
   // Voice coaching (docs/plan/12): when Najma speaks, she reads the instructions out loud.
   useEffect(() => {

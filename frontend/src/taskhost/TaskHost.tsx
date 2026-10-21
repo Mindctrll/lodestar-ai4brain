@@ -1,6 +1,7 @@
 import { initJsPsych, type JsPsych } from 'jspsych'
 import { useEffect, useMemo, useRef } from 'react'
 
+import { sendCues } from '../affect/cues'
 import { currentMissStreak, STRUGGLE_STREAK, summarise } from '../affect/signals'
 import { api } from '../api/client'
 import type { ExerciseSpec, RoundResult, TrialEvent } from '../api/types'
@@ -104,6 +105,7 @@ export function TaskHost({
       if (finished) return
       finished = true
       await batcher.close()
+      await sendCues(sessionId) // the coarse camera / voice cues, if any, before the result
       const scored = records.filter((r) => !r.practice)
       callbacks.current.onFinish({
         round_id: spec.round_id,

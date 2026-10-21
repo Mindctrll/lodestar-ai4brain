@@ -21,6 +21,27 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/affect/cues': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Post Cues
+     * @description Each cue needs its own switch (camera, voice tone); a cue whose switch is off is refused.
+     *     Values are rounded to one decimal so only a coarse number is ever kept.
+     */
+    post: operations['post_cues_affect_cues_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/affect/labels': {
     parameters: {
       query?: never
@@ -669,6 +690,44 @@ export interface components {
       /** Score */
       score: number | null
     }
+    /**
+     * AffectBiometricCue
+     * @description A coarse camera or voice cue (WP3.5, WP3.9). Event log only: AGENTS.md rule 3.
+     */
+    AffectBiometricCue: {
+      /**
+       * Event Id
+       * @description Assigned by Postgres (uuidv7)
+       * @default null
+       */
+      event_id: string | null
+      payload: components['schemas']['BiometricCues']
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Session Id
+       * @default null
+       */
+      session_id: string | null
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'affect.biometric.cue'
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
+    }
     /** AffectEstimated */
     AffectEstimated: {
       /**
@@ -838,6 +897,7 @@ export interface components {
     /**
      * BiometricCues
      * @description Coarse local cues, only when their consent switches are on. Never stored as raw data.
+     *     Logged as `affect.biometric.cue`; nothing reads that event into the profile (rule 3).
      */
     BiometricCues: {
       /**
@@ -1092,6 +1152,24 @@ export interface components {
        * @enum {string}
        */
       status: 'ok' | 'rejected' | 'out_of_credit' | 'unchecked'
+    }
+    /** CueInput */
+    CueInput: {
+      /**
+       * Session Id
+       * Format: uuid
+       */
+      session_id: string
+      /**
+       * Strain Cue
+       * @description Camera, one per 10 s
+       */
+      strain_cue?: number | null
+      /**
+       * Voice Strain Cue
+       * @description Voice, per utterance
+       */
+      voice_strain_cue?: number | null
     }
     /**
      * CurvePoint
@@ -1368,6 +1446,7 @@ export interface components {
       | components['schemas']['AcsObserved']
       | components['schemas']['AffectEstimated']
       | components['schemas']['AffectLabelled']
+      | components['schemas']['AffectBiometricCue']
       | components['schemas']['ContextAdded']
       | components['schemas']['GoalSet']
       | components['schemas']['ExperimentStarted']
@@ -3410,6 +3489,39 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AcsView']
         }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  post_cues_affect_cues_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CueInput']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       /** @description Validation Error */
       422: {

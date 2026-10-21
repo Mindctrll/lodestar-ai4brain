@@ -30,10 +30,15 @@ class BehaviourSignals(Contract):
 
 
 class BiometricCues(Contract):
-    """Coarse local cues, only when their consent switches are on. Never stored as raw data."""
+    """Coarse local cues, only when their consent switches are on. Never stored as raw data.
+    Logged as `affect.biometric.cue`; nothing reads that event into the profile (rule 3)."""
 
     strain_cue: Probability | None = Field(default=None, description="Camera, one per 10 s")
     voice_strain_cue: Probability | None = Field(default=None, description="Voice, per utterance")
+
+
+CUE_SWITCHES: dict[str, str] = {"strain_cue": "camera", "voice_strain_cue": "voice_tone"}
+CUE_SOURCES: dict[str, AffectSource] = {"strain_cue": "camera", "voice_strain_cue": "voice"}
 
 
 class AffectReading(Contract):

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { SignalIndicator } from '../affect/SignalIndicator'
 import { adoptSignIn, api, forgetUser, hasUser } from '../api/client'
 import type { Receipt } from '../api/types'
 import { AcsPanel } from '../dashboard/AcsPanel'
@@ -154,6 +155,7 @@ export function App() {
       </aside>
 
       <main className="main">
+        <SignalIndicator />
         <header className="page-head">
           <p className="muted">
             {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}

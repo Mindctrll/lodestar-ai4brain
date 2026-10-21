@@ -10,7 +10,7 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, JsonValue, TypeAdapter
 
 from backend.contracts.acs import AcsEvent
-from backend.contracts.affect import AffectReading
+from backend.contracts.affect import AffectReading, BiometricCues
 from backend.contracts.common import (
     ConsentSwitch,
     Contract,
@@ -190,6 +190,13 @@ class AffectLabelled(_Envelope):
     payload: AffectLabelPayload
 
 
+class AffectBiometricCue(_Envelope):
+    """A coarse camera or voice cue (WP3.5, WP3.9). Event log only: AGENTS.md rule 3."""
+
+    type: Literal["affect.biometric.cue"] = "affect.biometric.cue"
+    payload: BiometricCues
+
+
 class ContextAdded(_Envelope):
     type: Literal["context.added"] = "context.added"
     payload: LifeContextWindow
@@ -258,6 +265,7 @@ Event = Annotated[
     | AcsObserved
     | AffectEstimated
     | AffectLabelled
+    | AffectBiometricCue
     | ContextAdded
     | GoalSet
     | ExperimentStarted

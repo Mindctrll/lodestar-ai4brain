@@ -60,6 +60,13 @@ Evidence: log-only detectors in tutoring systems reach modest agreement (Baker e
 6. A visible indicator: "Camera signal in use".
 7. Wording: "strain cues", never "Najma reads your emotions".
 
+**As built (WP3.5).**
+- `frontend/src/affect/camera.ts`: while a game is on screen and the Camera switch is on, the camera feeds a detached `<video>` (never on the page) and MediaPipe Face Landmarker (`@mediapipe/tasks-vision` 1.1.1, VIDEO mode, one face). Every 0.5 s, four blendshape groups give a strain score: brow furrow 0.35, eye squint 0.2, mouth press 0.25, eye closure 0.2. Every 10 s the mean becomes the `strain_cue`, rounded to one decimal.
+- **Downloads only:** the wasm runtime is bundled and served with the app. The model (`face_landmarker.task`, float16, about 3.7 MB) loads from Google's model storage; set `VITE_FACE_MODEL_URL` to serve it yourself.
+- **What leaves the browser:** only the latest cue, sent with the round (`POST /affect/cues`) right before the result. The server refuses a cue whose switch is off, rounds it again, and logs it as an `affect.biometric.cue` event. The monitor reads the session's latest cues from the last 10 minutes and fuses them (`backend/agent/affect.py`). Easing and stopping follow behaviour alone; the fused value can only add a break suggestion and soften the coach's tone.
+- **Indicator:** "Camera signal in use" with a "Turn off" button, at the top of the page whenever the camera runs. Turning it off stops the camera and the switch.
+- **Tests:** `frontend/src/affect/privacy.test.ts` watches fetch, XMLHttpRequest, WebSocket and sendBeacon: nothing is sent while the camera runs, then one request with one coarse number. `tests/backend/agent/test_biometric_cues.py` checks the switch, the coarse value, the 0.3 fusion, "break, never ease" and an unchanged profile. `test_profile_code_never_imports_affect` also checks that scoring and profile code never mention `affect.biometric`.
+
 **Why so careful:**
 
 - Barrett et al. (2019) reviewed the evidence and found facial movements aren't reliable or specific signs of emotions.

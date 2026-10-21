@@ -165,6 +165,11 @@ export const api = {
     round_id?: string
     decision_id?: string
   }) => request<undefined>('/affect/labels', { method: 'POST', body: JSON.stringify(body) }),
+  cues: (body: {
+    session_id: string
+    strain_cue: number | null
+    voice_strain_cue: number | null
+  }) => request<undefined>('/affect/cues', { method: 'POST', body: JSON.stringify(body) }),
   pending: (sessionId: string) =>
     request<{ pending: AgentEvent | null }>(`/sessions/${sessionId}/pending`),
   decision: (decisionId: string) => request<Decision>(`/decisions/${decisionId}`),

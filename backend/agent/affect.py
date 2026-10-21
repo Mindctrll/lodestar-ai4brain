@@ -5,18 +5,27 @@ What it can do: ease difficulty, switch to a lighter game, suggest a break, soft
 tone. What it can't do: change the profile or appear in any score (AGENTS.md rule 3).
 
 Optional camera and voice cues (WP3.5, WP3.9) are fused at weight 0.3 at most:
-affect = 0.7 x behaviour + 0.3 x mean(cues).
+affect = 0.7 x behaviour + 0.3 x mean(cues). They only add a break suggestion and soften the
+coach's tone; easing and stopping follow behaviour alone (monitor in backend/agent/nodes/play.py).
 """
 
 from collections.abc import Sequence
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from backend.contracts.affect import (
     BEHAVIOUR_WEIGHT_MIN,
+    CUE_SOURCES,
+    CUE_SWITCHES,
     AffectReading,
     AffectSource,
     BehaviourSignals,
 )
 from backend.contracts.exercise import RoundResult
+from backend.db import tables as t
 
 
 def frustration_from_behaviour(round_result: RoundResult | None, accuracy: float | None) -> float:
@@ -73,3 +82,27 @@ def estimate(
         sources=sources,
         behaviour_weight=weight,
     )
+
+
+async def recent_cues(
+    conn: AsyncConnection,
+    user_id: UUID,
+    session_id: UUID,
+    since: datetime,
+    consent: frozenset[str],
+) -> list[tuple[AffectSource, float]]:
+    """The latest camera and voice cue of this session since `since`, for switches still on."""
+    rows = await conn.execute(
+        select(t.events.c.payload)
+        .where(
+            t.events.c.user_id == user_id,
+            t.events.c.session_id == session_id,
+            t.events.c.type == "affect.biometric.cue",
+            t.events.c.ts >= since,
+        )
+        .order_by(t.events.c.ts)
+    )
+    latest: dict[str, float] = {}
+    for (payload,) in rows:
+        latest.update({k: v for k, v in payload.items() if v is not None})
+    return [(CUE_SOURCES[k], float(v)) for k, v in latest.items() if CUE_SWITCHES[k] in consent]

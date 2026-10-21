@@ -1268,4 +1268,28 @@ button.danger {
 }
 .how-sure input {
   width: min(18rem, 70vw);
+.signal-indicator {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.signal-indicator__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  background: var(--color-card);
+  font-size: 0.875rem;
+}
+.signal-indicator__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-accent);
 }
