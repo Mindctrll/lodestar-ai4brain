@@ -18,6 +18,7 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import func, select
 
+from backend.agent import experiments
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.talk import draft_verified, emit_reply
 from backend.agent.slots import (
@@ -35,10 +36,12 @@ from backend.agent.tools import (
     TOOLS,
     UpdateSettingsArgs,
     estimate_text,
+    propose_experiment,
     propose_goal,
     propose_life_context,
     propose_settings,
 )
+from backend.agent.twin import TIME_OF_DAY, UNKNOWN_CAUSE
 from backend.contracts.facts import Fact, FactsPacket, MemoryItem
 from backend.contracts.session import Intent, ToolCall, ToolOutcome
 from backend.db import tables as t
@@ -154,6 +157,29 @@ async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
             outcome = ToolOutcome(reply="Thanks for telling me.")
         else:
             call = propose_life_context(event, tz, call_id)
+    elif intent.kind == "experiment":
+        async with ctx.services.engine.connect() as conn:
+            current = await experiments.running(conn, ctx.user_id)
+        if current is not None:
+            done = experiments.progress(current)
+            fact = Fact(
+                id="F1",
+                text="Experiment so far: "
+                + ", ".join(f"{n} {c} sessions" for c, n in done.items())
+                + f" of {current.design['sessions_per_condition']} each",
+            )
+            outcome = ToolOutcome(
+                facts=FactsPacket(facts=[fact]),
+                reply="An experiment is already running [F1]. Play in the morning or the evening "
+                "to add to it.",
+            )
+        elif UNKNOWN_CAUSE.search(text) and not TIME_OF_DAY.search(text):
+            outcome = ToolOutcome(
+                reply="For now I can only test mornings against evenings: Najma doesn't record "
+                "things like music or coffee. Want to test the time of day instead?"
+            )
+        else:
+            call = await propose_experiment(ctx, call_id)
     elif intent.kind == "settings":
         args = UpdateSettingsArgs(
             persona=persona_in(text),

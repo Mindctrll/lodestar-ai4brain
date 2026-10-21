@@ -16,7 +16,7 @@ from langgraph.store.base import BaseStore
 from langgraph.types import Send
 
 from backend.agent.context import NajmaContext
-from backend.agent.nodes import converse, gate, perceive, play, talk
+from backend.agent.nodes import converse, gate, perceive, play, talk, twin
 from backend.agent.state import NajmaState
 
 
@@ -43,8 +43,7 @@ def build_graph() -> StateGraph[NajmaState, NajmaContext, Any, Any]:
     g.add_node("coach", talk.coach)
     for name in ("converse", "confirm", "use_tool", "answer"):
         g.add_node(name, getattr(converse, name))
-    for name in ("twin_chat", "experiment"):
-        g.add_node(name, getattr(talk, name))
+    g.add_node("twin_chat", twin.twin_chat)
     g.add_node("respond", talk.respond)
     g.add_node("remember", talk.remember)
     g.add_node("consolidate", talk.consolidate)
@@ -55,7 +54,7 @@ def build_graph() -> StateGraph[NajmaState, NajmaContext, Any, Any]:
     g.add_conditional_edges("safety_gate", gate.after_safety, ["refuse", "route_intent"])
     g.add_conditional_edges("refuse", gate.after_refuse, {"play": "play", "__end__": END})
     g.add_conditional_edges(
-        "route_intent", gate.after_route, ["plan_next", "converse", "twin_chat", "experiment"]
+        "route_intent", gate.after_route, ["plan_next", "converse", "twin_chat"]
     )
     g.add_conditional_edges("converse", converse.after_converse, ["confirm", "use_tool", "answer"])
     g.add_edge("confirm", "use_tool")
@@ -67,7 +66,7 @@ def build_graph() -> StateGraph[NajmaState, NajmaContext, Any, Any]:
     g.add_edge("monitor", "reflect")
     g.add_edge("reflect", "coach")
     g.add_edge("coach", "remember")
-    for name in ("answer", "twin_chat", "experiment"):
+    for name in ("answer", "twin_chat"):
         g.add_edge(name, "respond")
     g.add_edge("respond", "remember")
     g.add_conditional_edges(

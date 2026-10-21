@@ -1961,6 +1961,109 @@
         "title": "ExperimentStarted",
         "type": "object"
       },
+      "ExperimentView": {
+        "additionalProperties": false,
+        "description": "A personal experiment for the Experiments page (docs/plan/09, 13): its plan, progress\ndots, and the result card once done (with how sure it is).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "exp_id": {
+            "format": "uuid",
+            "title": "Exp Id",
+            "type": "string"
+          },
+          "games": {
+            "description": "Game names, the same in every session",
+            "items": {
+              "type": "string"
+            },
+            "title": "Games",
+            "type": "array"
+          },
+          "hypothesis": {
+            "title": "Hypothesis",
+            "type": "string"
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "80% credible interval of the difference (evening - morning)",
+            "title": "Interval"
+          },
+          "p_evening_better": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Evening Better"
+          },
+          "progress": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Sessions done per condition",
+            "title": "Progress",
+            "type": "object"
+          },
+          "sessions_per_condition": {
+            "title": "Sessions Per Condition",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "exp_id",
+          "hypothesis",
+          "status",
+          "games",
+          "sessions_per_condition",
+          "progress",
+          "created_at"
+        ],
+        "title": "ExperimentView",
+        "type": "object"
+      },
       "Fact": {
         "additionalProperties": false,
         "properties": {
@@ -5915,6 +6018,111 @@
         "summary": "Post Events",
         "tags": [
           "events"
+        ]
+      }
+    },
+    "/experiments": {
+      "get": {
+        "operationId": "list_experiments_experiments_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExperimentView"
+                  },
+                  "title": "Response List Experiments Experiments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Experiments",
+        "tags": [
+          "experiments"
+        ]
+      }
+    },
+    "/experiments/{exp_id}/cancel": {
+      "post": {
+        "operationId": "cancel_experiments__exp_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exp_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exp Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel",
+        "tags": [
+          "experiments"
         ]
       }
     },

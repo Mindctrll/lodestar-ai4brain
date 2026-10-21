@@ -11,9 +11,11 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import any_, func, literal, select
 
+from backend.agent import experiments
 from backend.agent.affect import estimate
 from backend.agent.context import NajmaContext
 from backend.agent.nodes.perceive import read_twin_snapshot
+from backend.agent.nodes.talk import emit_reply
 from backend.agent.state import NajmaState
 from backend.agent.telemetry import emit, record_decision, traced
 from backend.contracts.affect import AffectReading
@@ -257,6 +259,13 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     update: dict[str, Any] = {}
     requested = registry.game(intent.game_id) if intent and intent.game_id else None
     themed = _themed_game(registry, pool, intent) if requested is None else None
+    experiment = None
+    if requested is None and themed is None and not state.onboarding:
+        slot = await experiment_slot(ctx)
+        if slot is not None:
+            played = {r.game_id for r in state.rounds}
+            if any(g not in played for g in slot[0].design["games"]):
+                experiment = slot
     switched_off = requested is not None and not allowed(requested, ctx.consent)
     if switched_off:
         requested = None
@@ -278,6 +287,17 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         dim = wanted_dim
         game = _pick(pool.get(dim, by_dim[dim]), last_game, seed)
         reason = f"You asked for {registry.dimension(dim).name.lower()}."
+    elif experiment is not None:
+        row, window = experiment
+        played = {r.game_id for r in state.rounds}
+        todo = [g for g in row.design["games"] if g not in played]
+        game = registry.game(todo[0])
+        dim = game.primary_dims[0]
+        n = len(row.design["games"])
+        reason = (
+            f"Experiment session ({window}), game {n - len(todo) + 1} of {n}: {game.name}. "
+            "Same games every time, so morning and evening can be compared fairly."
+        )
     elif overridden and not state.onboarding:
         dim = candidates[0].option
         game = _pick(pool[dim], last_game, seed)
@@ -459,7 +479,83 @@ async def score_update(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
         changes=scored.changes if scored else [],
         quality_verdict=scored.outcome.quality.verdict if scored else "ok",
     )
+    await _experiment_round_done(runtime)
     return {"last_round": summary, "twin": await read_twin_snapshot(ctx)}
+
+
+async def experiment_slot(ctx: NajmaContext) -> tuple[Any, str] | None:
+    """The running experiment and this session's window (morning or evening), when this session
+    counts toward it (docs/plan/09, Personal experiments)."""
+    async with ctx.services.engine.connect() as conn:
+        row = await experiments.running(conn, ctx.user_id)
+        if row is None:
+            return None
+        hour = (
+            await conn.execute(
+                select(
+                    func.extract("hour", func.timezone(t.users.c.timezone, t.sessions.c.started_at))
+                )
+                .select_from(t.sessions.join(t.users, t.users.c.user_id == t.sessions.c.user_id))
+                .where(t.sessions.c.session_id == ctx.session_id)
+            )
+        ).scalar_one()
+    window = experiments.window_of(int(hour))
+    if window is None or any(
+        s["session_id"] == str(ctx.session_id) for s in row.result["sessions"]
+    ):
+        return None
+    if experiments.progress(row)[window] >= row.design["sessions_per_condition"]:
+        return None
+    return row, window
+
+
+async def _experiment_round_done(runtime: Runtime[NajmaContext]) -> None:
+    """When this session has played every experiment game, log it; when both windows are full,
+    close the experiment and tell the user what it found (with its facts)."""
+    ctx = runtime.context
+    slot = await experiment_slot(ctx)
+    if slot is None:
+        return
+    row, window = slot
+    games = row.design["games"]
+    async with ctx.services.engine.begin() as conn:
+        scores = {
+            r.game_id: float(r.score)
+            for r in await conn.execute(
+                select(t.rounds.c.game_id, t.rounds.c.score).where(
+                    t.rounds.c.session_id == ctx.session_id,
+                    t.rounds.c.game_id.in_(games),
+                    t.rounds.c.score.is_not(None),
+                )
+            )
+        }
+        if set(games) - set(scores):
+            return
+        comparison = await experiments.log_session(
+            conn, row, ctx.user_id, ctx.session_id, window, sum(scores.values()) / len(scores)
+        )
+    if comparison is None:
+        emit(
+            {
+                "kind": "say",
+                "text": f"That was an experiment session ({window}). Thanks!",
+                "node": "experiment",
+            }
+        )
+        return
+    packet, text = experiments.result_facts(comparison)
+    emit_reply(text, packet, "experiment")
+    memory = ctx.services.memory
+    if memory is not None and comparison.verdict != "inconclusive":
+        with contextlib.suppress(Exception):  # the result is in Postgres either way
+            await memory.write(
+                ctx.user_id,
+                f"Does better in the {comparison.verdict} (experiment, probability "
+                f"{max(comparison.p_evening_better, 1 - comparison.p_evening_better):.2f})",
+                collection="facts",
+                kind="preference",
+                importance=0.8,
+            )
 
 
 FATIGUE_Z = 1.5  # docs/plan/10: a sustained rise past 1.5 SD against the session's start

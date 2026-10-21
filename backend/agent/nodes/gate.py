@@ -16,6 +16,7 @@ from sqlalchemy import select
 
 from backend.agent.context import NajmaContext
 from backend.agent.intents import route
+from backend.agent.nodes.twin import AFFIRM
 from backend.agent.state import NajmaState
 from backend.agent.telemetry import emit, traced
 from backend.contracts.common import Contract
@@ -158,6 +159,9 @@ async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
     intent, degraded = await route(
         text, state.trigger, ctx.services.registry, ctx.services.llm, ctx.user_id, ctx.llm
     )
+    if intent.kind in ("chat", "play", "twin_chat") and AFFIRM.search(text) and await _offered(ctx):
+        # "Yes" right after the Twin offered an experiment (UW8 to UW10).
+        intent = Intent(kind="experiment", text="time of day")
     if intent.kind == "settings" and not intent.avoid_dims and _IT.search(text):
         # "stop suggesting it" right after Najma asked about a skill the user keeps skipping.
         nudged = await _last_nudge(ctx)
@@ -170,6 +174,20 @@ async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 
 
 _IT = re.compile(r"\b(stop suggesting|don'?t suggest) (it|that|them)\b", re.IGNORECASE)
+
+
+async def _offered(ctx: NajmaContext) -> bool:
+    """The last thing decided this session was the Twin's experiment offer."""
+    async with ctx.services.engine.connect() as conn:
+        node = (
+            await conn.execute(
+                select(t.decisions.c.node)
+                .where(t.decisions.c.session_id == ctx.session_id)
+                .order_by(t.decisions.c.ts.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+    return node == "twin_offer"
 
 
 async def _last_nudge(ctx: NajmaContext) -> str | None:
@@ -191,5 +209,4 @@ def after_route(state: NajmaState) -> str:
         "play": "plan_next",
         "proactive": "plan_next",
         "twin_chat": "twin_chat",
-        "experiment": "experiment",
     }.get(kind, "converse")

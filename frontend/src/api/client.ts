@@ -3,6 +3,7 @@ import type {
   AcsView,
   ConsentView,
   Decision,
+  ExperimentView,
   ForecastView,
   GoalView,
   KeySaved,
@@ -193,6 +194,9 @@ export const api = {
   goals: () => request<GoalView[]>('/goals'),
   progress: () => request<ProgressView>('/progress'),
   me: () => request<MeView>('/me'),
+  experiments: () => request<ExperimentView[]>('/experiments'),
+  cancelExperiment: (id: string) =>
+    request<undefined>(`/experiments/${id}/cancel`, { method: 'POST' }),
   forecast: (sessions = 5) => request<ForecastView[]>(`/forecast?sessions=${String(sessions)}`),
   acs: () => request<AcsView>('/acs'),
   decisions: (limit = 20) => request<Decision[]>(`/me/decisions?limit=${String(limit)}`),

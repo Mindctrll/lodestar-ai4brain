@@ -82,6 +82,12 @@ Twin chat builds its facts packet from the question: time-of-day aggregates, tre
 4. **Analysis:** Bayesian comparison of the two conditions (difference in mean score with a credible interval), reported as "probability evening is better: 0.83".
 5. **Result card:** what was tested, how sure we are, what changes in the plan. Inconclusive results are reported as inconclusive.
 
+**As built (WP3.2).**
+- **Twin answers** come from `backend/agent/twin.py`: accuracy by morning (5-12), afternoon and evening (18-24) in the user's time zone. A Beta posterior gives the probability the best window really beats the worst, and the Twin calls itself sure only at 0.9 and 15 sessions. It speaks through the same verifier, with a first-person style; the fallback template also states the direction and how sure it is.
+- **Offers:** when the Twin isn't sure it offers an experiment, and "yes" next turn starts the proposal. Questions about things Najma doesn't record (coffee, music) get a plain "I don't know that yet".
+- **Experiments:** a converse tool with the usual yes/no step. Three sessions in each window, with the three games the person plays most. A session counts by its local start time, and the Experiments page shows progress dots.
+- **Analysis:** a difference in mean round score with a pooled variance, normal approximation and 80% credible interval. A winner only at P ≥ 0.8, otherwise "inconclusive". The result card's numbers are facts, and a conclusive result is saved as a memory fact.
+
 ## Coaching content beyond numbers
 
 Tips come from the `knowledge` collection (`04`), written by the team with sources, never invented by the LLM. Each tip has an evidence level. Example tips: chunking for lists, slowing down when errors climb, spacing practice, sleep and breaks (general wellbeing, not medical advice).

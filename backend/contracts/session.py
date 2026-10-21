@@ -55,6 +55,7 @@ ToolName = Literal[
     "log_life_context",
     "explain",
     "update_settings",
+    "start_experiment",
 ]
 
 

@@ -11,17 +11,24 @@ export function Chat({
   answer,
   nextGame,
   onWhy,
+  placeholder = 'Ask why, set a goal, or tell me how your day is going',
+  prefix = '',
+  label = 'Talk to Najma',
 }: {
   state: SessionState
   send: (text: string) => Promise<void>
   answer: (confirmed: boolean) => Promise<void>
   nextGame: () => Promise<void>
   onWhy: (decisionId: string) => void
+  placeholder?: string
+  /** Added in front of what's sent, e.g. "Twin, " so the question goes to the Twin. */
+  prefix?: string
+  label?: string
 }) {
   const [text, setText] = useState('')
   const waiting = state.busy || state.phase === 'starting'
   return (
-    <section className="card chat" data-testid="chat" aria-label="Talk to Najma">
+    <section className="card chat" data-testid="chat" aria-label={label}>
       {state.chat.length > 0 && (
         <ol className="chat__lines" aria-live="polite">
           {state.chat.map((line, i) => (
@@ -58,7 +65,7 @@ export function Chat({
           e.preventDefault()
           const said = text
           setText('')
-          void send(said)
+          if (said.trim()) void send(prefix + said)
         }}
       >
         <label className="sr-only" htmlFor="say">
@@ -69,7 +76,7 @@ export function Chat({
           data-testid="say"
           value={text}
           maxLength={2000}
-          placeholder="Ask why, set a goal, or tell me how your day is going"
+          placeholder={placeholder}
           onChange={(e) => {
             setText(e.target.value)
           }}

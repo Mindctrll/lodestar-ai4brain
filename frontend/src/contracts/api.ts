@@ -112,6 +112,40 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/experiments': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List Experiments */
+    get: operations['list_experiments_experiments_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/experiments/{exp_id}/cancel': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Cancel */
+    post: operations['cancel_experiments__exp_id__cancel_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/forecast': {
     parameters: {
       query?: never
@@ -1473,6 +1507,52 @@ export interface components {
        * Format: uuid
        */
       user_id: string
+    }
+    /**
+     * ExperimentView
+     * @description A personal experiment for the Experiments page (docs/plan/09, 13): its plan, progress
+     *     dots, and the result card once done (with how sure it is).
+     */
+    ExperimentView: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string
+      /**
+       * Exp Id
+       * Format: uuid
+       */
+      exp_id: string
+      /**
+       * Games
+       * @description Game names, the same in every session
+       */
+      games: string[]
+      /** Hypothesis */
+      hypothesis: string
+      /**
+       * Interval
+       * @description 80% credible interval of the difference (evening - morning)
+       */
+      interval?: number[] | null
+      /** P Evening Better */
+      p_evening_better?: number | null
+      /**
+       * Progress
+       * @description Sessions done per condition
+       */
+      progress: {
+        [key: string]: number
+      }
+      /** Sessions Per Condition */
+      sessions_per_condition: number
+      /** Status */
+      status: string
+      /** Summary */
+      summary?: string | null
+      /** Verdict */
+      verdict?: string | null
     }
     /** Fact */
     Fact: {
@@ -3325,6 +3405,68 @@ export interface operations {
         content: {
           'application/json': components['schemas']['IngestResult']
         }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  list_experiments_experiments_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ExperimentView'][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  cancel_experiments__exp_id__cancel_post: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path: {
+        exp_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       /** @description Validation Error */
       422: {

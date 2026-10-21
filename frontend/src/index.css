@@ -963,3 +963,37 @@ button.danger {
   font-size: 1.05rem;
   min-height: 1.4em;
 }
+
+/* Experiments (docs/plan/09; UW10) */
+.experiment__progress {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+.experiment__progress li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.experiment__label {
+  width: 5rem;
+  text-transform: capitalize;
+}
+.dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+}
+.dot--done {
+  background: var(--color-accent);
+}
+.experiment__result {
+  font-size: 1.05rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: #eef2fd;
+}

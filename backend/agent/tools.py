@@ -17,6 +17,7 @@ from pydantic import Field
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import Range
 
+from backend.agent import experiments
 from backend.agent.context import NajmaContext
 from backend.agent.slots import LifeEvent
 from backend.agent.state import NajmaState
@@ -85,6 +86,11 @@ class UpdateSettingsArgs(Contract):
     success_mode: SuccessMode | None = None
     pause_dim: DimensionId | None = None
     pause_days: int = Field(default=7, ge=1, le=30)
+
+
+class StartExperimentArgs(Contract):
+    hypothesis: str = Field(min_length=1, max_length=200)
+    design: dict[str, Any]
 
 
 Run = Callable[[NajmaContext, NajmaState, ToolCall], Awaitable[tuple[ToolOutcome, dict[str, Any]]]]
@@ -583,6 +589,65 @@ async def update_settings(
     return ToolOutcome(name="update_settings", facts=call.facts, reply=reply), state_update
 
 
+DEFAULT_EXPERIMENT_GAMES = ["quick_draw", "arrow_storm", "echo"]
+
+
+async def propose_experiment(ctx: NajmaContext, call_id: UUID) -> ToolCall:
+    """UW10: three sessions in the morning and three in the evening, with the same three games
+    (the ones this person plays most, so the comparison is fair)."""
+    registry = ctx.services.registry
+    async with ctx.services.engine.connect() as conn:
+        rows = await conn.execute(
+            select(t.rounds.c.game_id, func.count().label("n"))
+            .where(t.rounds.c.user_id == ctx.user_id, t.rounds.c.status == "completed")
+            .group_by(t.rounds.c.game_id)
+            .order_by(func.count().desc())
+        )
+        played = [
+            r.game_id
+            for r in rows
+            if registry.game(r.game_id).available and registry.game(r.game_id).consent is None
+        ]
+    games = (played + [g for g in DEFAULT_EXPERIMENT_GAMES if g not in played])[:3]
+    plan = experiments.design(games, None)
+    names = ", ".join(registry.game(g).name for g in games)
+    per = plan["sessions_per_condition"]
+    fact = Fact(
+        id="F1",
+        text=f"{per * 2} sessions: {per} in the morning (5:00-12:00) and {per} in the evening "
+        f"(18:00-24:00), each with {names}",
+    )
+    prompt = (
+        f"Want to test whether you do better in the morning or the evening? {per * 2} sessions, "
+        f"{per} in each, with the same games [F1]. When you play in one of those times, I'll "
+        "count it. Shall I start?"
+    )
+    args = StartExperimentArgs(hypothesis="Morning or evening: which goes better?", design=plan)
+    return ToolCall(
+        call_id=call_id,
+        name="start_experiment",
+        args=args.model_dump(mode="json"),
+        writes=True,
+        prompt=prompt,
+        facts=FactsPacket(facts=[fact]),
+    )
+
+
+async def start_experiment(
+    ctx: NajmaContext, state: NajmaState, call: ToolCall
+) -> tuple[ToolOutcome, dict[str, Any]]:
+    args = StartExperimentArgs.model_validate(call.args)
+    async with ctx.services.engine.begin() as conn:
+        await experiments.start(
+            conn, ctx.user_id, ctx.session_id, call.call_id, args.hypothesis, args.design
+        )
+    reply = (
+        "Experiment started [F1]. Play in the morning or the evening and I'll use these games; "
+        "you'll see the progress on the Experiments page."
+    )
+    return ToolOutcome(name="start_experiment", facts=call.facts, reply=reply), {}
+
+
 TOOLS: dict[str, ToolSpec] = {
     spec.name: spec
     for spec in (
@@ -597,6 +662,13 @@ TOOLS: dict[str, ToolSpec] = {
         ),
         ToolSpec(
             "update_settings", UpdateSettingsArgs, True, update_settings, "Coach, mode, pauses"
+        ),
+        ToolSpec(
+            "start_experiment",
+            StartExperimentArgs,
+            True,
+            start_experiment,
+            "Test morning against evening",
         ),
     )
 }

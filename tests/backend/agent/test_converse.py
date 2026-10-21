@@ -242,12 +242,13 @@ WRITES = [
     ("I want my memory to be solid before exams.", "set_goal", t.goals),
     ("I slept like 4 hours.", "log_life_context", t.life_context),
     ("stop suggesting maths this week", "update_settings", t.skill_pauses),
+    ("I want to run an experiment", "start_experiment", t.experiments),
 ]
 
 
 def test_every_writing_tool_is_behind_a_confirmation() -> None:
     writing = {name for name, spec in TOOLS.items() if spec.writes}
-    assert writing == {"set_goal", "log_life_context", "update_settings"}
+    assert writing == {"set_goal", "log_life_context", "update_settings", "start_experiment"}
     assert {name for _, name, _ in WRITES} == writing
 
 
@@ -278,9 +279,11 @@ async def test_tools_that_write_pause_for_a_yes(
     asked(await collect(runner, user_id, session_id, message=text))
     events = await collect(runner, user_id, session_id, resume={"confirmed": True})
     assert await count(aengine, table, user_id) == 1
-    expected = {"set_goal": "goal.set", "log_life_context": "context.added"}.get(
-        tool, "settings.changed"
-    )
+    expected = {
+        "set_goal": "goal.set",
+        "log_life_context": "context.added",
+        "start_experiment": "experiment.started",
+    }.get(tool, "settings.changed")
     assert expected in await event_types(aengine, user_id)
     assert verify(said(events), packet, NAMES, "zitouna").ok
 

@@ -1,8 +1,8 @@
-"""Reflect, coach, the Twin and experiment stubs, remember and consolidate (docs/plan/03, 09).
+"""Reflect, coach, remember and consolidate (docs/plan/03, 09).
 
 The coach drafts with the LLM, verifies against the facts packet, repairs up to twice, and falls
-back to a template built only from facts. The converse subgraph lives in nodes/converse.py; WP3.2
-replaces the Twin chat and experiment stubs.
+back to a template built only from facts. The converse subgraph lives in nodes/converse.py and
+the Twin in nodes/twin.py; experiments start as a converse tool (nodes/converse.py, tools.py).
 """
 
 import re
@@ -123,6 +123,7 @@ async def draft_verified(
     persona: Persona,
     instruction: str,
     fallback: str | None = None,
+    style: str | None = None,
 ) -> tuple[str, CoachReply, list[str]]:
     """Draft with the LLM, verify, repair up to twice, else a template built only from facts (or
     `fallback`, fixed text with no numbers). Nothing reaches the user before it passes
@@ -135,7 +136,7 @@ async def draft_verified(
     ]
     listing = "\n".join(f"{i.id}: {i.text}" for i in items)
     messages: list[Any] = [
-        SystemMessage(f"{STYLE[persona]}\n{RULES}\n\nFacts:\n{listing}"),
+        SystemMessage(f"{style or STYLE[persona]}\n{RULES}\n\nFacts:\n{listing}"),
         HumanMessage(instruction),
     ]
     degraded: list[str] = []
@@ -218,16 +219,6 @@ async def _say(text: str, packet: FactsPacket | None = None) -> dict[str, Any]:
     if packet is not None:
         update["facts"] = packet
     return update
-
-
-@traced("twin_chat")
-async def twin_chat(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    return await _say("I'm still collecting enough sessions to answer that honestly.")
-
-
-@traced("experiment")
-async def experiment(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
-    return await _say("Personal experiments are coming soon.")
 
 
 @traced("respond")

@@ -13,18 +13,21 @@ import type { Persona } from '../api/types'
 import { setSpeakReplies, speakReplies, stopSpeaking } from '../voice/tts'
 import { Orb } from '../voice/Orb'
 import { useSpeakReplies } from '../voice/useSpeakReplies'
+import { Experiments } from '../dashboard/Experiments'
+import { Chat } from './Chat'
 import { DecisionCard } from './DecisionCard'
 import { Onboarding } from './Onboarding'
 import { Practice } from './Practice'
 import { Settings } from './Settings'
 import { useSession } from './useSession'
 
-type View = 'home' | 'twin' | 'progress' | 'agent' | 'acs' | 'settings'
+type View = 'home' | 'twin' | 'progress' | 'experiments' | 'agent' | 'acs' | 'settings'
 
 const NAV: { id: View; label: string; icon: string }[] = [
   { id: 'home', label: 'Home', icon: '⌂' },
   { id: 'twin', label: 'Brain Twin', icon: '✦' },
   { id: 'progress', label: 'Progress', icon: '↗' },
+  { id: 'experiments', label: 'Experiments', icon: '⚗' },
   { id: 'agent', label: 'Agent', icon: '◎' },
   { id: 'acs', label: 'AI collaboration', icon: '⇄' },
   { id: 'settings', label: 'Settings', icon: '⚙' },
@@ -243,6 +246,16 @@ export function App() {
                     onSelect={setSkill}
                   />
                 </section>
+                <Chat
+                  state={session.state}
+                  send={session.send}
+                  answer={session.answer}
+                  nextGame={session.nextGame}
+                  onWhy={setWhy}
+                  label="Ask your Twin"
+                  placeholder="Ask your Twin, e.g. when am I sharpest?"
+                  prefix="Twin, "
+                />
                 <section className="card">
                   <h2>All skills at a glance</h2>
                   <Radar twin={twin} registry={registry} />
@@ -290,6 +303,15 @@ export function App() {
               </section>
             </div>
           </>
+        )}
+
+        {view === 'experiments' && (
+          <Experiments
+            onAsk={() => {
+              setView('home')
+              void session.send('I want to run an experiment')
+            }}
+          />
         )}
 
         {view === 'agent' && (

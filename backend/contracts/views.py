@@ -148,3 +148,22 @@ class TraceRow(Contract):
     event: str
     ms: float | None
     ts: AwareDatetime
+
+
+class ExperimentView(Contract):
+    """A personal experiment for the Experiments page (docs/plan/09, 13): its plan, progress
+    dots, and the result card once done (with how sure it is)."""
+
+    exp_id: UUID
+    hypothesis: str
+    status: str
+    games: list[str] = Field(description="Game names, the same in every session")
+    sessions_per_condition: int
+    progress: dict[str, int] = Field(description="Sessions done per condition")
+    verdict: str | None = None
+    p_evening_better: float | None = None
+    interval: list[float] | None = Field(
+        default=None, description="80% credible interval of the difference (evening - morning)"
+    )
+    summary: str | None = None
+    created_at: AwareDatetime
