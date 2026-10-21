@@ -27,7 +27,9 @@ def test_settings(**overrides: Any) -> Settings:
     from pydantic import SecretStr
 
     base = get_settings().model_dump()
-    base.update(master_key=SecretStr(MASTER_KEY), ollama_url="http://127.0.0.1:9", **overrides)
+    base.update(
+        {"master_key": SecretStr(MASTER_KEY), "ollama_url": "http://127.0.0.1:9", **overrides}
+    )
     return Settings(**base)
 
 

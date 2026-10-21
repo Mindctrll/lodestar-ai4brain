@@ -83,7 +83,7 @@ async def memory(embedder: Embedder) -> AsyncIterator[MemoryStore]:
         if os.environ.get("NAJMA_REQUIRE_DB"):
             raise
         pytest.skip("Qdrant not reachable; run `make up`")
-    client = AsyncQdrantClient(url=QDRANT_URL)
+    client = AsyncQdrantClient(url=QDRANT_URL, timeout=30)
     store = MemoryStore(client, embedder, prefix=f"test_{uuid.uuid4().hex[:8]}_")
     await store.ensure_collections()
     yield store

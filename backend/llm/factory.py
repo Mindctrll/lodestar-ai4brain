@@ -187,7 +187,7 @@ class LlmFactory:
                 reply = await rung.chat.ainvoke(list(messages))
                 return schema.model_validate_json(str(reply.content))
             caps = self.registry.provider(rung.provider).capabilities
-            method = "json_schema" if not caps.forced_tool_choice else "function_calling"
+            method = caps.structured_method
             runnable = rung.chat.with_structured_output(schema, method=method)
             value = await runnable.ainvoke(list(messages))
             return value if isinstance(value, schema) else schema.model_validate(value)

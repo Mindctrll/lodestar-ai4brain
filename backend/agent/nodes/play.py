@@ -174,6 +174,22 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
             game_id=game.id,
             level=level,
         )
+    knobs = knobs_for(game, level)
+    seed = random.Random(f"{ctx.seed}:{round_id}").randrange(2**31)
+    theme = state.intent.theme if state.intent else None
+    content = None
+    degraded: list[str] = []
+    if ctx.services.content is not None and ctx.services.content.needs_content(game.id):
+        content = await ctx.services.content.prepare(
+            user_id=ctx.user_id,
+            selection=ctx.llm,
+            game_id=game.id,
+            level=level,
+            knobs=knobs,
+            seed=seed,
+            theme=theme,
+        )
+        degraded = content.degraded if content else []
     spec = ExerciseSpec(
         round_id=round_id,
         game_id=game.id,
@@ -181,14 +197,16 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
         target_p=state.plan.target_p,
         level=level,
         difficulty_b=b_for_level(level),
-        knobs=knobs_for(game, level),
-        theme=state.intent.theme if state.intent else None,
-        seed=random.Random(f"{ctx.seed}:{round_id}").randrange(2**31),
+        knobs=knobs,
+        content=content.content if content else None,
+        content_item_id=content.item_id if content else None,
+        theme=theme,
+        seed=seed,
         practice_trials=game.practice_trials if played_before == 0 else 0,
         duration_s=game.duration_s,
         reason=state.decisions[-1].reason if state.decisions else "Next round.",
     )
-    return {"exercise": spec}
+    return {"exercise": spec, "degraded": degraded} if degraded else {"exercise": spec}
 
 
 async def play(state: NajmaState, *, runtime: Runtime[NajmaContext]) -> dict[str, Any]:

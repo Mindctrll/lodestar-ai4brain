@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.contracts.llm import LlmSelection
+from backend.generation.pipeline import ContentService
 from backend.llm.factory import LlmFactory
 from backend.memory.notes import Notes
 from backend.memory.store import MemoryStore
@@ -25,6 +26,7 @@ class Services:
     norms: Norms = field(default_factory=Norms)
     memory: MemoryStore | None = None  # None when Qdrant is unavailable
     notes: Notes | None = None
+    content: ContentService | None = None
 
 
 @dataclass(frozen=True)

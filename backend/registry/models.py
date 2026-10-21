@@ -111,6 +111,9 @@ class Game(Contract):
 
 class ProviderCapabilities(Contract):
     structured_output: bool = True
+    structured_method: Literal["json_schema", "function_calling"] = Field(
+        default="function_calling", description="How LangChain asks for structured output"
+    )
     tool_calling: bool = True
     streaming: bool = True
     forced_tool_choice: bool = True

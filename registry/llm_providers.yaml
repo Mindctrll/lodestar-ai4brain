@@ -13,6 +13,7 @@
   default_model: claude-opus-5-5
   capabilities:
     forced_tool_choice: false   # Claude Opus 5.5 returns 400 on tool_choice any/tool
+    structured_method: json_schema
     sampling_params: false      # temperature/top_p/top_k return 400 on current models
   notes: Structured output must use JSON-schema output, not a forced tool call.
 
@@ -24,6 +25,8 @@
   console_url: https://platform.openai.com
   needs_key: true
   default_model: gpt-6.1-sol
+  capabilities:
+    structured_method: json_schema
 
 - id: gemini
   name: Google Gemini
@@ -88,6 +91,8 @@
   console_url: https://ollama.com
   needs_key: false
   default_model: qwen3.5:4b   # overridden by NAJMA_LOCAL_MODEL
+  capabilities:
+    structured_method: json_schema   # constrained decoding; much faster than tool calls on CPU
   notes: Privacy and offline mode. Slower, simpler answers.
 
 - id: stub

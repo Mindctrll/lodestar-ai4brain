@@ -17,6 +17,7 @@ from backend.api import llm, registry, sessions, twin
 from backend.api.llm import llm_factory_dep
 from backend.config import Settings, get_settings
 from backend.db.engine import get_async_engine, libpq_url
+from backend.generation.pipeline import ContentService
 from backend.llm import redaction
 from backend.llm.factory import LlmFactory
 from backend.memory.embeddings import Embedder
@@ -53,12 +54,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     await pool.open()
     memory, store = await _memory(settings)
+    llm = LlmFactory(reg, settings, engine)
     services = Services(
         engine=engine,
         registry=reg,
-        llm=LlmFactory(reg, settings, engine),
+        llm=llm,
         memory=memory,
         notes=Notes(settings.memory_dir),
+        content=ContentService(engine, llm, memory),
     )
     app.state.services = services
     app.state.runner = SessionRunner(

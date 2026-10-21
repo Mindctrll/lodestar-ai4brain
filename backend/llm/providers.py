@@ -40,7 +40,7 @@ def build_chat_model(
         # No hidden reasoning (much faster on CPU) and a bounded reply length.
         return ChatOllama(
             reasoning=False,
-            num_predict=400,
+            num_predict=900,
             client_kwargs={"timeout": TIMEOUT_S},
             **common,
         )

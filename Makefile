@@ -3,7 +3,7 @@ COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
 .PHONY: help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
-	lint-frontend lint-language format contracts migrate seed rebuild-twin db-shell sim e2e
+	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim e2e
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -56,6 +56,9 @@ migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postg
 
 seed: ## add the demo user (Amira) with three weeks of practice
 	uv run python -m backend.db.seed
+
+pool: ## fill agent.content_pool so play never waits on an LLM
+	uv run python -m backend.generation.pool
 
 rebuild-twin: ## recompute a user's profile from the event log: make rebuild-twin USER=<uuid>
 	uv run python -m backend.db.rebuild $(USER)

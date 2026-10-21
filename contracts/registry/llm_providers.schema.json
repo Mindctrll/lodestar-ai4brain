@@ -120,6 +120,16 @@
           "title": "Streaming",
           "type": "boolean"
         },
+        "structured_method": {
+          "default": "function_calling",
+          "description": "How LangChain asks for structured output",
+          "enum": [
+            "json_schema",
+            "function_calling"
+          ],
+          "title": "Structured Method",
+          "type": "string"
+        },
         "structured_output": {
           "default": true,
           "title": "Structured Output",

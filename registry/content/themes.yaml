@@ -1,0 +1,25 @@
+# Vocabulary for generated game content (docs/plan/08). Code picks items from these lists, so
+# difficulty and validity never depend on an LLM; the LLM only writes friendly lines around them.
+
+customer_names: [Amira, Youssef, Salma, Karim, Ines, Mehdi, Rania, Aziz, Lina, Omar, Nour, Hamza,
+  Sarra, Bilel, Yasmine, Firas, Asma, Walid, Malek, Hiba]
+
+souk:
+  fruit: [oranges, lemons, dates, figs, apples, grapes, pomegranates, melons, peaches, apricots, bananas, pears]
+  spices: [harissa, cumin, saffron, paprika, cinnamon, coriander, caraway, turmeric, pepper, mint, ginger, anise]
+  bakery: [baguettes, makroudh, bambalouni, croissants, bread rolls, almond biscuits, sesame rings, honey cakes, brioche, flatbreads]
+  pottery: [bowls, plates, vases, jugs, cups, tagines, tiles, lanterns, teapots, oil jars]
+
+souk_quantities: [one, two, three, half a kilo of, a kilo of, two kilos of, a bag of, a box of]
+
+# Common words by theme for Market List. A request for another theme (UW4: "football") is filled
+# by the LLM and checked for format and relevance; these lists are the fallback.
+word_themes:
+  market: [apple, bread, cheese, olive, tomato, onion, carrot, lemon, rice, flour, sugar, honey, salt, egg, milk, butter, pepper, garlic, orange, grape, melon, bean, fish, chicken, coffee, tea, jam, oil, nut, peach]
+  kitchen: [spoon, fork, knife, plate, bowl, cup, glass, pan, oven, fridge, sink, towel, kettle, napkin, tray, jar, lid, stove, table, chair, apron, grater, ladle, whisk, mug, bottle, basket, sponge, cloth, scale]
+  school: [pencil, book, desk, ruler, eraser, teacher, lesson, paper, folder, marker, chalk, board, exam, bag, notebook, library, class, map, glue, scissors, homework, bell, lunch, student, page, pen, quiz, calendar, clock, poster]
+  football: [goal, ball, pitch, referee, keeper, striker, corner, penalty, whistle, team, coach, stadium, jersey, boots, header, pass, tackle, captain, score, match, league, fans, trophy, net, kick, defender, winger, card, offside, cup]
+  beach: [sand, wave, shell, towel, umbrella, sunscreen, bucket, kite, boat, island, palm, crab, seagull, hat, sandal, swim, shore, coral, dolphin, anchor, sunset, picnic, cooler, lighthouse, pebble, surf, harbour, dune, breeze, starfish]
+  city: [street, bridge, tower, bus, taxi, train, market, square, museum, park, cafe, bank, hotel, station, tram, avenue, garden, fountain, cinema, theatre, office, shop, pharmacy, mosque, library, stadium, port, gate, wall, clock]
+  nature: [tree, river, mountain, flower, forest, lake, cloud, rain, stone, leaf, bird, desert, valley, hill, grass, wind, sun, moon, star, field, rock, branch, seed, root, oasis, cliff, cave, meadow, spring, snow]
+  travel: [ticket, passport, luggage, map, airport, plane, hotel, guide, camera, suitcase, beach, museum, train, visa, gate, boarding, souvenir, postcard, compass, tent, backpack, journey, border, highway, harbour, cruise, route, terminal, hostel, tour]
