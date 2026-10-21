@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { startCamera, strainFromBlendshapes, type FaceDetector } from './camera'
+import { HESITANT, STEADY, synthSpeech } from '../test/speechFixtures'
 import { activeSignals, sendCues } from './cues'
+import { BASELINE_N, finishTurn, framesFromSamples } from './voiceTone'
 
-/** Network test (WP3.5, docs/plan/12 rule 2): while the camera runs, nothing at all leaves the
- * browser; afterwards the only request is the coarse cue, one number with one decimal. Every way
- * out of the page is watched: fetch, XMLHttpRequest, WebSocket and sendBeacon. */
+/** Network test (WP3.5, WP3.9; docs/plan/12 rule 2): while the camera runs or tone is read,
+ * nothing at all leaves the browser; afterwards the only request is the coarse cue, one number
+ * with one decimal. Every way out of the page is watched: fetch, XMLHttpRequest, WebSocket and
+ * sendBeacon. */
 
 const SESSION = '00000000-0000-4000-8000-000000000001'
 const fetchSpy = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(() =>
@@ -105,5 +108,31 @@ describe('camera strain cues', () => {
 
     await sendCues(SESSION) // nothing new: nothing sent
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('voice tone cues (WP3.9)', () => {
+  it('keeps audio and features in the browser and sends only the coarse cue', async () => {
+    localStorage.clear()
+    const steady = framesFromSamples(synthSpeech(STEADY))
+    for (let n = 0; n < BASELINE_N; n++) finishTurn(steady, 'I think it was blue')
+    const cue = finishTurn(
+      framesFromSamples(synthSpeech({ ...HESITANT, seed: 7 })),
+      'um so I think uh it was blue',
+    )
+    expect(cue).not.toBeNull()
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    await sendCues(SESSION)
+    const sent = requests()
+    expect(sent).toHaveLength(1)
+    expect(sent[0]?.url).toBe('/api/affect/cues')
+    const body = sent[0]?.body as Record<string, unknown>
+    expect(Object.keys(body).sort()).toEqual(['session_id', 'strain_cue', 'voice_strain_cue'])
+    expect(body['strain_cue']).toBeNull()
+    expect(body['voice_strain_cue']).toBe(Math.round((cue ?? 0) * 10) / 10)
+    expect(xhrSpy).not.toHaveBeenCalled()
+    expect(wsSpy).not.toHaveBeenCalled()
+    expect(beaconSpy).not.toHaveBeenCalled()
   })
 })

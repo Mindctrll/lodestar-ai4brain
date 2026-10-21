@@ -97,6 +97,15 @@ Each feature is compared with **the user's own baseline** (z-score from their fi
 
 **Spoken game modes** (use the microphone for answers, not tone): Word Burst (say the words), Digits Back (say the digits), Teach Me (explain out loud). Answers are scored from the transcript only; tone features from these are optional and follow the rules above.
 
+**As built (WP3.9).**
+- `frontend/src/affect/voiceTone.ts`: with the Voice tone switch on, each tap-to-talk turn (and each spoken answer) also opens an `AudioWorklet` at 16 kHz. It analyses 40 ms windows every 20 ms and posts only two numbers per window (RMS loudness, F0 by normalised autocorrelation, 70–400 Hz); the samples stay on the audio thread. The worklet runs the same `analyseWindow` function as the tests (its source text is put into the worklet).
+- **Features per utterance:** speech rate (loudness peaks per second of speaking, pauses left out), pause ratio (silences over 300 ms), pitch SD in semitones, mean loudness in dB and its slope, and hesitation words ("um", "uh", "er", "hmm") per transcript word.
+- **Baseline:** the first 10 utterances, kept as sums in this browser's storage (`najma.voice.baseline`, removed by "Delete everything"). No cue until it's complete. After that, each feature becomes a z-score with a minimum spread. Rushing or slowing, more pauses, a flatter or quieter voice and more "um" count as strain. The cue is mean(max(0, z)) / 2, capped at 1 and rounded to one decimal.
+- **What leaves the browser:** only the latest `voice_strain_cue`, with the next round, through the same `POST /affect/cues` as the camera (refused without the Voice tone switch). The monitor fuses camera and voice as `0.7·behaviour + 0.3·mean(cues)`, so together they never weigh more than 0.3.
+- **Indicator:** "Voice signal in use", with "Turn off", while the tone worklet runs.
+- **Spoken answers:** `frontend/src/voice/spokenAnswer.ts` has `listenForAnswer({ maxMs, onInterim, onAnswer })`. It needs the Microphone switch (otherwise it throws `MicrophoneOff`, so the game can fall back to typing), adds tone when that switch is on, and stops by itself after `maxMs`. It returns `{ transcript, words, digits }`: `words` drops fillers and punctuation (Word Burst), `digits` reads "four 7 oh two" as [4, 7, 0, 2] (Digits Back), and `transcript` is for Teach Me.
+- **Tests:** `frontend/src/affect/voiceTone.test.ts` runs on small synthetic fixtures made on the fly (`frontend/src/test/speechFixtures.ts`: fast, steady, slow, hesitant, flat and quiet speech) and on the real `i_slept_badly.wav`. It also runs the worklet source itself. `frontend/src/affect/privacy.test.ts` shows that only the coarse cue is sent.
+
 ## Sources
 
 - Barrett et al. (2019): https://www.semanticscholar.org/paper/Emotional-Expressions-Reconsidered:-Challenges-to-Barrett-Adolphs/c489b6787c5af8aca97f4761343a66f3f189b35d

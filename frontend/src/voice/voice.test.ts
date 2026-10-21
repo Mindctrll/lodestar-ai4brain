@@ -1,5 +1,14 @@
 import { encodeWav } from './speech'
+import { parseDigits, parseWords, toAnswer } from './spokenAnswer'
 import { forSpeech } from './tts'
+
+test('spoken answers: words for Word Burst, digits for Digits Back', () => {
+  expect(parseWords("Um, apple... uh BANANA, cherry's")).toEqual(['apple', 'banana', "cherry's"])
+  expect(parseDigits('four 7 oh, two-nine')).toEqual([4, 7, 0, 2, 9])
+  expect(parseDigits('358')).toEqual([3, 5, 8])
+  expect(parseDigits('um I forgot')).toEqual([])
+  expect(toAnswer(' one two ').digits).toEqual([1, 2])
+})
 
 test('recordings are sent as 16 kHz mono 16-bit WAV', () => {
   const samples = new Float32Array([0, 0.5, -0.5, 1, -1, 2])

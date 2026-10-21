@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { listenWithTone } from '../affect/voiceTone'
 import { api } from '../api/client'
-import { listen, speechEngine, type Listening } from './speech'
+import { speechEngine, type Listening } from './speech'
 import { startWake, WAKE_LABEL, wakeSetup } from './wake'
 
 type OrbState = 'idle' | 'consent' | 'listening' | 'transcribing'
@@ -51,7 +52,13 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
           setState('consent')
           return
         }
-        turn.current = await listen(engine, setCaption, handsFree ? () => void end() : undefined)
+        const tone = consent.switches.some((x) => x.id === 'voice_tone' && x.granted)
+        turn.current = await listenWithTone(
+          engine,
+          setCaption,
+          tone,
+          handsFree ? () => void end() : undefined,
+        )
         setState('listening')
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))

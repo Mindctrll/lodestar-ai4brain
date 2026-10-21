@@ -125,6 +125,7 @@ export function forgetUser(): void {
   try {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('najma.session')
+    localStorage.removeItem('najma.voice.baseline') // voice tone baseline (affect/voiceTone.ts)
   } catch {
     // nothing stored
   }
