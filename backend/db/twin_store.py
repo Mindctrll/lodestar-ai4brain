@@ -45,9 +45,11 @@ from backend.scoring.kalman_elo import Belief, drift, update_item_difficulty
 from backend.scoring.loadings import loading_matrix
 from backend.scoring.norms import Norms
 from backend.scoring.priors import cold_start
+from backend.scoring.quality import TAP_IN_TIME, device_lag
 from backend.scoring.rounds import RoundOutcome, score_round
 
 NOTIFY_CHANNEL = "twin_updated"
+LAG_TAPS = 16  # the latest calibration's taps
 
 
 class RoundNotFound(LookupError):
@@ -68,6 +70,13 @@ def hash_token(token: str) -> str:
 
 async def lock_user(conn: AsyncConnection, user_id: UUID) -> None:
     await conn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:u))"), {"u": str(user_id)})
+
+
+async def user_scope(conn: AsyncConnection, user_id: UUID) -> None:
+    """Row-level security (migration 0007): the rest of this transaction runs as najma_app and
+    sees and writes only this user's rows, so a missing `user_id` filter can't leak another's."""
+    await conn.execute(text("SET LOCAL ROLE najma_app"))
+    await conn.execute(text("SELECT set_config('app.user_id', :u, true)"), {"u": str(user_id)})
 
 
 async def append_event(conn: AsyncConnection, event: Any) -> UUID:
@@ -225,6 +234,23 @@ def _trial_from_row(row: Any) -> TrialEvent:
 # The scored round -------------------------------------------------------------------------
 
 
+async def calibrated_lag(conn: AsyncConnection, user_id: UUID) -> float:
+    """The user's device lag from their latest tap-in-time taps (Quick Draw), 0 if none."""
+    offsets = (
+        await conn.execute(
+            select(t.trials.c.response["offset_ms"].as_float())
+            .where(
+                t.trials.c.user_id == user_id,
+                t.trials.c.stimulus["kind"].as_string() == TAP_IN_TIME,
+                t.trials.c.response.is_not(None),
+            )
+            .order_by(t.trials.c.ts.desc())
+            .limit(LAG_TAPS)
+        )
+    ).scalars()
+    return device_lag([o for o in offsets if o is not None])
+
+
 @dataclass(frozen=True)
 class ScoredRound:
     round_id: UUID
@@ -246,6 +272,7 @@ async def score_round_tx(
     now = now or datetime.now(UTC)
     async with engine.begin() as conn:
         await lock_user(conn, user_id)
+        await user_scope(conn, user_id)
         round_row = (
             await conn.execute(
                 select(t.rounds)
@@ -262,14 +289,17 @@ async def score_round_tx(
         loads: dict[str, float] = dict(
             round_row.loadings or loading_matrix(registry).get(game.id, {})
         )
-        trials = [
-            _trial_from_row(r)
+        # A refresh mid-game replays the round from the start (UW6): for each trial index the
+        # latest answer wins, so the unfinished attempt isn't counted twice.
+        latest = {
+            r.trial_index: _trial_from_row(r)
             for r in await conn.execute(
                 select(t.trials)
                 .where(t.trials.c.round_id == result.round_id)
-                .order_by(t.trials.c.trial_index)
+                .order_by(t.trials.c.trial_index, t.trials.c.ts)
             )
-        ]
+        }
+        trials = list(latest.values())
         stored = {
             r.dim: Belief(r.mu, r.sigma, r.n, r.last_practised)
             for r in await conn.execute(
@@ -305,12 +335,14 @@ async def score_round_tx(
         }
 
         practice = registry.practice.per_round if registry.practice else None
+        lag = await calibrated_lag(conn, user_id)
         outcome = score_round(
             game,
             trials,
             before,
             loads,
             context_weight=context_weight,
+            device_lag_ms=lag,
             item_b=item_b,
             practice=practice,
         )
@@ -346,6 +378,7 @@ async def score_round_tx(
                     inputs=ScoringInputs(
                         context_weight=context_weight,
                         item_b={level_key(k): v for k, v in item_b.items()},
+                        device_lag_ms=lag,
                         trust=outcome.quality.trust,
                         quality_verdict=outcome.quality.verdict,
                         practice_a=practice.a if practice else None,

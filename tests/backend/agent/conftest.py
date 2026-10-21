@@ -5,12 +5,11 @@ from typing import Any
 from uuid import UUID
 
 import pytest
-from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from backend.agent.context import Services
-from backend.agent.graph import checkpointer, compile_graph
+from backend.agent.graph import checkpoint_pool, checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
 from backend.config import Settings, get_settings
 from backend.db import tables as t
@@ -49,21 +48,23 @@ async def make_runner(db_url: str, aengine: AsyncEngine) -> AsyncIterator[Runner
     pools: list[AsyncConnectionPool[Any]] = []
 
     async def build(
-        responder: Responder | None = None, base_overrides: dict[str, str] | None = None
+        responder: Responder | None = None,
+        base_overrides: dict[str, str] | None = None,
+        url: str = db_url,
+        **services_kw: Any,
     ) -> SessionRunner:
-        pool: AsyncConnectionPool[Any] = AsyncConnectionPool(
-            libpq_url(db_url),
-            kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
-            open=False,
-        )
+        """A runner as the app builds it; `url` and `services_kw` (engine, memory, notes...)
+        let degradation tests swap in their own connections and stores."""
+        pool = checkpoint_pool(libpq_url(url))
         await pool.open()
         pools.append(pool)
         registry = load_registry()
         settings = test_settings()
+        engine = services_kw.pop("engine", aengine)
         llm = LlmFactory(
-            registry, settings, aengine, stub_responder=responder, base_overrides=base_overrides
+            registry, settings, engine, stub_responder=responder, base_overrides=base_overrides
         )
-        services = Services(engine=aengine, registry=registry, llm=llm)
+        services = Services(engine=engine, registry=registry, llm=llm, **services_kw)
         return SessionRunner(compile_graph(checkpointer(pool)), services, settings.local_model)
 
     yield build

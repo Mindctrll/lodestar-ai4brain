@@ -90,7 +90,10 @@ def score_round(
     """
     counted = [t for t in trials if not t.practice]
     quality = assess_quality(
-        [TrialSample(t.correct, t.rt_ms) for t in counted],
+        [
+            TrialSample(t.correct, None if t.rt_ms is None else max(0.0, t.rt_ms - device_lag_ms))
+            for t in counted
+        ],
         chance=chance,
     )
     updated = {dim: add_process_noise(beliefs[dim]) for dim in loadings}

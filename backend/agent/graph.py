@@ -14,6 +14,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.store.base import BaseStore
 from langgraph.types import Send
+from psycopg.rows import dict_row
+from psycopg_pool import AsyncConnectionPool
 
 from backend.agent.context import NajmaContext
 from backend.agent.nodes import converse, gate, perceive, play, talk, twin
@@ -110,6 +112,17 @@ def _contract_types() -> list[tuple[str, str]]:
             ):
                 found.append((module.__name__, name))
     return found
+
+
+def checkpoint_pool(url: str) -> AsyncConnectionPool[Any]:
+    """The checkpointer's connection pool, not yet open. Each connection is checked before it is
+    handed out, so sessions carry on after Postgres restarts or drops connections (WP4.1)."""
+    return AsyncConnectionPool(
+        url,
+        kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
+        open=False,
+        check=AsyncConnectionPool.check_connection,
+    )
 
 
 def checkpointer(pool: Any) -> BaseCheckpointSaver[Any]:

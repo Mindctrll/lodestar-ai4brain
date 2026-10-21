@@ -6,12 +6,10 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from psycopg.rows import dict_row
-from psycopg_pool import AsyncConnectionPool
 from qdrant_client import AsyncQdrantClient
 
 from backend.agent.context import Services
-from backend.agent.graph import checkpointer, compile_graph
+from backend.agent.graph import checkpoint_pool, checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
 from backend.api import (
     affect,
@@ -60,11 +58,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     engine = get_async_engine()
     reg = load_registry()
-    pool = AsyncConnectionPool(
-        libpq_url(),
-        kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
-        open=False,
-    )
+    pool = checkpoint_pool(libpq_url())
     await pool.open()
     memory, store = await _memory(settings)
     llm = LlmFactory(reg, settings, engine)

@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
+import numpy as np
 import pytest
 
 from backend.contracts.trial import TrialEvent
@@ -8,7 +9,8 @@ from backend.registry.loader import load_registry
 from backend.registry.models import Registry
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.loadings import loading_matrix, update_weight
-from backend.scoring.rounds import observed_score, score_round
+from backend.scoring.quality import device_lag
+from backend.scoring.rounds import RoundOutcome, observed_score, score_round
 
 T0 = datetime(2026, 10, 21, 20, 0, tzinfo=UTC)
 
@@ -128,3 +130,26 @@ def test_practice_credit_is_the_lumosity_gain_and_bad_data_gets_none() -> None:
     rejected = score_round(game, cheat, _beliefs(registry, "echo"), loads, practice=per_round)
     assert rejected.quality.trust == 0
     assert all(rejected.beliefs[d] == _beliefs(registry, "echo")[d] for d in loads)
+
+
+@pytest.mark.parametrize("lag", [50.0, 100.0, 150.0])
+def test_device_lag_is_calibrated_and_removed(registry: Registry, lag: float) -> None:
+    """Experiment 6 in docs/plan/15: with 50-150 ms of injected lag, tap-in-time recovers it
+    (human tapping noise sd 40 ms); then a lagged honest round scores like an unlagged one and
+    a lagged cheater is still caught."""
+    rng = np.random.default_rng(int(lag))
+    estimate = device_lag(list(lag + rng.normal(0, 40, 8)))
+    assert abs(estimate - lag) < 35
+    assert device_lag([lag] * 3) == 0.0 and device_lag([900.0] * 8) == 250.0
+    game, loads = registry.game("quick_draw"), loading_matrix(registry)["quick_draw"]
+
+    def play(rt: float, lag_ms: float = 0.0) -> RoundOutcome:
+        trials = _trials("quick_draw", [True] * 12, rt=rt)
+        return score_round(game, trials, _beliefs(registry, game.id), loads, device_lag_ms=lag_ms)
+
+    honest = play(450).beliefs["processing_speed"].mu
+    assert play(450 + lag, estimate).beliefs["processing_speed"].mu == pytest.approx(honest)
+    assert play(120 + lag, estimate).quality.verdict == "impossible_speed"
+    if lag == 150:  # uncalibrated, the same lag would cost an honest player and hide a cheater
+        assert play(450 + lag).beliefs["processing_speed"].mu < honest - 1
+        assert play(120 + lag).quality.verdict == "ok"

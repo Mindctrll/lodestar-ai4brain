@@ -4,7 +4,12 @@ import type { TrialRecord } from '../taskhost/types'
 import { dPrime, makeItems as echoItems, metrics as echoMetrics } from './echo/plugin'
 import { GAMES } from './index'
 import { keyForInk, makeItems as inkItems, metrics as inkMetrics } from './ink_clash/plugin'
-import { keyFor, makeItems as quickItems, metrics as quickMetrics } from './quick_draw/plugin'
+import {
+  keyFor,
+  makeItems as quickItems,
+  metrics as quickMetrics,
+  tapOffsets,
+} from './quick_draw/plugin'
 
 const rec = (over: Partial<TrialRecord>): TrialRecord => ({
   trial_index: 0,
@@ -31,6 +36,24 @@ const spec = (game_id: string, knobs: Record<string, number>, practice = 0): Exe
   content: null,
   content_item_id: null,
   theme: null,
+})
+
+test('Quick Draw calibrates the device lag with tap in time when measuring', () => {
+  expect(tapOffsets([1000, 1600, 2200], [1090, 1700, 1650, 2900], 600)).toEqual([90, 50, null])
+  const game = GAMES['quick_draw']
+  if (!game) throw new Error('quick_draw')
+  const assess = { ...spec('quick_draw', { choices: 1 }, 3), mode: 'assess' as const }
+  const timeline = game.timeline({ spec: assess, rng: mulberry32(1), e2e: false })
+  expect(timeline[0]?.['item']).toMatchObject({ kind: 'tap_in_time', beats: 10 })
+  expect(timeline.slice(0, 4).every((t) => t['practice'] === true)).toBe(true)
+  expect(timeline[4]?.['practice']).toBe(false)
+  for (const [s, e2e] of [
+    [assess, true],
+    [spec('quick_draw', { choices: 1 }, 3), false],
+  ] as const) {
+    const plain = game.timeline({ spec: s, rng: mulberry32(1), e2e })
+    expect(plain.some((t) => (t['item'] as { kind?: string }).kind)).toBe(false)
+  }
 })
 
 test('Quick Draw items follow the knobs and keys', () => {

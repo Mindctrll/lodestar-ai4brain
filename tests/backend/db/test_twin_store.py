@@ -275,3 +275,27 @@ async def test_first_round_of_a_skill_starts_from_its_cold_start_prior(
     assert scored is not None
     wm = next(c for c in scored.changes if c.dim == "working_memory")
     assert wm.mu_before > 0.2 and wm.sigma_before < 1.5
+
+
+async def test_rounds_are_scored_with_the_calibrated_device_lag(aengine: AsyncEngine) -> None:
+    """Quick Draw's tap-in-time taps set the device lag; the scored round records it (WP4.1)."""
+    user_id = await _new_user(aengine)
+    round_id = await _played_round(aengine, user_id, [True] * 12, game_id="quick_draw")
+    taps = [
+        TrialEvent(
+            trial_id=uuid4(), round_id=round_id, session_id=uuid4(), game_id="quick_draw",
+            level=0.4, trial_index=900 + i, practice=True,
+            stimulus={"kind": "tap_in_time", "beat": i}, response={"offset_ms": 100 + 10 * (i % 3)},
+            ts=T0 + timedelta(seconds=i),
+        )
+        for i in range(8)
+    ]  # fmt: skip
+    async with aengine.begin() as conn:
+        await record_trials(conn, user_id, taps)
+    scored = await score_round_tx(aengine, user_id, _result(round_id, 12, "quick_draw"), REGISTRY)
+    assert scored is not None
+    async with aengine.connect() as conn:
+        payload = (await conn.execute(
+            select(t.events.c.payload).where(t.events.c.event_id == scored.twin_event_id)
+        )).scalar_one()  # fmt: skip
+    assert payload["inputs"]["device_lag_ms"] == 110

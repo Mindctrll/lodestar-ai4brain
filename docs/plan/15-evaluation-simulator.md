@@ -46,11 +46,30 @@ Once wave 2 is merged: 5–10 consented real users (classmates), 2–3 sessions 
 
 - [ ] New dimension = YAML + docs page; the agent picks it up with no code change
 - [ ] New game = plugin + YAML; validated by a simulator run
-- [ ] Profile rebuilds from the event log
-- [ ] LLM-off mode completes a full session
-- [ ] Qdrant-off mode completes a full session
-- [ ] Refresh during a game resumes correctly
-- [ ] Delete removes everything (verified by a script)
-- [ ] No API key appears in logs, traces, checkpoints, events or exports (verified with a canary key)
+- [x] Profile rebuilds from the event log
+- [x] LLM-off mode completes a full session
+- [x] Qdrant-off mode completes a full session
+- [x] Refresh during a game resumes correctly
+- [x] Delete removes everything (verified by a script)
+- [x] No API key appears in logs, traces, checkpoints, events or exports (verified with a canary key)
 
 WP4.4 tests this end to end: an agent adds a new dimension and game from scratch using only YAML and one plugin.
+
+**As built (WP4.1).** Each item and the test that proves it; all run in CI (`make test`, `make sim`).
+
+| Item | Test |
+|---|---|
+| New dimension / new game from YAML | WP4.4 (extensibility drill) |
+| Profile rebuilds from the event log | `tests/backend/db/test_twin_store.py::test_rebuild_gives_identical_projections`; after retention: `tests/backend/ethics/test_data_rights.py::test_retention_drops_old_data_and_keeps_the_profile_rebuildable` |
+| LLM-off completes a full session | `tests/backend/agent/test_degradation.py::test_llm_down_completes_a_full_session` (every model call fails; template replies built from facts) |
+| Qdrant-off completes a full session | `test_degradation.py::test_qdrant_down_completes_a_full_session` (memory points at a dead port; recall and remember are skipped) |
+| Refresh during a game resumes correctly | `test_degradation.py::test_refresh_mid_game_resumes_and_counts_the_replay_once`; also `test_graph.py::test_paused_session_survives_a_server_restart`, `test_duplicate_resume_scores_once`; in the browser `frontend/e2e/uw6.spec.ts` (`make e2e`) |
+| Delete removes everything | `tests/backend/ethics/test_data_rights.py::test_delete_leaves_nothing_behind` (finds every `user_id` table from the database itself, plus checkpoints, Qdrant and notes) |
+| No API key in logs, traces, checkpoints, events or exports | `tests/backend/agent/test_graph.py::test_canary_key_never_leaks`; exports: `test_data_rights.py::test_export_has_everything_and_never_a_key` |
+
+The rest of WP4.1:
+- **Postgres reconnect:** `test_degradation.py::test_postgres_reconnect_mid_session` drops every connection the app holds mid-round. The checkpointer pool now checks each connection before use (`backend/agent/graph.py: checkpoint_pool`); the app engine already pinged.
+- **Refresh mid-game** found a bug: the replayed round's trials were counted on top of the unfinished attempt's. Scoring now keeps the latest answer per trial index.
+- **Cheat and noise detection:** `backend/scoring/quality.py`, tested in `tests/backend/scoring/test_parts.py` and by experiment 5 in `make sim` (precision and recall gate).
+- **Device-latency calibration:** Quick Draw starts with "tap in time" when measuring (onboarding, check-ups); the median tap offset is the device lag (0-250 ms), subtracted from response times before scoring and quality checks, and recorded in `twin.updated` (`ScoringInputs.device_lag_ms`). Tests: `tests/backend/scoring/test_rounds.py::test_device_lag_is_calibrated_and_removed` (50-150 ms injected lag, experiment 6), `test_twin_store.py::test_rounds_are_scored_with_the_calibrated_device_lag`, `frontend/src/games/games.test.ts`. The simulator doesn't inject lag yet; experiment 6 (WP4.2) can use `device_lag()` on simulated taps.
+- **Row-level security:** migration 0007 enables RLS on every table with a `user_id`. Per-user transactions (`user_scope()`: API reads and the scored round) switch to the `najma_app` role, which sees and writes only the rows of `app.user_id`. The table owner (migrations, sign-in by token, jobs) is not subject to RLS. Test: `tests/backend/db/test_rls.py`.

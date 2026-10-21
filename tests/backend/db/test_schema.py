@@ -115,6 +115,7 @@ def test_app_role_cannot_rewrite_events(conn: Connection) -> None:
     user_id = _user(conn)
     conn.execute(insert(t.events).values(user_id=user_id, type="x", payload={}))
     conn.execute(text("SET LOCAL ROLE najma_app"))
+    conn.execute(text("SELECT set_config('app.user_id', :u, true)"), {"u": str(user_id)})  # RLS
     conn.execute(insert(t.events).values(user_id=user_id, type="y", payload={}))
     with pytest.raises(DBAPIError) as excinfo, conn.begin_nested():
         conn.execute(text("DELETE FROM twin.events WHERE user_id = :u"), {"u": user_id})

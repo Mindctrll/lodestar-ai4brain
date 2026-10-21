@@ -1,7 +1,13 @@
 import { parse } from 'yaml'
 
 import { median, randInt, type Rng } from '../../lib/rng'
-import { itemsToTimeline, makePlugin, markAnswer } from '../../taskhost/plugin'
+import {
+  el,
+  itemsToTimeline,
+  makePlugin,
+  markAnswer,
+  type TrialOutcome,
+} from '../../taskhost/plugin'
 import { practiceFeedback, waitForResponse } from '../../taskhost/respond'
 import type { GameModule, TrialRecord } from '../../taskhost/types'
 import rawConfig from './config.yaml?raw'
@@ -11,6 +17,7 @@ interface Config {
   keys: string[]
   single_key: string
   foreperiod_ms: [number, number]
+  tap_in_time: { beats: number; period_ms: number }
 }
 const config = parse(rawConfig) as Config
 
@@ -19,6 +26,76 @@ export interface QuickDrawItem {
   choices: number
   foreperiod_ms: number
   deadline_ms: number
+}
+
+/** Device-lag calibration (docs/plan/06): at onboarding and check-ups the round starts with
+ * "tap in time". Each tap's offset from its flash is the screen and input delay plus a little
+ * human timing noise; the server takes the median (backend/scoring/quality.py: device_lag). */
+export interface TapInTimeItem {
+  kind: 'tap_in_time'
+  beats: number
+  period_ms: number
+}
+
+/** For each flash, the offset of the nearest tap within half a beat, or null if none. */
+export function tapOffsets(flashes: number[], taps: number[], periodMs: number): (number | null)[] {
+  return flashes.map((flash) => {
+    let best: number | null = null
+    for (const tap of taps) {
+      const offset = tap - flash
+      if (Math.abs(offset) <= periodMs / 2 && (best === null || Math.abs(offset) < Math.abs(best)))
+        best = offset
+    }
+    return best
+  })
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)))
+const painted = () =>
+  new Promise<number>((resolve) => {
+    requestAnimationFrame(() => {
+      resolve(performance.now())
+    })
+  })
+
+async function tapInTime(stage: HTMLElement, item: TapInTimeItem): Promise<TrialOutcome[]> {
+  const box = el('button', 'qd-box')
+  box.type = 'button'
+  box.dataset['testid'] = 'tap-in-time'
+  box.setAttribute('aria-label', 'Tap in time with the star')
+  const hint = 'First, tap in time: press Space or tap the box each time the star lights up.'
+  stage.append(el('p', '', hint), box)
+  const taps: number[] = []
+  const onKey = (event: KeyboardEvent) => {
+    if (event.key !== ' ' || event.repeat) return
+    event.preventDefault()
+    taps.push(performance.now())
+  }
+  const onTap = (event: PointerEvent) => {
+    event.preventDefault()
+    taps.push(performance.now())
+  }
+  document.addEventListener('keydown', onKey)
+  box.addEventListener('pointerdown', onTap)
+  const star = el('span', 'qd-star', '★')
+  const flashes: number[] = []
+  const t0 = performance.now() + 1000
+  for (let beat = 0; beat < item.beats; beat++) {
+    await wait(t0 + beat * item.period_ms - performance.now())
+    box.appendChild(star)
+    flashes.push(await painted()) // timed like a response: from the frame that shows it
+    await wait(150)
+    star.remove()
+  }
+  await wait(item.period_ms / 2)
+  document.removeEventListener('keydown', onKey)
+  box.removeEventListener('pointerdown', onTap)
+  return tapOffsets(flashes, taps, item.period_ms).map((offset, beat) => ({
+    stimulus: { kind: item.kind, beat, period_ms: item.period_ms },
+    response: offset === null ? null : { offset_ms: offset },
+    correct: null,
+    rt_ms: null,
+  }))
 }
 
 export function keyFor(item: Pick<QuickDrawItem, 'position' | 'choices'>): string {
@@ -39,9 +116,10 @@ export function makeItems(
   }))
 }
 
-const QuickDrawPlugin = makePlugin<QuickDrawItem>(
+const QuickDrawPlugin = makePlugin<QuickDrawItem | TapInTimeItem>(
   'najma-quick-draw',
   async ({ jsPsych, stage, item, practice, e2e }) => {
+    if ('kind' in item) return tapInTime(stage, item)
     const boxes = Array.from({ length: item.choices }, (_, i) => {
       const box = document.createElement('button')
       box.type = 'button'
@@ -115,7 +193,11 @@ export const game: GameModule = {
     const choices = Math.max(1, Math.min(4, Math.round(spec.knobs['choices'] ?? 1)))
     const deadline = spec.knobs['deadline_ms'] ?? 1200
     const items = makeItems(rng, choices, deadline, spec.practice_trials + config.trials)
-    return itemsToTimeline(QuickDrawPlugin, items, spec.practice_trials, e2e)
+    // Calibrate the device lag when measuring (onboarding, check-ups); not in end-to-end tests.
+    if (spec.mode !== 'assess' || e2e)
+      return itemsToTimeline(QuickDrawPlugin, items, spec.practice_trials, e2e)
+    const calibrate: TapInTimeItem = { kind: 'tap_in_time', ...config.tap_in_time }
+    return itemsToTimeline(QuickDrawPlugin, [calibrate, ...items], spec.practice_trials + 1, e2e)
   },
   metrics,
 }

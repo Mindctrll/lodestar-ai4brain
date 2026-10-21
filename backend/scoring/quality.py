@@ -60,3 +60,20 @@ def assess_quality(
     ):
         return QualityReport(0.0, "random_clicking", anticipations, accuracy)
     return QualityReport(1.0, "ok", anticipations, accuracy)
+
+
+# Device lag (docs/plan/06, Quick Draw): a slow screen or input adds a constant delay to every
+# response time. At onboarding and check-ups Quick Draw starts with "tap in time": the user taps
+# along with a flashing star, and each tap's offset from its flash is that delay plus a little
+# human timing noise. Like a rhythm game's calibration, the median offset estimates it.
+TAP_IN_TIME = "tap_in_time"
+MIN_TAPS = 5
+MAX_LAG_MS = 250.0
+
+
+def device_lag(offsets_ms: Sequence[float]) -> float:
+    """Device lag in ms from tap-in-time offsets: their median, clamped to 0..250; 0 when there
+    are too few taps to tell."""
+    if len(offsets_ms) < MIN_TAPS:
+        return 0.0
+    return min(max(statistics.median(offsets_ms), 0.0), MAX_LAG_MS)

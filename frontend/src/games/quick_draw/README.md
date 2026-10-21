@@ -2,6 +2,12 @@
 
 **Measures:** processing speed (primary). Also the device-lag baseline at onboarding.
 
+**Device lag (WP4.1):** when measuring (onboarding, check-ups) the round starts with "tap in
+time": 10 flashes 600 ms apart, tapped along with like a rhythm game's calibration. Each tap's
+offset from its flash is stored as a practice trial; the server takes the median of the latest
+taps as the device lag (clamped to 0-250 ms) and subtracts it from every response time it scores
+(`backend/scoring/quality.py: device_lag`). Skipped in end-to-end tests.
+
 **Paradigm:** simple and choice reaction time, after the classic Donders/Hick tasks. Written from
 published descriptions; no code from PEBL or PsyToolkit.
 
