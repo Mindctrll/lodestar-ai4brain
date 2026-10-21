@@ -17,7 +17,9 @@ Gives `plan_next` a `bandit_gain` for each skill (weight 0.10, shown in every de
 
 Simulated people get hidden per-game learning rates: an everyone-level rate per game (log-normal, SD 0.4) times a personal one (SD 0.3). 600 people play with random games and build the prior; 200 others then play 30 sessions twice from the same start with the same seeds, once with random games and once with the bandit. Both pick the skill the same way, so only the game differs.
 
-Result (seed 2026): true skill gained per person 3.56 with random games and 3.71 with the bandit; paired difference +0.095 to +0.210 (95% interval); 66% of people gained more. An oracle that knows the everyone-level rates gains about +0.21, so the bandit gets most of what is available. With the person's own rounds alone (no everyone prior), it did not beat random: the signal is too weak, which is why the prior exists. `tests/simulator/test_bandit_sim.py` runs this check.
+Result (seed 2026): true skill gained per person 3.61 with random games and 3.84 with the bandit; paired difference +0.17 to +0.29 (95% interval); 72% of people gained more. With the person's own rounds alone (no everyone prior), it did not beat random: the signal is too weak, which is why the prior exists.
+
+The seed draws a whole new simulated world (every game's everyone-level rate), so the result was rerun over 13 seeds. The bandit clearly beat random in 9 (lower end of the interval above zero), tied in 2 (5 and 9) and lost in 2 (10: −0.18 to −0.06; 99: −0.16 to −0.04). So it helps on average but not in every world; a likely reason is a world where the games' rates are close together, so the prior's noise costs more than it finds. Each game's rate has its own random stream (keyed by game id), so adding a game to the registry doesn't redraw the others. `tests/simulator/test_bandit_sim.py` runs this check.
 
 ## Limits
 

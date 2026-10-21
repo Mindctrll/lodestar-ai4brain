@@ -14,6 +14,7 @@ the skill the same way (the one the Brain Twin is least sure about); only the ga
 import argparse
 import copy
 import sys
+import zlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -77,8 +78,17 @@ def compare(
     registry: Registry, first_users: int, users: int, sessions: int, seed: int = 2026
 ) -> Comparison:
     rng = np.random.default_rng(seed)
-    game_ids = [g.id for g in registry.games if g.kind == "game"]
-    everyone = {g: float(np.exp(rng.normal(0.0, POPULATION_SD))) for g in game_ids}
+    # Each game's rate comes from its own stream, so adding games to the registry doesn't
+    # reshuffle everyone else's.
+    everyone = {
+        g.id: float(
+            np.exp(
+                np.random.default_rng([seed, zlib.crc32(g.id.encode())]).normal(0.0, POPULATION_SD)
+            )
+        )
+        for g in registry.games
+        if g.kind == "game"
+    }
     first = with_rates(make_population(registry, first_users, rng), everyone, rng)
     played = [
         changes(
