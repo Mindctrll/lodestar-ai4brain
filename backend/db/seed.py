@@ -18,6 +18,7 @@ from backend.db import tables as t
 from backend.db.engine import get_engine
 from backend.db.twin_store import hash_token
 from backend.registry.loader import load_registry
+from backend.registry.models import Registry
 
 DEMO_NAME = "Amira"
 DAYS = 21
@@ -28,12 +29,18 @@ def _ts(day: date, hour: int, minute: int = 0) -> datetime:
     return datetime(day.year, day.month, day.day, hour, minute, tzinfo=UTC)
 
 
+def tracked_dims(registry: Registry) -> list[str]:
+    """Every non-experimental skill, plus any experimental one a seeded (P1) game measures."""
+    seeded = {d for g in registry.games if g.phase == "P1" for d in g.dims}
+    return [d.id for d in registry.dimensions if d.badge != "experimental" or d.id in seeded]
+
+
 def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
     rng = random.Random(SEED)
     today = today or datetime.now(UTC).date()
     registry = load_registry()
     p1_games = [g for g in registry.games if g.phase == "P1"]
-    tracked = [d.id for d in registry.dimensions if d.badge != "experimental"]
+    tracked = tracked_dims(registry)
 
     user_id: UUID = conn.execute(
         insert(t.users)
