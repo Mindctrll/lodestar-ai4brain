@@ -62,7 +62,7 @@ export function rate(
 }
 
 const UsesPlugin = makePlugin<UsesItem>(
-  'najma-unusual-uses',
+  'lodestar-unusual-uses',
   async ({ jsPsych, stage, item, e2e }) => {
     stage.append(
       el('p', 'game-prompt', `How many different uses can you think of for ${item.thing.name}?`),

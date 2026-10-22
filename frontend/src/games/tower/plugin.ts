@@ -94,7 +94,7 @@ function draw(s: State, testid?: string): { box: HTMLElement; pegs: HTMLButtonEl
 }
 
 const TowerPlugin = makePlugin<TowerProblem>(
-  'najma-tower',
+  'lodestar-tower',
   async ({ stage, item, practice, e2e }) => {
     const goalView = el('div', 'tw-goal')
     goalView.append(el('p', 'game-prompt', 'Make it look like this:'), draw(item.goal).box)

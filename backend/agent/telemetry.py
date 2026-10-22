@@ -12,8 +12,8 @@ from langgraph.config import get_stream_writer
 from langgraph.errors import GraphBubbleUp
 from langgraph.runtime import Runtime
 
-from backend.agent.context import NajmaContext
-from backend.agent.state import NajmaState
+from backend.agent.context import LodestarContext
+from backend.agent.state import LodestarState
 from backend.contracts.decision import Decision
 from backend.db import tables as t
 from backend.llm.redaction import scrub
@@ -22,7 +22,9 @@ log = logging.getLogger(__name__)
 
 
 class Node(Protocol):
-    def __call__(self, state: NajmaState, *, runtime: Runtime[NajmaContext]) -> Awaitable[Any]: ...
+    def __call__(
+        self, state: LodestarState, *, runtime: Runtime[LodestarContext]
+    ) -> Awaitable[Any]: ...
 
 
 def emit(event: dict[str, Any]) -> None:
@@ -33,7 +35,7 @@ def emit(event: dict[str, Any]) -> None:
 
 
 async def write_trace(
-    ctx: NajmaContext,
+    ctx: LodestarContext,
     node: str,
     event: str,
     ms: float | None = None,
@@ -57,7 +59,7 @@ async def write_trace(
         log.warning("trace write failed for node %s", node, exc_info=True)
 
 
-async def record_decision(ctx: NajmaContext, decision: Decision) -> None:
+async def record_decision(ctx: LodestarContext, decision: Decision) -> None:
     async with ctx.services.engine.begin() as conn:
         await conn.execute(
             t.decisions.insert().values(
@@ -86,12 +88,12 @@ async def record_decision(ctx: NajmaContext, decision: Decision) -> None:
 
 def traced(
     name: str,
-) -> Callable[[Callable[[NajmaState, Runtime[NajmaContext]], Awaitable[Any]]], Node]:
+) -> Callable[[Callable[[LodestarState, Runtime[LodestarContext]], Awaitable[Any]]], Node]:
     """Time a node, write its trace row and stream a timeline event."""
 
-    def wrap(fn: Callable[[NajmaState, Runtime[NajmaContext]], Awaitable[Any]]) -> Node:
+    def wrap(fn: Callable[[LodestarState, Runtime[LodestarContext]], Awaitable[Any]]) -> Node:
         @functools.wraps(fn)
-        async def run(state: NajmaState, *, runtime: Runtime[NajmaContext]) -> Any:
+        async def run(state: LodestarState, *, runtime: Runtime[LodestarContext]) -> Any:
             start = time.perf_counter()
             emit({"kind": "node", "node": name, "status": "start"})
             try:

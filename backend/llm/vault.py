@@ -1,6 +1,6 @@
 """Encrypt users' API keys at rest (AGENTS.md rule 9; docs/plan/04, app.llm_credentials).
 
-AES-256-GCM with a server master key from NAJMA_MASTER_KEY (base64, 32 bytes). The user id and
+AES-256-GCM with a server master key from LODESTAR_MASTER_KEY (base64, 32 bytes). The user id and
 provider are bound in as associated data, so a ciphertext can't be moved to another account.
 """
 
@@ -30,10 +30,10 @@ class SealedKey:
 
 def _master_key(raw: str | None) -> bytes:
     if not raw:
-        raise VaultUnavailable("NAJMA_MASTER_KEY is not set")
+        raise VaultUnavailable("LODESTAR_MASTER_KEY is not set")
     key = base64.b64decode(raw)
     if len(key) != 32:
-        raise VaultUnavailable("NAJMA_MASTER_KEY must decode to 32 bytes")
+        raise VaultUnavailable("LODESTAR_MASTER_KEY must decode to 32 bytes")
     return key
 
 

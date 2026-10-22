@@ -47,7 +47,7 @@ function beep(): void {
 }
 
 const BrakePlugin = makePlugin<BrakeItem>(
-  'najma-brake',
+  'lodestar-brake',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const arrow = el('div', 'brake-arrow', item.direction === 'left' ? '←' : '→')
     arrow.dataset['testid'] = 'brake-arrow'

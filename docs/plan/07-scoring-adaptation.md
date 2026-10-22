@@ -75,7 +75,7 @@ b_next = μ − logit(p*)
 | Train · Chill | 0.90 | User wants it relaxing |
 | Train · Push | 0.65 | User wants a challenge |
 
-The user chooses Chill, Balanced or Push in settings. Najma switches to Assess automatically when σ is high.
+The user chooses Chill, Balanced or Push in settings. Lodestar switches to Assess automatically when σ is high.
 
 **Inside a game,** continuous knobs (presentation time, stop-signal delay) use a staircase: 2-down/1-up converges on 70.7% and 3-down/1-up on 79.4%.
 

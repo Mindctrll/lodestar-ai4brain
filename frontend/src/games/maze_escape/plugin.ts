@@ -92,7 +92,7 @@ function draw(item: MazeItem): { board: SVGSVGElement; player: SVGCircleElement 
 }
 
 const MazePlugin = makePlugin<MazeItem>(
-  'najma-maze-escape',
+  'lodestar-maze-escape',
   async ({ stage, item, practice, e2e }) => {
     const n = item.rows.length
     const { board, player } = draw(item)

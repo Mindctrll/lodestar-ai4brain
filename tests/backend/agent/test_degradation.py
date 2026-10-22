@@ -89,7 +89,7 @@ async def test_qdrant_down_completes_a_full_session(
 
 async def test_postgres_reconnect_mid_session(make_runner: RunnerFactory, db_url: str) -> None:
     """Every connection the app holds is dropped while the user plays; the round still scores."""
-    name = "najma_reconnect_test"
+    name = "lodestar_reconnect_test"
     url = f"{db_url}?application_name={name}"
     engine = create_async_engine(sync_url(url), pool_pre_ping=True)  # as get_async_engine()
     try:

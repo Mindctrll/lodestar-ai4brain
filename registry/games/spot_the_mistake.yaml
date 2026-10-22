@@ -8,7 +8,7 @@ dims:
 origin: original
 paradigm: Verifying worked solutions
 code_source: own
-does: Najma solves a puzzle; find the planted error, or confirm it's right
+does: Lodestar solves a puzzle; find the planted error, or confirm it's right
 scoring: binary
 duration_s: 120
 metrics:

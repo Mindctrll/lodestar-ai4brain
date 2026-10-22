@@ -117,7 +117,7 @@ export function makeItems(
 }
 
 const QuickDrawPlugin = makePlugin<QuickDrawItem | TapInTimeItem>(
-  'najma-quick-draw',
+  'lodestar-quick-draw',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     if ('kind' in item) return tapInTime(stage, item)
     const boxes = Array.from({ length: item.choices }, (_, i) => {

@@ -17,7 +17,7 @@ export interface Puzzle {
 }
 
 const PuzzlePlugin = makePlugin<Puzzle>(
-  'najma-pattern-gap',
+  'lodestar-pattern-gap',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const grid = el('div', 'pg-grid')
     for (const cell of item.grid) {

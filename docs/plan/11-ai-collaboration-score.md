@@ -12,7 +12,7 @@ The ACS measures **how well the user works with the AI**, from 0 to 100. It's co
 | **C** | Clarification | Guide the Robot and Teach Me include deliberately ambiguous moments | Asking a clarifying question before acting on something ambiguous; not over-asking on clear things | Every ambiguous moment (and clear ones as controls) |
 | **R** | Responsible use | Session behaviour and settings | Taking suggested breaks, not trying to extract answers in assessment mode, respecting low-confidence warnings | Every relevant prompt or event |
 
-All of this is disclosed in the consent screen ("Najma will sometimes be wrong on purpose to see whether you check").
+All of this is disclosed in the consent screen ("Lodestar will sometimes be wrong on purpose to see whether you check").
 
 ## Formula
 

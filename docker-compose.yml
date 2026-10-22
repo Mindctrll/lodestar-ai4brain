@@ -1,16 +1,16 @@
 # `make up` starts everything; `make up-ollama` also starts a containerised Ollama.
 # Image tags are pinned (docs/plan/02, Pinned versions).
-name: najma
+name: lodestar
 
 services:
   postgres:
     image: postgres:18.6
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-najma}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-najma}
-      POSTGRES_DB: ${POSTGRES_DB:-najma}
+      POSTGRES_USER: ${POSTGRES_USER:-lodestar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lodestar}
+      POSTGRES_DB: ${POSTGRES_DB:-lodestar}
     ports:
-      - "${NAJMA_PG_PORT:-5442}:5432"
+      - "${LODESTAR_PG_PORT:-5442}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
@@ -22,7 +22,7 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.19.2
     ports:
-      - "${NAJMA_QDRANT_PORT:-6333}:6333"
+      - "${LODESTAR_QDRANT_PORT:-6333}:6333"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
@@ -39,16 +39,16 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-najma}:${POSTGRES_PASSWORD:-najma}@postgres:5432/${POSTGRES_DB:-najma}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lodestar}:${POSTGRES_PASSWORD:-lodestar}@postgres:5432/${POSTGRES_DB:-lodestar}
       QDRANT_URL: http://qdrant:6333
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
-      NAJMA_MEMORY_DIR: /app/memory
+      LODESTAR_MEMORY_DIR: /app/memory
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "${NAJMA_API_PORT:-8000}:8000"
+      - "${LODESTAR_API_PORT:-8000}:8000"
     volumes:
-      - najma_memory:/app/memory
+      - lodestar_memory:/app/memory
       - ./models:/app/models:ro  # trained by `make ml-train` (docs/plan/10)
     depends_on:
       postgres:
@@ -71,7 +71,7 @@ services:
     build:
       context: frontend
     ports:
-      - "${NAJMA_WEB_PORT:-5173}:5173"
+      - "${LODESTAR_WEB_PORT:-5173}:5173"
     depends_on:
       backend:
         condition: service_healthy
@@ -91,7 +91,7 @@ services:
     image: ollama/ollama:0.40.6
     profiles: ["ollama"]
     ports:
-      - "${NAJMA_OLLAMA_PORT:-11435}:11434"
+      - "${LODESTAR_OLLAMA_PORT:-11435}:11434"
     volumes:
       - ollama_models:/root/.ollama
     healthcheck:
@@ -103,5 +103,5 @@ services:
 volumes:
   pgdata:
   qdrant_data:
-  najma_memory:
+  lodestar_memory:
   ollama_models:

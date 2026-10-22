@@ -40,7 +40,7 @@ export function makeItems(rng: Rng, count: number, operations: number, max: numb
 }
 
 const SumPlugin = makePlugin<SumItem>(
-  'najma-quick-maths',
+  'lodestar-quick-maths',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     stage.append(el('div', 'big-symbol', `${String(item.a)} ${item.op} ${String(item.b)}`))
     const { text, rt, timedOut } = await typeIn(jsPsych, stage, e2e, String(item.answer), {

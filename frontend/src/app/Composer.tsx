@@ -11,7 +11,7 @@ const STARTERS = [
   'Make me a game where I remember a phone number while doing maths',
 ]
 
-/** Where you talk to Najma: type or tap the microphone, with a few starters. Hidden while a game
+/** Where you talk to Lodestar: type or tap the microphone, with a few starters. Hidden while a game
  * is running so keys go to the game. */
 export function Composer({
   session,
@@ -60,7 +60,7 @@ export function Composer({
         }}
       >
         <label className="sr-only" htmlFor="say">
-          Say something to Najma
+          Say something to Lodestar
         </label>
         <input
           id="say"
@@ -68,7 +68,7 @@ export function Composer({
           value={text}
           maxLength={2000}
           autoComplete="off"
-          placeholder={quiet ? 'Tell Najma how your day is going' : 'Reply to Najma'}
+          placeholder={quiet ? 'Tell Lodestar how your day is going' : 'Reply to Lodestar'}
           onChange={(e) => {
             setText(e.target.value)
           }}

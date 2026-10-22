@@ -90,7 +90,7 @@
   hosting: This server
   console_url: https://ollama.com
   needs_key: false
-  default_model: qwen3.5:4b   # overridden by NAJMA_LOCAL_MODEL
+  default_model: qwen3.5:4b   # overridden by LODESTAR_LOCAL_MODEL
   capabilities:
     structured_method: json_schema   # constrained decoding; much faster than tool calls on CPU
   notes: Privacy and offline mode. Slower, simpler answers.

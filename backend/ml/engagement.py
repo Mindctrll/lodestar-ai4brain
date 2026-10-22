@@ -1,9 +1,9 @@
 """Engagement risk (docs/plan/10, section 2): the chance someone takes a week off, as a range.
 
-Only behaviour features that exist both in OULAD and in Najma (no demographics, for fairness):
+Only behaviour features that exist both in OULAD and in Lodestar (no demographics, for fairness):
 days since last activity, active days in the last 7, the 7 before and the last 28, the trend in
 activity per active day, the current streak, recent failures and days since starting. The same
-`feature_row` builds a training row from OULAD's daily clicks and a serving row from Najma's
+`feature_row` builds a training row from OULAD's daily clicks and a serving row from Lodestar's
 daily rounds, so the two can't drift apart.
 
 The probability comes with an inductive Venn-Abers range [p0, p1]: two isotonic calibrations on
@@ -35,7 +35,7 @@ CAPS = {"days_since_last": 60.0, "streak": 28.0, "fails_28": 5.0, "tenure": 180.
 
 def feature_row(volume: np.ndarray, fails: np.ndarray, t: int) -> list[float]:
     """Features on day index `t` (inclusive) from daily activity `volume` (clicks in OULAD,
-    rounds in Najma) and daily `fails` (failed assessments, rounds that went badly)."""
+    rounds in Lodestar) and daily `fails` (failed assessments, rounds that went badly)."""
     seen = volume[: t + 1]
     active = np.flatnonzero(seen > 0)
     last = int(active[-1]) if len(active) else None

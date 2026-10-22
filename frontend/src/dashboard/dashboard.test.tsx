@@ -45,7 +45,7 @@ const view = (dim: string, sigma: number, percent: number): DimensionView => ({
   still_learning: sigma > 0.8,
 })
 
-test('the sky blurs what Najma is unsure of and names what is unmeasured', () => {
+test('the sky blurs what Lodestar is unsure of and names what is unmeasured', () => {
   const picked: string[] = []
   render(
     <NightSky

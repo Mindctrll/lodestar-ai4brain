@@ -144,7 +144,7 @@ async def spot_the_mistake(io: Io, spec: dict[str, Any], played: Played) -> dict
     if not puzzles:
         raise NoContent
     io.console.print(
-        "Najma solves a few puzzles step by step. Some solutions have one mistake, some don't. "
+        "Lodestar solves a few puzzles step by step. Some solutions have one mistake, some don't. "
         "Find the wrong step, or say they're all right."
     )
     for puzzle in puzzles:

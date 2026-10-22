@@ -9,7 +9,7 @@ type OrbState = 'idle' | 'consent' | 'listening' | 'transcribing'
 
 /** Tap-to-talk (docs/plan/12; UW4): tap the orb or press Alt+V, speak, tap again. What was heard
  * shows as a caption before it is sent. The microphone switch is asked for in place the first
- * time. With a wake word set up in Settings, "Hey Najma" starts a turn that ends by itself after
+ * time. With a wake word set up in Settings, "Hey Lodestar" starts a turn that ends by itself after
  * a pause; if the wake word can't start, tap-to-talk is unchanged. */
 export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) {
   const [state, setState] = useState<OrbState>('idle')
@@ -169,7 +169,7 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
         {state === 'consent' && (
           <div className="confirm" role="dialog" aria-label="Turn on the microphone">
             <p>
-              To listen, Najma needs the microphone switch.{' '}
+              To listen, Lodestar needs the microphone switch.{' '}
               {engine === 'browser'
                 ? "Your browser's speech recognition may send the audio to its maker."
                 : engine === 'device'

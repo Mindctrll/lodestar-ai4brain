@@ -1,0 +1,5 @@
+#!/bin/sh
+# The `lodestar` CLI (docs/plan/18, UW19). Put this folder on your PATH, or:
+#   alias lodestar=/path/to/ai4brain-plan/bin/lodestar
+here=$(cd "$(dirname "$0")/.." && pwd)
+exec uv run --quiet --directory "$here" python -m cli "$@"

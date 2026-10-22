@@ -29,7 +29,7 @@ export class SessionSocket {
         resolve()
       })
       socket.addEventListener('error', () => {
-        reject(new Error('Could not reach Najma'))
+        reject(new Error('Could not reach Lodestar'))
       })
       socket.addEventListener('message', (message: MessageEvent<string>) => {
         const event = JSON.parse(message.data) as AgentEvent
@@ -49,13 +49,13 @@ export class SessionSocket {
     this.socket?.send(JSON.stringify({ type: 'resume', value: result }))
   }
 
-  /** Answer a "Shall I…?" question from Najma. */
+  /** Answer a "Shall I…?" question from Lodestar. */
   async confirm(confirmed: boolean): Promise<void> {
     await this.connect()
     this.socket?.send(JSON.stringify({ type: 'resume', value: { confirmed } }))
   }
 
-  /** Ask Najma for the next game without saying anything. */
+  /** Ask Lodestar for the next game without saying anything. */
   async next(): Promise<void> {
     await this.connect()
     this.socket?.send(JSON.stringify({ type: 'start' }))

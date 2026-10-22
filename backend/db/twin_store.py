@@ -73,9 +73,9 @@ async def lock_user(conn: AsyncConnection, user_id: UUID) -> None:
 
 
 async def user_scope(conn: AsyncConnection, user_id: UUID) -> None:
-    """Row-level security (migration 0007): the rest of this transaction runs as najma_app and
+    """Row-level security (migration 0007): the rest of this transaction runs as lodestar_app and
     sees and writes only this user's rows, so a missing `user_id` filter can't leak another's."""
-    await conn.execute(text("SET LOCAL ROLE najma_app"))
+    await conn.execute(text("SET LOCAL ROLE lodestar_app"))
     await conn.execute(text("SELECT set_config('app.user_id', :u, true)"), {"u": str(user_id)})
 
 
@@ -104,7 +104,7 @@ async def create_user(
     conn: AsyncConnection,
     *,
     display_name: str | None = None,
-    persona: str = "zitouna",
+    persona: str = "willow",
     timezone: str | None = None,
     age_confirmed: bool = False,
 ) -> tuple[UUID, str]:

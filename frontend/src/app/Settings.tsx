@@ -131,7 +131,7 @@ function Provider({ onChange }: { onChange: () => void }) {
             <span className="badge" data-testid="local-badge">
               Local mode
             </span>{' '}
-            Najma uses the model on this server; nothing leaves it.
+            Lodestar uses the model on this server; nothing leaves it.
           </>
         )}
       </p>
@@ -226,7 +226,7 @@ function Provider({ onChange }: { onChange: () => void }) {
           data-testid="cloud-consent"
         >
           <p>
-            To use {adder.name}, Najma will send short, de-identified summaries (no name, no raw
+            To use {adder.name}, Lodestar will send short, de-identified summaries (no name, no raw
             answers) to {adder.name}, which processes data in {adder.hosting}. You can turn this off
             at any time.
           </p>
@@ -358,7 +358,7 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
 
   return (
     <div data-testid="my-data">
-      <h3>What Najma keeps about you</h3>
+      <h3>What Lodestar keeps about you</h3>
       {data && data.core.length === 0 && data.memories.length === 0 && (
         <p className="muted">Nothing yet.</p>
       )}
@@ -383,7 +383,7 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
       )}
       {data && data.life_context.length > 0 && (
         <>
-          <p className="muted">What you told Najma about your days</p>
+          <p className="muted">What you told Lodestar about your days</p>
           <ul className="lines">
             {data.life_context.map((c) => (
               <li key={c.context_id}>
@@ -446,7 +446,7 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
           data-testid="delete-confirm"
         >
           <p>
-            This deletes your results, profile, memories, notes and keys from Najma, for good. It
+            This deletes your results, profile, memories, notes and keys from Lodestar, for good. It
             can&apos;t be undone.
           </p>
           <div className="flex gap-2">
@@ -477,8 +477,8 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
   )
 }
 
-/** "Hey Najma" (docs/plan/12): the person's own Picovoice AccessKey and keyword file. Both stay
- * in this browser and are never sent to Najma's server; only the last 4 characters are shown. */
+/** "Hey Lodestar" (docs/plan/12): the person's own Picovoice AccessKey and keyword file. Both stay
+ * in this browser and are never sent to Lodestar's server; only the last 4 characters are shown. */
 function WakeWord() {
   const [saved, setSaved] = useState(wakeSetup)
   const [key, setKey] = useState('')
@@ -516,7 +516,7 @@ function WakeWord() {
         <a href="https://console.picovoice.ai/" target="_blank" rel="noreferrer">
           the Picovoice Console
         </a>
-        . The wake word is heard on this device only; Picovoice checks the key, and Najma&apos;s
+        . The wake word is heard on this device only; Picovoice checks the key, and Lodestar&apos;s
         server never sees it.
       </p>
       <label htmlFor="wake-key">Picovoice AccessKey</label>
@@ -553,7 +553,7 @@ function WakeWord() {
   )
 }
 
-/** How Najma listens and speaks (docs/plan/12). */
+/** How Lodestar listens and speaks (docs/plan/12). */
 function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
   const [engine, setEngine] = useState<SpeechEngine>(speechEngine)
   const [speakOn, setSpeakOn] = useState(speakReplies)
@@ -603,7 +603,7 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
               <strong>Private</strong>
               <br />
               <span className="muted">
-                Turned into text on Najma&apos;s server; the audio is not kept. English only for
+                Turned into text on Lodestar&apos;s server; the audio is not kept. English only for
                 now.
               </span>
             </span>
@@ -645,10 +645,10 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
           }}
         />
         <span>
-          <strong>Speak Najma&apos;s replies</strong>
+          <strong>Speak Lodestar&apos;s replies</strong>
           <br />
           <span className="muted">
-            In your coach&apos;s voice, and Najma reads game instructions out loud. Everything
+            In your coach&apos;s voice, and Lodestar reads game instructions out loud. Everything
             spoken is also shown as text.
           </span>
         </span>
@@ -696,17 +696,17 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
   )
 }
 
-/** Najma in a terminal (UW19): the `najma` CLI signs in with this browser's code. */
+/** Lodestar in a terminal (UW19): the `lodestar` CLI signs in with this browser's code. */
 function Terminal() {
   const [code, setCode] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   return (
     <div data-testid="terminal-settings">
-      <h3>Use Najma in a terminal</h3>
+      <h3>Use Lodestar in a terminal</h3>
       <p className="muted">
-        The <code>najma</code> command chats with Najma, plays the text games and shows your profile
-        and goals, from the same data as this app. Run <code>najma login</code> and paste your
-        sign-in code.
+        The <code>lodestar</code> command chats with Lodestar, plays the text games and shows your
+        profile and goals, from the same data as this app. Run <code>lodestar login</code> and paste
+        your sign-in code.
       </p>
       {code === null ? (
         <button
@@ -742,8 +742,8 @@ function Terminal() {
         </div>
       )}
       <p className="muted">
-        Anyone with this code can use your Najma account, so keep it to yourself. Deleting your data
-        in Memory &amp; data turns it off.
+        Anyone with this code can use your Lodestar account, so keep it to yourself. Deleting your
+        data in Memory &amp; data turns it off.
       </p>
     </div>
   )

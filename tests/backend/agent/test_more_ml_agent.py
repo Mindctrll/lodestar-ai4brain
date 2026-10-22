@@ -127,7 +127,7 @@ async def test_the_fatigue_point_ends_a_session_with_a_range(
 
 
 async def seed_gains(engine: AsyncEngine, user_id: UUID, rounds: int) -> None:
-    """Rounds of Echo and Souk Rush with their twin.updated events."""
+    """Rounds of Echo and Market Rush with their twin.updated events."""
     async with engine.begin() as conn:
         session_id = uuid4()
         start = datetime.now(UTC) - timedelta(days=3)
@@ -140,7 +140,7 @@ async def seed_gains(engine: AsyncEngine, user_id: UUID, rounds: int) -> None:
         mu = 0.0
         for i in range(rounds):
             round_id = uuid4()
-            game = "echo" if i % 2 else "souk_rush"
+            game = "echo" if i % 2 else "market_rush"
             when = start + timedelta(minutes=2 * i)
             await conn.execute(
                 t.rounds.insert().values(
@@ -181,7 +181,7 @@ async def test_the_bandit_joins_plan_next_once_there_is_data(
     await seed_gains(aengine, played, 12)
     async with aengine.connect() as conn:
         gains = await bandit.gains_by_game(conn, played, REGISTRY)
-    assert set(gains) == {"echo", "souk_rush"} and sum(map(len, gains.values())) == 11
+    assert set(gains) == {"echo", "market_rush"} and sum(map(len, gains.values())) == 11
     session_id = await runner.create_session(played, "ui")
     await collect(runner, played, session_id)
     parts = bandit_parts(await candidates(aengine, session_id))

@@ -33,7 +33,7 @@ async def test_user_a_cannot_read_or_write_user_b(aengine: AsyncEngine) -> None:
     a, b = await _user_with_session(aengine), await _user_with_session(aengine)
     async with aengine.begin() as conn:
         await user_scope(conn, a)
-        assert (await conn.execute(text("SELECT current_user"))).scalar_one() == "najma_app"
+        assert (await conn.execute(text("SELECT current_user"))).scalar_one() == "lodestar_app"
         users = (await conn.execute(select(t.users.c.user_id))).scalars().all()
         assert users == [a]  # no WHERE clause, still only A
         theirs = select(func.count()).select_from(t.sessions).where(t.sessions.c.user_id == b)
@@ -69,12 +69,12 @@ async def test_every_user_table_is_protected_and_the_app_role_cannot_bypass(
 ) -> None:
     async with aengine.connect() as conn:
         role = (await conn.execute(text(
-            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = 'najma_app'"
+            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = 'lodestar_app'"
         ))).scalar_one()  # fmt: skip
         unprotected = (await conn.execute(text("""
             SELECT c.oid::regclass::text FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
             WHERE a.attname = 'user_id' AND c.relkind IN ('r', 'p') AND NOT c.relispartition
               AND c.relnamespace::regnamespace::text IN ('app', 'twin', 'agent')
-              AND (NOT c.relrowsecurity OR pg_get_userbyid(c.relowner) = 'najma_app')
+              AND (NOT c.relrowsecurity OR pg_get_userbyid(c.relowner) = 'lodestar_app')
         """))).scalars().all()  # fmt: skip
     assert role is False and unprotected == []

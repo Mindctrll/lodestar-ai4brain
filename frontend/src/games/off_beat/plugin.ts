@@ -80,7 +80,7 @@ async function playBeats(stage: HTMLElement, item: BeatItem): Promise<number[]> 
 }
 
 const OffBeatPlugin = makePlugin<BeatItem>(
-  'najma-off-beat',
+  'lodestar-off-beat',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const seen = await playBeats(stage, item)
     const off = item.shift_ms !== 0

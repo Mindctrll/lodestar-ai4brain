@@ -32,7 +32,7 @@ export function makeItems(rng: Rng, pairs: number, circles: number): ZigzagItem[
 }
 
 const ZigzagPlugin = makePlugin<ZigzagItem>(
-  'najma-zigzag',
+  'lodestar-zigzag',
   async ({ stage, item, practice, e2e }) => {
     stage.append(
       el('p', 'game-prompt', item.part === 'A' ? 'Numbers only: 1, 2, 3…' : 'Switch: 1, A, 2, B…'),

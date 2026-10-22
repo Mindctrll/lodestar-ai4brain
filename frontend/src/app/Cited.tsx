@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 const CITE = /\[([FDKM]\d+(?:\s*,\s*[FDKM]\d+)*)\]/g
 
-/** Najma's text with its citations as small chips. A decision citation opens its "why" card
+/** Lodestar's text with its citations as small chips. A decision citation opens its "why" card
  * (docs/plan/09: every number traces to a fact, every choice to a decision). */
 export function Cited({
   text,

@@ -76,7 +76,7 @@ export function wait(ms: number): Promise<void> {
 /** Brief right/wrong mark, only after practice trials. */
 export async function practiceFeedback(stage: HTMLElement, correct: boolean): Promise<void> {
   const mark = document.createElement('div')
-  mark.className = `najma-feedback ${correct ? 'is-right' : 'is-wrong'}`
+  mark.className = `lodestar-feedback ${correct ? 'is-right' : 'is-wrong'}`
   mark.textContent = correct ? 'Right' : 'Not quite'
   stage.appendChild(mark)
   await wait(450)

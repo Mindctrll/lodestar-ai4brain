@@ -1,8 +1,8 @@
 """Range goals (UW11, docs/plan/07): "your memory range within ±12 points by 3 Nov".
 
 A goal is about certainty, not a score to beat: the 80% range of the percentile estimate shrinks as
-Najma sees more rounds. Each round adds process noise (Q_ROUND), so the range can't shrink below a
-floor; goals are set above it.
+Lodestar sees more rounds. Each round adds process noise (Q_ROUND), so the range can't shrink below
+a floor; goals are set above it.
 """
 
 import math

@@ -57,7 +57,7 @@ test('core is locked on; the choices and coach are sent once, at the end', async
   expect(core).toBeChecked()
   expect(core).toBeDisabled()
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-  fireEvent.click(screen.getByRole('radio', { name: /Barq/ }))
+  fireEvent.click(screen.getByRole('radio', { name: /Spark/ }))
   fireEvent.click(screen.getByRole('button', { name: "Let's start" }))
   await waitFor(() => {
     expect(done).toBe(true)
@@ -66,7 +66,7 @@ test('core is locked on; the choices and coach are sent once, at the end', async
   expect(signup).toHaveLength(1)
   expect(signup[0]?.body).toMatchObject({
     age_confirmed: true,
-    persona: 'barq',
+    persona: 'spark',
     consent: { core: true, camera: false },
   })
 })

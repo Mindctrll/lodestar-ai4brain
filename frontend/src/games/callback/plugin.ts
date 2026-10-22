@@ -8,7 +8,7 @@ export interface CallbackItem {
 }
 
 const CallbackPlugin = makePlugin<CallbackItem>(
-  'najma-callback',
+  'lodestar-callback',
   async ({ jsPsych, stage, item, e2e }) => {
     stage.append(el('p', 'game-prompt', 'Earlier in this session you learned a market list.'))
     const { text, rt } = await typeIn(jsPsych, stage, e2e, item.words.join(' '), {

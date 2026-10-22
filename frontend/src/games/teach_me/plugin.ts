@@ -30,7 +30,7 @@ const config = parse(rawConfig) as {
 
 export interface TeachItem {
   topic: Topic
-  /** On ambiguous items Najma names two things and says "it"; asking which one is the move. */
+  /** On ambiguous items Lodestar names two things and says "it"; asking which one is the move. */
   other: Topic | null
   seconds: number
 }
@@ -70,18 +70,18 @@ export function rubric(text: string, topic: Topic): { score: number; covered: st
   return { score: (covered.length / topic.ideas.length) * length, covered }
 }
 
-const TeachPlugin = makePlugin<TeachItem>('najma-teach-me', async ({ stage, item, e2e }) => {
+const TeachPlugin = makePlugin<TeachItem>('lodestar-teach-me', async ({ stage, item, e2e }) => {
   const ask =
     item.other === null
-      ? `Najma: ${item.topic.question} Can you explain it to me?`
-      : `Najma: I read about ${item.topic.name} and about ${item.other.name}. I don’t get how it works. Can you explain?`
+      ? `Lodestar: ${item.topic.question} Can you explain it to me?`
+      : `Lodestar: I read about ${item.topic.name} and about ${item.other.name}. I don’t get how it works. Can you explain?`
   const reply = el('p', 'gr-reply')
   reply.setAttribute('aria-live', 'polite')
   const input = el('textarea', 'ml-input')
   input.dataset['testid'] = 'recall-input'
   input.setAttribute('aria-label', 'Your explanation')
   input.placeholder = 'Explain it in your own words'
-  const which = button('Ask what Najma means', 'teach-ask')
+  const which = button('Ask what Lodestar means', 'teach-ask')
   const say = voiceAnswer(input, 'Say it', (a) => a.transcript, 60_000)
   const done = button('Done', 'recall-done')
   const row = el('div', 'type-row')
@@ -112,8 +112,8 @@ const TeachPlugin = makePlugin<TeachItem>('najma-teach-me', async ({ stage, item
         asked = true
         reply.textContent =
           item.other === null
-            ? `Najma: ${item.topic.name}, like I said.`
-            : `Najma: Sorry, I meant ${item.topic.name}.`
+            ? `Lodestar: ${item.topic.name}, like I said.`
+            : `Lodestar: Sorry, I meant ${item.topic.name}.`
         return false
       },
     },
@@ -122,8 +122,8 @@ const TeachPlugin = makePlugin<TeachItem>('najma-teach-me', async ({ stage, item
   const { score, covered } = rubric(input.value, item.topic)
   reply.textContent =
     score >= config.pass
-      ? 'Najma: Oh, I get it now. Thanks!'
-      : 'Najma: Hmm, I’m still a bit lost, but thanks.'
+      ? 'Lodestar: Oh, I get it now. Thanks!'
+      : 'Lodestar: Hmm, I’m still a bit lost, but thanks.'
   await wait(800)
   return {
     stimulus: {
@@ -156,7 +156,7 @@ export const game: GameModule = {
   id: 'teach_me',
   name: 'Teach Me',
   instructions:
-    'Najma is confused about something. Explain it simply, in your own words. If you’re not sure what Najma is asking about, ask first.',
+    'Lodestar is confused about something. Explain it simply, in your own words. If you’re not sure what Lodestar is asking about, ask first.',
   keysHint: 'Type your explanation, then Done.',
   timeline({ spec, rng, e2e }) {
     const items = makeItems(rng, config.topics_per_round, spec.knobs['topic_difficulty'] ?? 0.4)

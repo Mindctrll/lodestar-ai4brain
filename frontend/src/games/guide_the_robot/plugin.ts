@@ -24,7 +24,7 @@ export interface RobotItem {
   walls: Cell[]
   start: Cell
   stars: Cell[]
-  /** Which star Najma means; on ambiguous items she doesn't say which. */
+  /** Which star Lodestar means; on ambiguous items it doesn't say which. */
   intended: number
   ambiguous: boolean
   shortest: number
@@ -150,7 +150,7 @@ function drawMaze(item: RobotItem, robot: Cell): HTMLElement {
 }
 
 const RobotPlugin = makePlugin<RobotItem>(
-  'najma-guide-the-robot',
+  'lodestar-guide-the-robot',
   async ({ stage, item, practice, e2e }) => {
     const colour = config.colours[item.intended] ?? 'gold'
     const board = el('div', 'gr-board')
@@ -166,7 +166,7 @@ const RobotPlugin = makePlugin<RobotItem>(
     input.dataset['testid'] = 'recall-input'
     input.setAttribute('aria-label', 'Instructions, like: up 2, right 3')
     input.placeholder = 'Instructions, like: up 2, right 3'
-    const ask = button('Ask Najma', 'robot-ask')
+    const ask = button('Ask Lodestar', 'robot-ask')
     const go = button('Run', 'recall-done')
     const row = el('div', 'type-row')
     row.append(input, go, ask)
@@ -202,8 +202,8 @@ const RobotPlugin = makePlugin<RobotItem>(
             if (!asked && attempts === 0) askedFirst = true
             asked = true
             reply.textContent = item.ambiguous
-              ? `Najma: I mean the ${colour} star.`
-              : `Najma: The ${colour} one, like I said.`
+              ? `Lodestar: I mean the ${colour} star.`
+              : `Lodestar: The ${colour} one, like I said.`
             return false
           }
           attempts += 1
@@ -215,15 +215,15 @@ const RobotPlugin = makePlugin<RobotItem>(
           solved = !vague && !bumped && same(at, target)
           if (solved) {
             optimal = steps.length === item.shortest
-            reply.textContent = 'Najma: Made it!'
+            reply.textContent = 'Lodestar: Made it!'
             return true
           }
           if (attempts === 1) firstFailed = true
           reply.textContent = vague
-            ? 'Najma: The robot needs a number of steps for each direction, like "up 2".'
+            ? 'Lodestar: The robot needs a number of steps for each direction, like "up 2".'
             : bumped
-              ? 'Najma: The robot bumped into something. Edit your instructions and try again.'
-              : 'Najma: That’s not the star I meant. Try again.'
+              ? 'Lodestar: The robot bumped into something. Edit your instructions and try again.'
+              : 'Lodestar: That’s not the star I meant. Try again.'
           if (attempts >= config.attempts) return true
           window.setTimeout(() => {
             board.replaceChildren(drawMaze(item, item.start))
@@ -269,8 +269,8 @@ export const game: GameModule = {
   id: 'guide_the_robot',
   name: 'Guide the Robot',
   instructions:
-    'Type instructions to move the robot to the star Najma means, like "up 2, right 3". Walls block the way. If something isn’t clear, ask Najma first.',
-  keysHint: 'Type, then Enter or Run. Ask Najma when unsure.',
+    'Type instructions to move the robot to the star Lodestar means, like "up 2, right 3". Walls block the way. If something isn’t clear, ask Lodestar first.',
+  keysHint: 'Type, then Enter or Run. Ask Lodestar when unsure.',
   timeline({ spec, rng, e2e }) {
     const practice = Math.min(1, spec.practice_trials)
     const size = Math.round(spec.knobs['maze_size'] ?? 5)

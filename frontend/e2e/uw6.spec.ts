@@ -17,5 +17,7 @@ test('uw6_resume: a refresh mid-game offers to resume and scores the round once'
   await page.getByRole('button', { name: 'Resume' }).click()
   await playCurrentGame(page)
   // Citations render as chips (docs/plan/09: every number traces to a fact).
+  // Fact lines sit behind \"How I worked this out\".
+  await page.getByTestId('coach').getByText('How I worked this out').click({ timeout: 60_000 })
   await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({ timeout: 60_000 })
 })

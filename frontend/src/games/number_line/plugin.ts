@@ -25,7 +25,7 @@ export function scoreFor(chosen: number, item: LineItem): number {
 }
 
 const LinePlugin = makePlugin<LineItem>(
-  'najma-number-line',
+  'lodestar-number-line',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     stage.append(el('div', 'nl-target', String(item.target)))
     const line = el('div', 'nl-line')

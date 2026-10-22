@@ -14,10 +14,10 @@ from langgraph.runtime import Runtime
 from pydantic import Field
 from sqlalchemy import select
 
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.intents import route
 from backend.agent.nodes.twin import AFFIRM
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import emit, traced
 from backend.contracts.common import Contract
 from backend.contracts.session import Intent
@@ -103,7 +103,7 @@ SAFETY_PROMPT = (
 
 
 @traced("ingest")
-async def ingest(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def ingest(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     update: dict[str, Any] = {}
     if state.started_at is None:
         update["started_at"] = datetime.now(UTC)
@@ -111,7 +111,7 @@ async def ingest(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str,
 
 
 @traced("safety_gate")
-async def safety_gate(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def safety_gate(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Rules first. When none fires but the message touches on health, a small structured model
     check may still stop it; the model can only add a refusal, never lift one."""
     text = state.said or ""
@@ -132,17 +132,17 @@ async def safety_gate(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict
     return update
 
 
-def after_refuse(state: NajmaState) -> str:
+def after_refuse(state: LodestarState) -> str:
     crisis = state.intent is not None and state.intent.text == "crisis"
     return "play" if state.game_waiting() and not crisis else "__end__"
 
 
-def after_safety(state: NajmaState) -> str:
+def after_safety(state: LodestarState) -> str:
     return "refuse" if state.intent and state.intent.kind == "refuse" else "route_intent"
 
 
 @traced("refuse")
-async def refuse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def refuse(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """A fixed, kind reply. No LLM free text for this (UW13)."""
     kind = state.intent.text if state.intent and state.intent.text in REPLIES else "diagnosis"
     reply = REPLIES[kind]
@@ -151,7 +151,7 @@ async def refuse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str,
 
 
 @traced("route_intent")
-async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def route_intent(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Rules first; when they aren't sure, one structured model call. Code still decides what
     happens next: the model only fills in the intent."""
     ctx = runtime.context
@@ -163,7 +163,7 @@ async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
         # "Yes" right after the Twin offered an experiment (UW8 to UW10).
         intent = Intent(kind="experiment", text="time of day")
     if intent.kind == "settings" and not intent.avoid_dims and _IT.search(text):
-        # "stop suggesting it" right after Najma asked about a skill the user keeps skipping.
+        # "stop suggesting it" right after Lodestar asked about a skill the user keeps skipping.
         nudged = await _last_nudge(ctx)
         if nudged is not None:
             intent = intent.model_copy(update={"avoid_dims": [nudged]})
@@ -178,7 +178,7 @@ async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 _IT = re.compile(r"\b(stop suggesting|don'?t suggest) (it|that|them)\b", re.IGNORECASE)
 
 
-async def _offered(ctx: NajmaContext) -> bool:
+async def _offered(ctx: LodestarContext) -> bool:
     """The last thing decided this session was the Twin's experiment offer."""
     async with ctx.services.engine.connect() as conn:
         node = (
@@ -192,7 +192,7 @@ async def _offered(ctx: NajmaContext) -> bool:
     return node == "twin_offer"
 
 
-async def _last_nudge(ctx: NajmaContext) -> str | None:
+async def _last_nudge(ctx: LodestarContext) -> str | None:
     async with ctx.services.engine.connect() as conn:
         chosen = (
             await conn.execute(
@@ -205,7 +205,7 @@ async def _last_nudge(ctx: NajmaContext) -> str | None:
     return chosen
 
 
-def after_route(state: NajmaState) -> str:
+def after_route(state: LodestarState) -> str:
     kind = state.intent.kind if state.intent else "play"
     return {
         "play": "plan_next",

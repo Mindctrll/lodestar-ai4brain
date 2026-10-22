@@ -6,7 +6,7 @@ Do not edit by hand.
 ## What it does
 
 From a person's first sessions with a kind of game, it predicts their score after k more sessions
-(k = 1 to 20) as an **80% range**. Najma shows it on progress curves and in coaching, always with
+(k = 1 to 20) as an **80% range**. Lodestar shows it on progress curves and in coaching, always with
 the range (AGENTS.md rule 5).
 
 ## Data
@@ -65,10 +65,10 @@ Width and MAE are in population standard deviations.
 
 ## Limits
 
-- Lumosity players are mostly English-speaking adults who chose to train online; Najma's users,
+- Lumosity players are mostly English-speaking adults who chose to train online; Lodestar's users,
   games and scoring differ. In the app, the input is the Brain Twin estimate per day of practice,
   not a raw game score, and each skill is mapped to its closest Lumosity game family
-  (`forecast_family` in registry/dimensions.yaml). Coverage on Najma users must be re-checked once
+  (`forecast_family` in registry/dimensions.yaml). Coverage on Lodestar users must be re-checked once
   pilot data exists.
 - No timestamps: "sessions" are sessions with that game family, not days.
 - It forecasts practice scores, not health, intelligence or ability outside these games.

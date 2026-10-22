@@ -57,7 +57,7 @@ test('if the wake word fails to start, tap-to-talk still works', async () => {
   await screen.findByRole('button', { name: 'Listening. Tap to send' })
 })
 
-test('"Hey Najma" starts a hands-free turn; the key never goes to the server', async () => {
+test('"Hey Lodestar" starts a hands-free turn; the key never goes to the server', async () => {
   saveWakeSetup({ accessKey: KEY, keyword: 'cHBu' })
   let wake: () => void = () => undefined
   vi.mocked(startWake).mockImplementation((_setup, onWake) => {
@@ -65,7 +65,7 @@ test('"Hey Najma" starts a hands-free turn; the key never goes to the server', a
     return Promise.resolve(() => undefined)
   })
   render(<Orb onTranscript={() => undefined} />)
-  await screen.findByRole('button', { name: 'Say "Hey Najma" or tap to talk (Alt+V)' })
+  await screen.findByRole('button', { name: 'Say "Hey Lodestar" or tap to talk (Alt+V)' })
   wake()
   await screen.findByRole('button', { name: 'Listening. Tap to send' })
   // A hands-free turn ends itself after a pause.

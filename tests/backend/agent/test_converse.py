@@ -118,8 +118,8 @@ def test_heldout_utterances_rules_are_rarely_sure_and_wrong() -> None:
 
 
 @pytest.mark.skipif(
-    not __import__("os").environ.get("NAJMA_OLLAMA_TESTS"),
-    reason="needs a local Ollama; set NAJMA_OLLAMA_TESTS=1 (slow on CPU)",
+    not __import__("os").environ.get("LODESTAR_OLLAMA_TESTS"),
+    reason="needs a local Ollama; set LODESTAR_OLLAMA_TESTS=1 (slow on CPU)",
 )
 async def test_local_model_router_on_unsure_turns(aengine: AsyncEngine) -> None:
     """The full router (rules, then the local model when unsure) on both sets."""
@@ -265,7 +265,7 @@ async def test_tools_that_write_pause_for_a_yes(
     prompt = payload["prompt"]
     assert prompt.endswith("?") and find_banned(prompt) == []
     packet = FactsPacket.model_validate(payload["facts"])
-    assert verify(prompt, packet, NAMES, "zitouna").ok, prompt  # numbers come from facts
+    assert verify(prompt, packet, NAMES, "willow").ok, prompt  # numbers come from facts
     assert await count(aengine, table, user_id) == 0  # nothing written while waiting
 
     # "No" leaves everything as it was.
@@ -285,7 +285,7 @@ async def test_tools_that_write_pause_for_a_yes(
         "start_experiment": "experiment.started",
     }.get(tool, "settings.changed")
     assert expected in await event_types(aengine, user_id)
-    assert verify(said(events), packet, NAMES, "zitouna").ok
+    assert verify(said(events), packet, NAMES, "willow").ok
 
 
 # Workflows ------------------------------------------------------------------------------------
@@ -479,10 +479,10 @@ async def test_uw20_switch_coach_and_mode(make_runner: RunnerFactory, aengine: A
     runner = await make_runner()
     user_id = await new_user(aengine)
     session_id = await runner.create_session(user_id, "ui")
-    payload = asked(await collect(runner, user_id, session_id, message="switch to Barq"))
-    assert "Barq" in payload["prompt"]
+    payload = asked(await collect(runner, user_id, session_id, message="switch to Spark"))
+    assert "Spark" in payload["prompt"]
     events = await collect(runner, user_id, session_id, resume={"confirmed": True})
-    assert "Your coach is now Barq." in said(events)
+    assert "Your coach is now Spark." in said(events)
     payload = asked(await collect(runner, user_id, session_id, message="put me on push mode"))
     assert "65% success" in payload["prompt"]
     await collect(runner, user_id, session_id, resume={"confirmed": True})
@@ -494,7 +494,7 @@ async def test_uw20_switch_coach_and_mode(make_runner: RunnerFactory, aengine: A
                 )
             )
         ).one()
-    assert (row.persona, row.success_mode) == ("barq", "push")
+    assert (row.persona, row.success_mode) == ("spark", "push")
 
 
 async def test_read_tools_answer_from_facts(

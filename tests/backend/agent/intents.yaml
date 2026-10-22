@@ -12,7 +12,7 @@
 - {text: "one more game", kind: play}
 - {text: "play Echo", kind: play, game: echo}
 - {text: "can we do quick draw?", kind: play, game: quick_draw}
-- {text: "I want to try Souk Rush", kind: play, game: souk_rush}
+- {text: "I want to try Market Rush", kind: play, game: market_rush}
 - {text: "Spot the AI's mistake please", kind: play, game: spot_the_mistake}
 - {text: "let's do pattern gap", kind: play, game: pattern_gap}
 - {text: "a memory game", kind: play, dim: working_memory}
@@ -117,8 +117,8 @@
 - {text: "exam tomorrow!", kind: life_context}
 
 # settings (UW20, UW3) ------------------------------------------------------------------------
-- {text: "switch to Barq", kind: settings}
-- {text: "change my coach to Hikma", kind: settings}
+- {text: "switch to Spark", kind: settings}
+- {text: "change my coach to Sage", kind: settings}
 - {text: "I want a calmer coach", kind: settings}
 - {text: "put me on push mode", kind: settings}
 - {text: "make the games easier from now on", kind: settings}

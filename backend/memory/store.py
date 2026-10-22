@@ -394,7 +394,7 @@ class MemoryStore:
             self.name(KNOWLEDGE),
             points=[
                 models.PointStruct(
-                    id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"najma-knowledge/{item['id']}")),
+                    id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"lodestar-knowledge/{item['id']}")),
                     vector={
                         "dense": e.dense,
                         "sparse": models.SparseVector(

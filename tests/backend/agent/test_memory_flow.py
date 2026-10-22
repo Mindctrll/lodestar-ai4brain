@@ -72,7 +72,7 @@ async def test_session_remembers_and_consolidates(
     assert not any(e["kind"] == "degraded" and e["what"] == "memory" for e in events)
     journal = notes.read_journal(user_id, datetime.now(UTC).date()) or ""
     assert "Session on" in journal and "played" in journal
-    assert notes.read_core(user_id)[0] == "Prefers the Zitouna coach"
+    assert notes.read_core(user_id)[0] == "Prefers the Willow coach"
     episodic = await memory.points(user_id, "episodic")
     assert any(p.payload["kind"] == "session_summary" for p in episodic)
     assert uuid.UUID(str(user_id))  # every point belongs to this user only

@@ -26,8 +26,8 @@ CREATE TABLE app.users (
     user_id        uuid PRIMARY KEY DEFAULT uuidv7(),
     created_at     timestamptz NOT NULL DEFAULT now(),
     display_name   text,
-    persona        text NOT NULL DEFAULT 'zitouna'
-                   CHECK (persona IN ('zitouna', 'barq', 'hikma', 'sahbi')),
+    persona        text NOT NULL DEFAULT 'willow'
+                   CHECK (persona IN ('willow', 'spark', 'sage', 'buddy')),
     success_mode   text NOT NULL DEFAULT 'balanced'
                    CHECK (success_mode IN ('chill', 'balanced', 'push')),
     locale         text NOT NULL DEFAULT 'en',
@@ -223,7 +223,7 @@ CREATE TABLE twin.life_context (
 );
 CREATE INDEX life_context_user_period_idx ON twin.life_context USING gist (user_id, period);
 
--- agent: what Najma did and why ----------------------------------------------------------
+-- agent: what Lodestar did and why ----------------------------------------------------------
 
 CREATE TABLE agent.sessions (
     session_id  uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -309,25 +309,25 @@ CREATE TABLE agent.ml_models (
 CREATE UNIQUE INDEX ml_models_one_active_idx ON agent.ml_models (name) WHERE active;
 
 -- Roles (docs/plan/04, optional hardening). NOLOGIN group roles; the app is switched to them in
--- WP4.1. najma_app can never UPDATE, DELETE or TRUNCATE the event log.
+-- WP4.1. lodestar_app can never UPDATE, DELETE or TRUNCATE the event log.
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'najma_app') THEN
-        CREATE ROLE najma_app NOLOGIN;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'lodestar_app') THEN
+        CREATE ROLE lodestar_app NOLOGIN;
     END IF;
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'najma_jobs') THEN
-        CREATE ROLE najma_jobs NOLOGIN;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'lodestar_jobs') THEN
+        CREATE ROLE lodestar_jobs NOLOGIN;
     END IF;
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'najma_readonly') THEN
-        CREATE ROLE najma_readonly NOLOGIN;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'lodestar_readonly') THEN
+        CREATE ROLE lodestar_readonly NOLOGIN;
     END IF;
 END $$;
 
-GRANT USAGE ON SCHEMA app, twin, agent TO najma_app, najma_jobs, najma_readonly;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO najma_app;
-REVOKE UPDATE, DELETE, TRUNCATE ON twin.events FROM najma_app;
-GRANT SELECT, INSERT, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO najma_jobs;
-GRANT SELECT ON ALL TABLES IN SCHEMA app, twin, agent TO najma_readonly;
+GRANT USAGE ON SCHEMA app, twin, agent TO lodestar_app, lodestar_jobs, lodestar_readonly;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO lodestar_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON twin.events FROM lodestar_app;
+GRANT SELECT, INSERT, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO lodestar_jobs;
+GRANT SELECT ON ALL TABLES IN SCHEMA app, twin, agent TO lodestar_readonly;
 """
 
 DROP = r"""

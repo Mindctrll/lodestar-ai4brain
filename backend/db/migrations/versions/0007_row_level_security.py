@@ -1,9 +1,9 @@
 """Row-level security (WP4.1, docs/plan/04 "Optional hardening"): every table with a `user_id`
-only shows the role najma_app the rows of the user named by the `app.user_id` setting.
+only shows the role lodestar_app the rows of the user named by the `app.user_id` setting.
 
-Per-user transactions switch to najma_app with `user_scope()` (backend/db/twin_store.py). The
+Per-user transactions switch to lodestar_app with `user_scope()` (backend/db/twin_store.py). The
 table owner (migrations, admin and system paths such as sign-in by token) is not subject to RLS;
-najma_jobs (retention, deletion) and najma_readonly (analytics) see every row by design.
+lodestar_jobs (retention, deletion) and lodestar_readonly (analytics) see every row by design.
 
 Revision ID: 0007
 Revises: 0006
@@ -28,9 +28,9 @@ USER_TABLES = """
 """
 
 UPGRADE = f"""
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO najma_app;
-REVOKE UPDATE, DELETE, TRUNCATE ON twin.events FROM najma_app;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, twin, agent TO najma_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, twin, agent TO lodestar_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON twin.events FROM lodestar_app;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, twin, agent TO lodestar_app;
 DO $$
 DECLARE r record;
 BEGIN
@@ -38,12 +38,12 @@ BEGIN
         EXECUTE format('ALTER TABLE %I.%I ENABLE ROW LEVEL SECURITY',
                        r.table_schema, r.table_name);
         EXECUTE format(
-            'CREATE POLICY own_rows ON %I.%I TO najma_app'
+            'CREATE POLICY own_rows ON %I.%I TO lodestar_app'
             ' USING (user_id = nullif(current_setting(''app.user_id'', true), '''')::uuid)'
             ' WITH CHECK (user_id = nullif(current_setting(''app.user_id'', true), '''')::uuid)',
             r.table_schema, r.table_name);
         EXECUTE format(
-            'CREATE POLICY all_rows ON %I.%I TO najma_jobs, najma_readonly USING (true)',
+            'CREATE POLICY all_rows ON %I.%I TO lodestar_jobs, lodestar_readonly USING (true)',
             r.table_schema, r.table_name);
     END LOOP;
 END $$;

@@ -21,8 +21,8 @@ export function Experiments({ onAsk }: { onAsk: () => void }) {
       <section className="card" data-testid="experiments">
         <h2>No experiments yet</h2>
         <p>
-          Najma can test whether you do better in the morning or the evening: a few sessions at each
-          time, with the same games.
+          Lodestar can test whether you do better in the morning or the evening: a few sessions at
+          each time, with the same games.
         </p>
         <button type="button" className="primary" onClick={onAsk}>
           Start one

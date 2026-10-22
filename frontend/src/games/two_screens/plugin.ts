@@ -102,7 +102,7 @@ function track(stage: HTMLElement, speed: number): () => number {
 }
 
 const ScreensPlugin = makePlugin<ScreensItem>(
-  'najma-two-screens',
+  'lodestar-two-screens',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const stop = item.dual ? track(stage, item.speed) : null
     await wait(item.lead_ms)

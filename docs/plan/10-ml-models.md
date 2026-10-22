@@ -39,7 +39,7 @@ Two models trained on real public data, plus two light models that need no exter
 
 **Model.** Logistic regression and LightGBM; report AUC and calibration. Labels: withdrawn or no activity in the following window.
 
-**Use.** If risk is high, Najma makes the next session shorter and easier, or sends one friendly nudge. Never guilt, never streak-shaming. The coach can say: "You've played less this week. Want a 3-minute session?"
+**Use.** If risk is high, Lodestar makes the next session shorter and easier, or sends one friendly nudge. Never guilt, never streak-shaming. The coach can say: "You've played less this week. Want a 3-minute session?"
 
 **Honesty note (shown in the model card):** OULAD is about online courses, not brain games, so this is a transfer of behaviour patterns, validated only on our pilot users.
 

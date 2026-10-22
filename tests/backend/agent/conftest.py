@@ -80,7 +80,7 @@ async def grant(engine: AsyncEngine, user_id: UUID, *switches: str, granted: boo
             await set_consent(conn, user_id, notice, switch, granted)
 
 
-async def new_user(engine: AsyncEngine, mode: str = "stub", persona: str = "zitouna") -> UUID:
+async def new_user(engine: AsyncEngine, mode: str = "stub", persona: str = "willow") -> UUID:
     async with engine.begin() as conn:
         user_id, _ = await create_user(conn, persona=persona)
         await conn.execute(

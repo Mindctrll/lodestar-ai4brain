@@ -250,7 +250,7 @@ async function feedback(item: Of<'feedback'>, { jsPsych, stage }: Ctx): Promise<
   const done = jsPsych.data
     .get()
     .values()
-    .flatMap((d: Record<string, unknown>) => (d['najma'] as TrialRecord[] | undefined) ?? [])
+    .flatMap((d: Record<string, unknown>) => (d['lodestar'] as TrialRecord[] | undefined) ?? [])
     .filter((t) => t.correct !== null)
   const right = done.filter((t) => t.correct === true).length
   stage.append(el('div', 'ml-word', `${String(right)} of ${String(done.length)} right so far`))
@@ -261,7 +261,7 @@ async function feedback(item: Of<'feedback'>, { jsPsych, stage }: Ctx): Promise<
 }
 
 const BlocksPlugin = makePlugin<BlockItem>(
-  'najma-custom-blocks',
+  'lodestar-custom-blocks',
   async ({ jsPsych, stage, item, e2e }) => {
     const ctx = { jsPsych, stage, e2e }
     stage.append(el('p', '', item.title))
@@ -304,7 +304,7 @@ export const game: GameModule = {
   id: 'custom_blocks',
   name: 'Custom Game',
   instructions:
-    'Najma built this game from blocks for you. Each part tells you what to do. It counts only a little toward your profile for now.',
+    'Lodestar built this game from blocks for you. Each part tells you what to do. It counts only a little toward your profile for now.',
   keysHint: 'Follow the hint on each part: keys or taps.',
   timeline({ spec, rng, e2e }) {
     const recipe = spec.content as unknown as Recipe | null

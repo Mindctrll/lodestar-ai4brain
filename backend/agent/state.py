@@ -37,7 +37,7 @@ from backend.contracts.twin import (
 )
 
 
-class NajmaState(BaseModel):
+class LodestarState(BaseModel):
     # identity and trigger
     user_id: str
     session_id: str

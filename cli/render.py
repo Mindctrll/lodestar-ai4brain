@@ -1,4 +1,4 @@
-"""How Najma looks in the terminal: replies with their citations, questions with their facts, and
+"""How Lodestar looks in the terminal: replies with their citations, questions with their facts, and
 the profile and goals tables. Numbers are rounded the way the web app rounds them."""
 
 import math
@@ -37,7 +37,7 @@ def coach_name(persona: str) -> str:
 def say(console: Console, persona: str, sentences: list[str]) -> None:
     if not sentences:
         return
-    line = Text.assemble(("Najma", "bold magenta"), f" ({coach_name(persona)}): ")
+    line = Text.assemble(("Lodestar", "bold magenta"), f" ({coach_name(persona)}): ")
     line.append_text(cited(" ".join(s.strip() for s in sentences)))
     console.print(line)
 
@@ -45,7 +45,7 @@ def say(console: Console, persona: str, sentences: list[str]) -> None:
 def question(console: Console, message: str) -> None:
     """A write tool's question: the question, then the facts its numbers come from."""
     ask, _, facts = message.partition("\n\n")
-    console.print(Text.assemble(("Najma", "bold magenta"), ": ", cited(ask)))
+    console.print(Text.assemble(("Lodestar", "bold magenta"), ": ", cited(ask)))
     for line in facts.splitlines():
         console.print(Text(f"  {line}", style="dim"))
 

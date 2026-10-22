@@ -11,7 +11,7 @@
 | Custom Game (`custom_blocks`) | Recipe of known blocks (show items, distractor, recall, choice, timer, rule, react, feedback) | 1 | custom | 0.4 | binary | accuracy | yes |
 | Digits Back (`digits_back`) | Backward digit span | 1 | classic | 1 | span | span | yes |
 | Echo (`echo`) | N-back | 1 | classic | 1 | binary | d_prime_by_n | yes |
-| Souk Rush (`souk_rush`) | Updating with interference | 1 | original | 0.8 | binary | items_correct, order_accuracy | yes |
+| Market Rush (`market_rush`) | Updating with interference | 1 | original | 0.8 | binary | items_correct, order_accuracy | yes |
 | Sum & Keep (`sum_and_keep`) | Operation span | 1 | classic | 1 | span | span, maths_accuracy | yes |
 | Light Path (`light_path`) | Corsi blocks | 0.3 | classic | 1 | span | span | yes |
 

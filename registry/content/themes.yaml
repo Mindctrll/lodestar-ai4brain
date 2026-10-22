@@ -1,16 +1,16 @@
 # Vocabulary for generated game content (docs/plan/08). Code picks items from these lists, so
 # difficulty and validity never depend on an LLM; the LLM only writes friendly lines around them.
 
-customer_names: [Amira, Youssef, Salma, Karim, Ines, Mehdi, Rania, Aziz, Lina, Omar, Nour, Hamza,
-  Sarra, Bilel, Yasmine, Firas, Asma, Walid, Malek, Hiba]
+customer_names: [Alice, Ben, Chloe, Daniel, Emma, Frank, Grace, Harry, Isla, Jack, Kate, Leo,
+  Mia, Noah, Olivia, Peter, Rose, Sam, Tom, Zoe]
 
-souk:
+stalls:
   fruit: [oranges, lemons, dates, figs, apples, grapes, pomegranates, melons, peaches, apricots, bananas, pears]
-  spices: [harissa, cumin, saffron, paprika, cinnamon, coriander, caraway, turmeric, pepper, mint, ginger, anise]
-  bakery: [baguettes, makroudh, bambalouni, croissants, bread rolls, almond biscuits, sesame rings, honey cakes, brioche, flatbreads]
-  pottery: [bowls, plates, vases, jugs, cups, tagines, tiles, lanterns, teapots, oil jars]
+  spices: [chilli, cumin, saffron, paprika, cinnamon, coriander, caraway, turmeric, pepper, mint, ginger, anise]
+  bakery: [baguettes, shortbread, doughnuts, croissants, bread rolls, almond biscuits, sesame rings, honey cakes, brioche, flatbreads]
+  pottery: [bowls, plates, vases, jugs, cups, pitchers, tiles, lanterns, teapots, oil jars]
 
-souk_quantities: [one, two, three, half a kilo of, a kilo of, two kilos of, a bag of, a box of]
+market_quantities: [one, two, three, half a kilo of, a kilo of, two kilos of, a bag of, a box of]
 
 # Common words by theme for Market List. A request for another theme (UW4: "football") is filled
 # by the LLM and checked for format and relevance; these lists are the fallback.

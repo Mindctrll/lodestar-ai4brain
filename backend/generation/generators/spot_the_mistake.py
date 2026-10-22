@@ -2,7 +2,7 @@
 steps, plants at most one error, and a solver re-runs every step to confirm the error is real (or
 that there is none). An LLM may only reword the steps; the numbers must survive unchanged.
 
-About 70% of puzzles carry one planted error; the consent screen discloses that Najma is
+About 70% of puzzles carry one planted error; the consent screen discloses that Lodestar is
 sometimes wrong on purpose (docs/plan/14)."""
 
 import operator
@@ -52,7 +52,7 @@ def _shopping(
     for name, lo, hi in picked:
         qty, price = rng.randint(2, 6), rng.randint(lo, hi)
         total += qty * price
-        unit = "dinar" if price == 1 else "dinars"
+        unit = "pound" if price == 1 else "pounds"
         parts.append(f"{qty} {name} at {price} {unit} each")
         plan.append(("mul", qty, price, f"Cost of the {name}"))
     total_ref: int | str = "s0"
@@ -63,7 +63,7 @@ def _shopping(
     if with_change:
         paid = (total // 10 + 1) * 10  # the next round amount above the total
         plan.append(("sub", paid, total_ref, "Change"))
-        question += f" They pay with {paid} dinars. How much change do they get?"
+        question += f" They pay with {paid} pounds. How much change do they get?"
     else:
         question += " How much do they spend in total?"
     return question, plan

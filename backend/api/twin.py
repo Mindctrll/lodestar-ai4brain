@@ -35,7 +35,7 @@ class NewUser(Contract):
 
     age_confirmed: bool = Field(description="The user confirmed they are 18 or older")
     consent: dict[ConsentSwitch, bool] = Field(default_factory=dict)
-    persona: Persona = "zitouna"
+    persona: Persona = "willow"
     timezone: str | None = Field(
         default=None, max_length=64, description="IANA time zone from the browser, for 'today'"
     )
@@ -65,11 +65,12 @@ async def post_user(body: NewUser, engine: Engine, registry: RegistryDep) -> Cre
     if not body.age_confirmed:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
-            f"Najma is for people aged {notice.age_minimum} and over in this prototype.",
+            f"Lodestar is for people aged {notice.age_minimum} and over in this prototype.",
         )
     if body.consent.get("core") is False:
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "Core practice data is needed for Najma to work."
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "Core practice data is needed for Lodestar to work.",
         )
     async with engine.begin() as conn:
         user_id, token = await create_user(

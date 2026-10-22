@@ -22,7 +22,7 @@ practice_trials: 0
 notes: Chains other games; each chapter is scored by its own game.
 # The story itself (WP3.8): each chapter is one game, scored as that game.
 story:
-  intro: A brass lamp has gone missing from the old souk, and you're the detective.
+  intro: A brass lamp has gone missing from the old market, and you're the detective.
   chapters:
   - game: twins
     title: The two notes

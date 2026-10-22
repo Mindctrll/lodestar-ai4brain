@@ -20,7 +20,7 @@ TARGET_P: dict[Mode, float] = {
     "push": 0.65,
 }
 
-# Above this uncertainty Najma measures (Assess) instead of training.
+# Above this uncertainty Lodestar measures (Assess) instead of training.
 ASSESS_SIGMA = 0.8
 
 

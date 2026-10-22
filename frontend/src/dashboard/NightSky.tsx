@@ -71,8 +71,8 @@ function place(registry: Registry, dims: DimensionView[]): Placed[] {
 
 const pct = (x: number) => `${String(Math.round(x))}%`
 
-/** The Brain Twin as a night sky: brightness is the estimate, blur is how unsure Najma still is,
- * and lines join skills that tend to go together (NCPT). Stars sharpen as Najma learns. */
+/** The Brain Twin as a night sky: brightness is the estimate, blur is how unsure Lodestar still is,
+ * and lines join skills that tend to go together (NCPT). Stars sharpen as Lodestar learns. */
 export function NightSky({
   registry,
   dims,
@@ -209,7 +209,7 @@ export function NightSky({
         })}
       </svg>
       <figcaption className="sky__caption">
-        Brighter means a higher estimate; blurrier means Najma is less sure. Dashed: experimental
+        Brighter means a higher estimate; blurrier means Lodestar is less sure. Dashed: experimental
         skills. Percentages use simulated norms.
       </figcaption>
     </figure>

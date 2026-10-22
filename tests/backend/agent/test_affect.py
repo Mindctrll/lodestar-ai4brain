@@ -1,6 +1,6 @@
-"""Behaviour-based affect (WP2.9, docs/plan/12): the estimate rules, Najma easing off for a
+"""Behaviour-based affect (WP2.9, docs/plan/12): the estimate rules, Lodestar easing off for a
 frustrated player, the one-tap labels, and AGENTS.md rule 3 checked on real data: frustration
-signals change what Najma does next, never the profile."""
+signals change what Lodestar does next, never the profile."""
 
 from datetime import UTC, datetime
 from typing import Any

@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 from langchain_core.messages import BaseMessage
 
-from backend.agent.context import NajmaContext, Services
+from backend.agent.context import LodestarContext, Services
 from backend.agent.nodes.gate import CRISIS_REPLY, DIAGNOSIS_REPLY, screen
 from backend.agent.nodes.talk import draft_verified, template_reply
 from backend.coach.language import find_banned
@@ -23,7 +23,7 @@ REGISTRY = load_registry()
 NAMES = [d.name for d in REGISTRY.dimensions]
 PACKET = FactsPacket(
     facts=[
-        Fact(id="F1", text="You got 9 of 11 right in Souk Rush"),
+        Fact(id="F1", text="You got 9 of 11 right in Market Rush"),
         Fact(id="F2", text="Working memory estimate 54% (80% range 41-66%)", dim="working_memory"),
         Fact(id="F3", text="Working memory moved from 50% to 54%", dim="working_memory"),
         Fact(id="D4", text="Working memory is the skill I'm least sure about", decision=True),
@@ -32,7 +32,7 @@ PACKET = FactsPacket(
         KnowledgeItem(id="K1", text="Grouping items into chunks helps", source="Cowan 2001")
     ],
 )
-PERSONAS = ("zitouna", "barq", "hikma", "sahbi")
+PERSONAS = ("willow", "spark", "sage", "buddy")
 
 
 @pytest.mark.parametrize(
@@ -56,13 +56,13 @@ def test_verifier_catches_injected_problems(text: str, problem: str) -> None:
 
 def test_persona_style_rules() -> None:
     long = " ".join("You got 9 of 11 right [F1]." for _ in range(5))
-    assert not verify(long, PACKET, NAMES, "zitouna").ok  # at most 4 sentences
-    assert not verify("Great round [F1]!", PACKET, NAMES, "hikma").ok  # no exclamations
+    assert not verify(long, PACKET, NAMES, "willow").ok  # at most 4 sentences
+    assert not verify("Great round [F1]!", PACKET, NAMES, "sage").ok  # no exclamations
     wordy = (
-        "You got 9 of 11 right in the souk today which is a really solid and steady result [F1]."
+        "You got 9 of 11 right in the market today which is a really solid and steady result [F1]."
     )
-    assert not verify(wordy, PACKET, NAMES, "barq").ok  # short sentences
-    assert verify("Nice. You got 9 of 11 right [F1].", PACKET, NAMES, "barq").ok
+    assert not verify(wordy, PACKET, NAMES, "spark").ok  # short sentences
+    assert verify("Nice. You got 9 of 11 right [F1].", PACKET, NAMES, "spark").ok
 
 
 @pytest.mark.parametrize("persona", PERSONAS)
@@ -71,11 +71,11 @@ def test_template_passes_for_every_persona(persona: str) -> None:
     assert verify(text, PACKET, NAMES, persona).ok  # type: ignore[arg-type]
 
 
-def _ctx(responder: Callable[[Sequence[BaseMessage]], str]) -> NajmaContext:
+def _ctx(responder: Callable[[Sequence[BaseMessage]], str]) -> LodestarContext:
     llm = LlmFactory(REGISTRY, test_settings(), engine=None, stub_responder=responder)  # type: ignore[arg-type]
     services = Services(engine=None, registry=REGISTRY, llm=llm)  # type: ignore[arg-type]
     selection = LlmSelection(mode="stub", provider="stub", model="stub")
-    return NajmaContext(user_id=uuid4(), session_id=uuid4(), llm=selection, consent=frozenset(),
+    return LodestarContext(user_id=uuid4(), session_id=uuid4(), llm=selection, consent=frozenset(),
                         services=services)  # fmt: skip
 
 
@@ -90,14 +90,14 @@ def _scripted(*replies: str) -> Callable[[Sequence[BaseMessage]], str]:
 
 async def test_first_draft_that_passes_is_used() -> None:
     _, reply, _ = await draft_verified(
-        _ctx(_scripted("You got 9 of 11 right [F1].")), PACKET, "zitouna", "Write it."
+        _ctx(_scripted("You got 9 of 11 right [F1].")), PACKET, "willow", "Write it."
     )
     assert reply.first_draft_passed and reply.repairs == 0 and not reply.used_template
 
 
 async def test_repair_fixes_a_bad_first_draft() -> None:
     ctx = _ctx(_scripted("Your working memory is 70%.", "Working memory estimate 54% [F2]."))
-    text, reply, _ = await draft_verified(ctx, PACKET, "hikma", "Write it.")
+    text, reply, _ = await draft_verified(ctx, PACKET, "sage", "Write it.")
     assert text == "Working memory estimate 54% [F2]."
     assert not reply.first_draft_passed and reply.repairs == 1 and not reply.used_template
 
@@ -116,8 +116,8 @@ async def test_llm_down_gives_the_template() -> None:
     def broken(_: Sequence[BaseMessage]) -> str:
         raise RuntimeError("down")
 
-    text, reply, degraded = await draft_verified(_ctx(broken), PACKET, "sahbi", "Write it.")
-    assert reply.used_template and degraded and verify(text, PACKET, NAMES, "sahbi").ok
+    text, reply, degraded = await draft_verified(_ctx(broken), PACKET, "buddy", "Write it.")
+    assert reply.used_template and degraded and verify(text, PACKET, NAMES, "buddy").ok
 
 
 async def test_same_facts_two_personas_same_verifier() -> None:
@@ -128,10 +128,10 @@ async def test_same_facts_two_personas_same_verifier() -> None:
         seen.append(messages[0].content)
         return "Working memory moved from 50% to 54% [F3]."
 
-    for persona in ("zitouna", "barq"):
+    for persona in ("willow", "spark"):
         _, reply, _ = await draft_verified(_ctx(respond), PACKET, persona, "Write it.")
         assert reply.cited_ids == ["F3"] and reply.first_draft_passed
-    assert "Zitouna" in str(seen[0]) and "Barq" in str(seen[1])
+    assert "Willow" in str(seen[0]) and "Spark" in str(seen[1])
     assert seen[0].split("Facts:")[1] == seen[1].split("Facts:")[1]  # identical facts
 
 

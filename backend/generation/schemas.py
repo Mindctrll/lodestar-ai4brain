@@ -10,10 +10,10 @@ from pydantic import Field
 
 from backend.contracts.common import Contract
 
-# Souk Rush ----------------------------------------------------------------------------------
+# Market Rush ----------------------------------------------------------------------------------
 
 
-class SoukOrder(Contract):
+class MarketOrder(Contract):
     customer: str = Field(max_length=20)
     items: list[str] = Field(min_length=1, max_length=6)
     line: str = Field(max_length=240)
@@ -26,14 +26,14 @@ class OrderChange(Contract):
     line: str = Field(max_length=240)
 
 
-class SoukScene(Contract):
-    orders: list[SoukOrder] = Field(min_length=1, max_length=4)
+class MarketScene(Contract):
+    orders: list[MarketOrder] = Field(min_length=1, max_length=4)
     changes: list[OrderChange] = Field(default_factory=list)
 
 
-class SoukRushContent(Contract):
+class MarketRushContent(Contract):
     theme: Literal["fruit", "spices", "bakery", "pottery", "mixed"]
-    scenes: list[SoukScene] = Field(min_length=1, max_length=6)
+    scenes: list[MarketScene] = Field(min_length=1, max_length=6)
 
 
 # Market List --------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ class Step(Contract):
     op: Op
     a: int
     b: int
-    result: int = Field(description="What Najma claims; wrong in the planted step")
+    result: int = Field(description="What Lodestar claims; wrong in the planted step")
     text: str = Field(max_length=200)
 
 

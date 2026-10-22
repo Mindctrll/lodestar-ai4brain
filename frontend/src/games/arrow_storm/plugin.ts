@@ -38,7 +38,7 @@ export function makeItems(
 const arrow = (dir: 'left' | 'right') => (dir === 'left' ? '←' : '→')
 
 const ArrowPlugin = makePlugin<ArrowItem>(
-  'najma-arrow-storm',
+  'lodestar-arrow-storm',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const other = item.target === 'left' ? 'right' : 'left'
     const side = Math.max(1, Math.round(item.flankers / 2))

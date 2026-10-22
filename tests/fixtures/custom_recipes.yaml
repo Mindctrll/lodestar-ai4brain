@@ -102,12 +102,12 @@
       - Onion
       answer: Apple
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options: &id005
-      - Sfax
-      - Tunis
-      - Sousse
-      answer: Tunis
+      - Lyon
+      - Paris
+      - Marseille
+      answer: Paris
     - block: choice
       question: Which animal lives in the sea?
       options: &id001
@@ -693,9 +693,9 @@
       options: *id001
       answer: Octopus
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options: *id005
-      answer: Tunis
+      answer: Paris
   served: null
 - request: remember five words then do maths
   source: fixture
@@ -1132,9 +1132,9 @@
       options: *id003
       answer: '3'
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options: *id005
-      answer: Tunis
+      answer: Paris
     - block: choice
       question: Which is a planet?
       options: *id004
@@ -1158,12 +1158,12 @@
       - '5'
       answer: '3'
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options:
-      - Sfax
-      - Tunis
-      - Sousse
-      answer: Tunis
+      - Lyon
+      - Paris
+      - Marseille
+      answer: Paris
     - block: choice
       question: Which is a planet?
       options:
@@ -1255,7 +1255,7 @@
     - block: feedback
       level: full
     repeat: 1
-- request: a game about Tunisian food words
+- request: a game about food words
   source: fixture
   broken: prose_around_json
   valid: false
@@ -1265,8 +1265,8 @@
 
     {"title": "Quick Quiz", "dims": {"reasoning": 1.0}, "steps": [{"block": "timer", "seconds": 3}, {"block":
     "choice", "question": "Which is a fruit?", "options": ["Carrot", "Apple", "Onion"], "answer": "Apple"},
-    {"block": "choice", "question": "What is the capital of Tunisia?", "options": ["Sfax", "Tunis", "Sousse"],
-    "answer": "Tunis"}, {"block": "choice", "question": "Which is a planet?", "options": ["Mars", "Moon",
+    {"block": "choice", "question": "What is the capital of France?", "options": ["Lyon", "Paris", "Marseille"],
+    "answer": "Paris"}, {"block": "choice", "question": "Which is a planet?", "options": ["Mars", "Moon",
     "Sun"], "answer": "Mars"}]}
 
     Enjoy!'
@@ -1396,9 +1396,9 @@
       options: *id004
       answer: Mars
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options: *id005
-      answer: Tunis
+      answer: Paris
     - block: choice
       question: Which is a fruit?
       options: *id006
@@ -1418,12 +1418,12 @@
       - Sun
       answer: Mars
     - block: choice
-      question: What is the capital of Tunisia?
+      question: What is the capital of France?
       options:
-      - Sfax
-      - Tunis
-      - Sousse
-      answer: Tunis
+      - Lyon
+      - Paris
+      - Marseille
+      answer: Paris
     - block: choice
       question: Which is a fruit?
       options:

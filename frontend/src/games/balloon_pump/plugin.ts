@@ -19,7 +19,7 @@ export function makeItems(rng: Rng, count: number): BalloonItem[] {
 }
 
 const BalloonPlugin = makePlugin<BalloonItem>(
-  'najma-balloon-pump',
+  'lodestar-balloon-pump',
   async ({ stage, item, e2e }) => {
     const balloon = el('div', 'bp-balloon')
     const points = el('p', 'game-prompt', '0 points in this balloon')

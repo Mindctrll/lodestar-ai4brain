@@ -960,7 +960,7 @@ export interface components {
        * Persona
        * @enum {string}
        */
-      persona: 'zitouna' | 'barq' | 'hikma' | 'sahbi'
+      persona: 'willow' | 'spark' | 'sage' | 'buddy'
       /** Repairs */
       repairs: number
       /** Text */
@@ -2495,7 +2495,7 @@ export interface components {
     MyData: {
       /**
        * Core
-       * @description Lines of core.md, the short profile Najma keeps
+       * @description Lines of core.md, the short profile Lodestar keeps
        */
       core: string[]
       /** Life Context */
@@ -2522,10 +2522,10 @@ export interface components {
       }
       /**
        * Persona
-       * @default zitouna
+       * @default willow
        * @enum {string}
        */
-      persona: 'zitouna' | 'barq' | 'hikma' | 'sahbi'
+      persona: 'willow' | 'spark' | 'sage' | 'buddy'
       /**
        * Timezone
        * @description IANA time zone from the browser, for 'today'
@@ -3012,7 +3012,7 @@ export interface components {
        * Persona
        * @enum {string}
        */
-      persona: 'zitouna' | 'barq' | 'hikma' | 'sahbi'
+      persona: 'willow' | 'spark' | 'sage' | 'buddy'
       /**
        * Trigger
        * @enum {string}
@@ -3061,7 +3061,7 @@ export interface components {
     SettingsChangedPayload: {
       /**
        * Paused Dim
-       * @description A skill Najma stops suggesting until `paused_until`
+       * @description A skill Lodestar stops suggesting until `paused_until`
        * @default null
        */
       paused_dim: string | null
@@ -3074,7 +3074,7 @@ export interface components {
        * Persona
        * @default null
        */
-      persona: ('zitouna' | 'barq' | 'hikma' | 'sahbi') | null
+      persona: ('willow' | 'spark' | 'sage' | 'buddy') | null
       /**
        * Success Mode
        * @default null

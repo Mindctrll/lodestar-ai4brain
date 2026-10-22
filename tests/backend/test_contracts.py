@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.contracts.affect import AffectReading
 from backend.contracts.events import EVENT_TYPES, parse_event
 from backend.contracts.export import build_openapi
@@ -84,7 +84,7 @@ def test_facts_packet_ids_are_unique() -> None:
 
 
 def test_state_builds_with_defaults() -> None:
-    state = NajmaState(user_id="u", session_id="s", trigger="ui", persona="hikma")
+    state = LodestarState(user_id="u", session_id="s", trigger="ui", persona="sage")
     assert state.budget.max_rounds == 3
     assert state.decisions == []
 

@@ -40,7 +40,7 @@ export function expected(item: PathItem): number[] {
 }
 
 const PathPlugin = makePlugin<PathItem>(
-  'najma-light-path',
+  'lodestar-light-path',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const board = el('div', 'lp-board')
     const blocks = config.blocks.map(([x, y], i) => {

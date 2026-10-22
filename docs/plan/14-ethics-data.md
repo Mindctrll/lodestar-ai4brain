@@ -73,7 +73,7 @@ Not legally binding on us, but we follow its spirit:
 - Language rules in `09`.
 - Diagnosis requests get a fixed redirect to professionals.
 - Every forecast reads as a statistical estimate.
-- Disclaimer on onboarding and the Twin page: "Najma is a practice coach. It doesn't assess medical or psychological conditions."
+- Disclaimer on onboarding and the Twin page: "Lodestar is a practice coach. It doesn't assess medical or psychological conditions."
 
 ## Bias and fairness notes
 

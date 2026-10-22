@@ -1,4 +1,4 @@
-"""The Najma agent loop as a LangGraph graph (docs/plan/03, "The loop in one picture").
+"""The Lodestar agent loop as a LangGraph graph (docs/plan/03, "The loop in one picture").
 
 Two changes from the plan's picture: every scored round gets an after-game coach message, so the
 path is score_update -> monitor -> reflect -> coach -> remember, and `remember` uses the monitor's
@@ -17,18 +17,18 @@ from langgraph.types import Send
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.nodes import converse, gate, perceive, play, talk, twin
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 
 
-def fan_out(state: NajmaState) -> list[Send]:
+def fan_out(state: LodestarState) -> list[Send]:
     return [Send(name, state) for name in perceive.PERCEIVE_NODES]
 
 
-def build_graph() -> StateGraph[NajmaState, NajmaContext, Any, Any]:
-    g: StateGraph[NajmaState, NajmaContext, Any, Any] = StateGraph(
-        NajmaState, context_schema=NajmaContext
+def build_graph() -> StateGraph[LodestarState, LodestarContext, Any, Any]:
+    g: StateGraph[LodestarState, LodestarContext, Any, Any] = StateGraph(
+        LodestarState, context_schema=LodestarContext
     )
     g.add_node("ingest", gate.ingest)
     for name in perceive.PERCEIVE_NODES:
@@ -138,5 +138,5 @@ def checkpointer(pool: Any) -> BaseCheckpointSaver[Any]:
 
 def compile_graph(
     checkpointer: BaseCheckpointSaver[Any] | None, store: BaseStore | None = None
-) -> CompiledStateGraph[NajmaState, NajmaContext, Any, Any]:
-    return build_graph().compile(checkpointer=checkpointer, store=store, name="najma")
+) -> CompiledStateGraph[LodestarState, LodestarContext, Any, Any]:
+    return build_graph().compile(checkpointer=checkpointer, store=store, name="lodestar")

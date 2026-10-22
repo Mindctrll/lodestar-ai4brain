@@ -55,7 +55,7 @@ class LifeContextLine(Contract):
 
 
 class MyData(Contract):
-    core: list[str] = Field(description="Lines of core.md, the short profile Najma keeps")
+    core: list[str] = Field(description="Lines of core.md, the short profile Lodestar keeps")
     life_context: list[LifeContextLine]
     memories: list[MemoryLine]
     memory_available: bool
@@ -126,7 +126,7 @@ async def put_consent(
         except RequiredSwitch as exc:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
-                "Core practice data is needed for Najma to work. To stop it, delete your data.",
+                "Core practice data is needed for Lodestar to work. To stop it, delete your data.",
             ) from exc
         if switch == "cloud_ai" and not body.granted:
             current = await get_selection(conn, user_id, local_model)
@@ -241,7 +241,7 @@ async def export(user_id: CurrentUser, request: Request) -> Response:
     return Response(
         content=json.dumps(data, indent=2, ensure_ascii=False),
         media_type="application/json",
-        headers={"Content-Disposition": 'attachment; filename="najma-export.json"'},
+        headers={"Content-Disposition": 'attachment; filename="lodestar-export.json"'},
     )
 
 

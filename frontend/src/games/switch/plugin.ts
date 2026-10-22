@@ -50,7 +50,7 @@ export const expectedKey = (item: SwitchItem) =>
   (item.rule === 'colour' ? item.colour : item.shape) === 0 ? config.left_key : config.right_key
 
 const SwitchPlugin = makePlugin<SwitchItem>(
-  'najma-switch',
+  'lodestar-switch',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const cue = el('div', 'sw-cue', item.rule === 'colour' ? 'COLOUR' : 'SHAPE')
     stage.append(cue)

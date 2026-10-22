@@ -14,10 +14,10 @@ from sqlalchemy import any_, func, literal, select
 
 from backend.agent import experiments
 from backend.agent.affect import estimate, recent_cues
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.nodes.talk import emit_reply
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import emit, record_decision, traced
 from backend.contracts.affect import AffectReading, AffectSource
 from backend.contracts.decision import Candidate, Decision
@@ -70,7 +70,7 @@ def core_games_by_dim(
     return out
 
 
-def _belief(state: NajmaState, dim: str) -> Belief:
+def _belief(state: LodestarState, dim: str) -> Belief:
     if state.twin and dim in state.twin.dims:
         d = state.twin.dims[dim]
         return Belief(d.mu, d.sigma, d.n, d.last_practised)
@@ -101,7 +101,7 @@ def _best(options: list[Game], last_game: str | None, samples: dict[str, float])
 
 
 async def _bandit_samples(
-    ctx: NajmaContext, state: NajmaState, pool: dict[str, list[Game]]
+    ctx: LodestarContext, state: LodestarState, pool: dict[str, list[Game]]
 ) -> dict[str, float]:
     """One Thompson sample per game on offer (docs/plan/10, section 4); empty until there is
     data that says something (everyone's rounds, or enough of the person's own)."""
@@ -118,7 +118,7 @@ async def _bandit_samples(
 
 QUICK_S = 60  # "something quick": games of a minute or less
 EASED_ROUNDS = 2  # a session offered to someone drifting away
-NUDGE_AFTER = 3  # UW3: sessions in a row a skill was turned down before Najma asks once
+NUDGE_AFTER = 3  # UW3: sessions in a row a skill was turned down before Lodestar asks once
 
 
 def _length(game: Game) -> str:
@@ -140,7 +140,7 @@ def _themed_game(registry: Registry, pool: dict[str, list[Game]], intent: Any) -
 
 
 def _callback_due(
-    registry: Registry, state: NajmaState, consent: frozenset[str] | None, avoid: set[str]
+    registry: Registry, state: LodestarState, consent: frozenset[str] | None, avoid: set[str]
 ) -> bool:
     """Callback recalls this session's Market List once its delay has passed, once a session."""
     game = registry.game("callback")
@@ -156,7 +156,7 @@ def _callback_due(
     )
 
 
-async def _market_list_words(ctx: NajmaContext) -> list[str]:
+async def _market_list_words(ctx: LodestarContext) -> list[str]:
     """The words of this session's latest Market List round, in the order they were shown."""
     async with ctx.services.engine.connect() as conn:
         rows = (
@@ -177,7 +177,7 @@ async def _market_list_words(ctx: NajmaContext) -> list[str]:
     return [s["word"] for s in sorted(latest, key=lambda s: s["position"])]
 
 
-async def _abandon(ctx: NajmaContext, round_id: Any) -> None:
+async def _abandon(ctx: LodestarContext, round_id: Any) -> None:
     """A new pick replaces a game that was waiting ("not memory today"): it's never scored."""
     async with ctx.services.engine.begin() as conn:
         await conn.execute(
@@ -191,8 +191,8 @@ async def _abandon(ctx: NajmaContext, round_id: Any) -> None:
         )
 
 
-async def paused_dims(ctx: NajmaContext, now: datetime) -> set[str]:
-    """Skills the user asked Najma to stop suggesting for a while (UW3)."""
+async def paused_dims(ctx: LodestarContext, now: datetime) -> set[str]:
+    """Skills the user asked Lodestar to stop suggesting for a while (UW3)."""
     async with ctx.services.engine.connect() as conn:
         rows = await conn.execute(
             select(t.skill_pauses.c.dim).where(
@@ -202,8 +202,8 @@ async def paused_dims(ctx: NajmaContext, now: datetime) -> set[str]:
         return {r.dim for r in rows}
 
 
-async def should_nudge(ctx: NajmaContext, dim: str) -> bool:
-    """True once a skill was turned down in NUDGE_AFTER sessions in a row, unless Najma already
+async def should_nudge(ctx: LodestarContext, dim: str) -> bool:
+    """True once a skill was turned down in NUDGE_AFTER sessions in a row, unless Lodestar already
     asked about it in that run of sessions."""
     async with ctx.services.engine.connect() as conn:
         sessions = [
@@ -245,7 +245,7 @@ async def should_nudge(ctx: NajmaContext, dim: str) -> bool:
     return streak >= NUDGE_AFTER
 
 
-async def _nudge(state: NajmaState, runtime: Runtime[NajmaContext], dim: str) -> Decision:
+async def _nudge(state: LodestarState, runtime: Runtime[LodestarContext], dim: str) -> Decision:
     ctx = runtime.context
     name = ctx.services.registry.dimension(dim).name.lower()
     text = (
@@ -281,7 +281,7 @@ async def _nudge(state: NajmaState, runtime: Runtime[NajmaContext], dim: str) ->
 
 
 @traced("plan_next")
-async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Choose the next skill and game with a utility whose parts are all shown (docs/plan/03).
     Code decides; a request from the user changes the inputs, never the rules."""
     ctx = runtime.context
@@ -371,7 +371,7 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
         reason = "Callback asks about a Market List from earlier, so let's start with Market List."
     elif requested is not None and requested.origin == "custom":
         dim, game = requested.primary_dims[0], requested
-        # docs/plan/08: block-built games count at low weight, and Najma says so.
+        # docs/plan/08: block-built games count at low weight, and Lodestar says so.
         reason = (
             "Fun idea. I'll build it from my game blocks. "
             "I'm only counting it a little until it's been tested more."
@@ -533,7 +533,9 @@ async def plan_next(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
 
 
 @traced("prepare_exercise")
-async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def prepare_exercise(
+    state: LodestarState, runtime: Runtime[LodestarContext]
+) -> dict[str, Any]:
     """Exercise subgraph stand-in: pick the level, create the round row, build the spec.
     WP2.2 adds generated content, validation and the pool fallback."""
     ctx = runtime.context
@@ -602,7 +604,7 @@ async def prepare_exercise(state: NajmaState, runtime: Runtime[NajmaContext]) ->
     return {"exercise": spec, "degraded": degraded} if degraded else {"exercise": spec}
 
 
-async def play(state: NajmaState, *, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def play(state: LodestarState, *, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """The pause: the browser plays the exercise and resumes with a RoundResult."""
     assert state.exercise is not None
     value = interrupt({"type": "exercise", "spec": state.exercise.model_dump(mode="json")})
@@ -610,7 +612,7 @@ async def play(state: NajmaState, *, runtime: Runtime[NajmaContext]) -> dict[str
 
 
 @traced("score_update")
-async def score_update(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def score_update(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     ctx = runtime.context
     result = state.rounds[-1]
     scored = await score_round_tx(ctx.services.engine, ctx.user_id, result, ctx.services.registry)
@@ -642,7 +644,7 @@ async def score_update(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 
 
 async def _story_round_done(
-    state: NajmaState, ctx: NajmaContext, result: RoundResult
+    state: LodestarState, ctx: LodestarContext, result: RoundResult
 ) -> dict[str, Any]:
     """A played chapter moves the story on (an event per chapter); the last one ends it."""
     game = ctx.services.registry.game(state.story_id) if state.story_id else None
@@ -673,7 +675,7 @@ async def _story_round_done(
     return {"story_id": None, "story_chapter": 0}
 
 
-async def experiment_slot(ctx: NajmaContext) -> tuple[Any, str] | None:
+async def experiment_slot(ctx: LodestarContext) -> tuple[Any, str] | None:
     """The running experiment and this session's window (morning or evening), when this session
     counts toward it (docs/plan/09, Personal experiments)."""
     async with ctx.services.engine.connect() as conn:
@@ -699,7 +701,7 @@ async def experiment_slot(ctx: NajmaContext) -> tuple[Any, str] | None:
     return row, window
 
 
-async def _experiment_round_done(runtime: Runtime[NajmaContext]) -> None:
+async def _experiment_round_done(runtime: Runtime[LodestarContext]) -> None:
     """When this session has played every experiment game, log it; when both windows are full,
     close the experiment and tell the user what it found (with its facts)."""
     ctx = runtime.context
@@ -753,7 +755,7 @@ FRUSTRATION_P = 0.7
 CUE_WINDOW = timedelta(minutes=10)  # server clock: browser clocks drift
 
 
-async def session_fatigue(ctx: NajmaContext) -> float:
+async def session_fatigue(ctx: LodestarContext) -> float:
     """P1 rule: compare the latest answers with the first ones in this session. Slower answers
     (z > 1.5) together with more errors suggest fatigue. Behaviour only (docs/plan/12)."""
     async with ctx.services.engine.connect() as conn:
@@ -781,7 +783,7 @@ async def session_fatigue(ctx: NajmaContext) -> float:
     return 0.8 if z > FATIGUE_Z and errors_late > errors_early else min(0.5, max(0.0, z / 4))
 
 
-async def _log_affect(ctx: NajmaContext, affect: AffectReading, now: datetime) -> None:
+async def _log_affect(ctx: LodestarContext, affect: AffectReading, now: datetime) -> None:
     """affect.estimated goes to the event log only; nothing reads it into the profile."""
     async with ctx.services.engine.begin() as conn:
         await append_event(
@@ -791,7 +793,7 @@ async def _log_affect(ctx: NajmaContext, affect: AffectReading, now: datetime) -
 
 
 @traced("monitor")
-async def monitor(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def monitor(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Continue, ease off, suggest a break, or stop (docs/plan/03, monitor routing)."""
     now = datetime.now(UTC)
     rounds = state.rounds

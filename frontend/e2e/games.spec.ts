@@ -13,7 +13,7 @@ const GAMES = [
   { id: 'hold_it', name: 'Hold It' },
   { id: 'light_path', name: 'Light Path' },
   { id: 'market_list', name: 'Market List' },
-  { id: 'souk_rush', name: 'Souk Rush' },
+  { id: 'market_rush', name: 'Market Rush' },
   { id: 'symbol_code', name: 'Symbol Code' },
   { id: 'switch', name: 'Switch' },
   { id: 'pattern_gap', name: 'Pattern Gap' },
@@ -55,7 +55,7 @@ const GAMES = [
 // Games with only a few long steps: one minute of words, three explanations, two objects.
 const FEW_STEPS: Record<string, number> = { word_burst: 1, teach_me: 3, unusual_uses: 2 }
 
-const only = process.env['NAJMA_GAMES']?.split(',')
+const only = process.env['LODESTAR_GAMES']?.split(',')
 
 for (const { id, name } of GAMES.filter((g) => !only || only.includes(g.id))) {
   test(`plays ${id} and sends correct trial events`, async ({ page }) => {

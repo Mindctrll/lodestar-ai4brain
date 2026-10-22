@@ -29,7 +29,7 @@ Every dimension shows a badge in the UI and the docs:
 | 2 | Sustained attention | Staying alert over time | Night Guard (vigilance), SART-style | Hits, false alarms, d′, RT variability | Boredom, noisy room | Established |
 | 3 | Divided attention | Doing two things at once | Dual task, Control Tower | Dual-task cost (% drop vs single) | Strategy learning | Moderate |
 | 4 | Inhibition | Holding back an automatic response | Stroop, go/no-go, stop-signal | Stroop effect, commission errors, SSRT | Reading fluency (English colour words) | Established |
-| 5 | Working memory | Holding and using information | N-back, backward digit span, operation span, Souk Rush | d′ by n, span | Chunking strategies, n-back practice gains | Established |
+| 5 | Working memory | Holding and using information | N-back, backward digit span, operation span, Market Rush | d′ by n, span | Chunking strategies, n-back practice gains | Established |
 | 6 | Short-term memory | Remembering what you just saw | Word recall, picture recognition, delayed recall | Items recalled, recognition d′ | Language, repeated lists (use fresh content) | Established |
 | 7 | Processing speed | Speed on simple tasks | Simple/choice RT, symbol matching, pattern comparison | Median RT, items/min | Device latency, motor speed | Established |
 | 8 | Cognitive flexibility | Switching rules | Task switching, trail switching, Secret Rules card sort | Switch cost, perseverative errors | Card sort loses meaning on repeat once the trick is known | Established |

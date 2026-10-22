@@ -1,7 +1,7 @@
 """Skill correlations from NCPT (Jaffe et al. 2022, CC BY 4.0; docs/plan/10, "NCPT dataset").
 
-Each NCPT test run gives one person's scores on several subtests. We map subtests to Najma's skills,
-compute Spearman correlations across test runs pooled over two batteries, and write them to
+Each NCPT test run gives one person's scores on several subtests. We map subtests to Lodestar's
+skills, compute Spearman correlations across test runs pooled over two batteries, and write them to
 `registry/priors.yaml`. They are observed-score correlations, so lower than the correlations
 between the underlying skills: as priors that errs on the cautious side. No demographic field is
 read.

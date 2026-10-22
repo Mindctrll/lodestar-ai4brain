@@ -42,7 +42,7 @@ export function validWords(typed: string, letter: string): string[] {
 }
 
 const BurstPlugin = makePlugin<BurstItem>(
-  'najma-word-burst',
+  'lodestar-word-burst',
   async ({ jsPsych, stage, item, e2e }) => {
     stage.append(el('div', 'big-symbol', item.letter.toUpperCase()))
     const example = (config.examples[item.letter] ?? []).join(' ')

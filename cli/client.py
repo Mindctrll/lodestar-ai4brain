@@ -1,4 +1,4 @@
-"""The connection to Najma's MCP tool server, the sign-in code, and the terminal's input and
+"""The connection to Lodestar's MCP tool server, the sign-in code, and the terminal's input and
 output (one `Io`, so tests can script the user)."""
 
 import asyncio
@@ -23,7 +23,7 @@ DEFAULT_WEB = "http://localhost:5173"
 TIMEOUT_S = 180.0  # a turn can include a local model's draft
 
 
-class NajmaError(Exception):
+class LodestarError(Exception):
     """A tool said no (not signed in, unknown session, ...); the message is for the user."""
 
 
@@ -58,7 +58,7 @@ def ask_yes(io: Io, prompt: str = "[y/n] ") -> bool:
 
 def token_path() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(base) / "najma" / "token"
+    return Path(base) / "lodestar" / "token"
 
 
 def saved_token() -> str | None:
@@ -100,16 +100,18 @@ def connect(url: str, token: str, io: Io, http: httpx2.AsyncClient | None = None
     return Client(
         streamable_http_client(url, http_client=client),
         elicitation_callback=answer,
-        client_info=Implementation(name="najma-cli", version="0.1.0"),
+        client_info=Implementation(name="lodestar-cli", version="0.1.0"),
         read_timeout_seconds=TIMEOUT_S,
     )
 
 
-async def call(najma: Client, tool: str, args: dict[str, Any] | None = None) -> Any:
-    """Call a tool and return its structured result; a tool error becomes a NajmaError."""
-    result = await najma.call_tool(tool, {k: v for k, v in (args or {}).items() if v is not None})
+async def call(lodestar: Client, tool: str, args: dict[str, Any] | None = None) -> Any:
+    """Call a tool and return its structured result; a tool error becomes a LodestarError."""
+    result = await lodestar.call_tool(
+        tool, {k: v for k, v in (args or {}).items() if v is not None}
+    )
     if result.is_error:
         text = " ".join(c.text for c in result.content if isinstance(c, TextContent))
-        raise NajmaError(text or f"{tool} failed")
+        raise LodestarError(text or f"{tool} failed")
     data = result.structured_content or {}
     return data["result"] if set(data) == {"result"} else data

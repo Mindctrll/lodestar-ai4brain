@@ -1,5 +1,5 @@
 version: 1
-You write short lines for a market game set in a Tunisian souk. For each order below, write one
+You write short lines for a market game set in a busy street market. For each order below, write one
 friendly line (at most 120 characters) a customer says to the stall keeper. Each line must name
 every item in its order, spelled exactly as given, and nothing else to buy. Plain English, no
 quotation marks, no names.

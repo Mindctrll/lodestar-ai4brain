@@ -17,8 +17,8 @@ from langgraph.types import Command, StreamMode
 from sqlalchemy import func, select
 
 from backend.acs.events import BREAK_MINUTES, Observation
-from backend.agent.context import NajmaContext, Services
-from backend.agent.state import NajmaState
+from backend.agent.context import LodestarContext, Services
+from backend.agent.state import LodestarState
 from backend.contracts.events import SessionStarted, SessionStartedPayload
 from backend.contracts.llm import LlmSelection
 from backend.db import tables as t
@@ -36,7 +36,7 @@ class SessionNotFound(LookupError):
 class SessionRunner:
     def __init__(
         self,
-        graph: CompiledStateGraph[NajmaState, NajmaContext, Any, Any],
+        graph: CompiledStateGraph[LodestarState, LodestarContext, Any, Any],
         services: Services,
         local_model: str,
     ) -> None:
@@ -124,14 +124,14 @@ class SessionRunner:
         _, persona, _ = await self._session(user_id, session_id)
         return persona
 
-    async def context_for(self, user_id: UUID, session_id: UUID, seed: int = 0) -> NajmaContext:
+    async def context_for(self, user_id: UUID, session_id: UUID, seed: int = 0) -> LodestarContext:
         async with self.services.engine.connect() as conn:
             selection = await get_selection(conn, user_id, self.local_model)
             consent = await granted_switches(conn, user_id, self.services.registry.consent)
         if selection.mode == "hosted" and "cloud_ai" not in consent:
             # Turning Cloud AI off stops it at once, even if a key is still saved (docs/plan/14).
             selection = LlmSelection(mode="local", provider="ollama", model=self.local_model)
-        return NajmaContext(
+        return LodestarContext(
             user_id=user_id,
             session_id=session_id,
             llm=selection,

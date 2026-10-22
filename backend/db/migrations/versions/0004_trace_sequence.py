@@ -21,7 +21,7 @@ def upgrade() -> None:
         ALTER TABLE agent.traces ALTER COLUMN seq TYPE bigint;
         ALTER TABLE agent.traces ALTER COLUMN seq SET DEFAULT nextval('agent.trace_seq');
         ALTER SEQUENCE agent.trace_seq OWNED BY agent.traces.seq;
-        GRANT USAGE ON SEQUENCE agent.trace_seq TO najma_app;
+        GRANT USAGE ON SEQUENCE agent.trace_seq TO lodestar_app;
         """
     )
 

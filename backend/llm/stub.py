@@ -33,7 +33,7 @@ class StubChatModel(BaseChatModel):
 
     @property
     def _llm_type(self) -> str:
-        return "najma-stub"
+        return "lodestar-stub"
 
     def _generate(
         self,

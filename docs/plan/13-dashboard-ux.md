@@ -4,15 +4,15 @@
 
 **As built (WP2.5).** The app is a light shell after the reference: a sidebar (Home, Brain Twin, Progress, Agent, AI collaboration, Settings), the date and greeting, stat pills (day streak, rounds this week, skills measured) and white cards with one blue accent. The night sky is the one dark card, on Home (small) and on the Brain Twin page. It is plain SVG, not visx: each skill's glow is blurred with `feGaussianBlur` in proportion to σ, and dashed lines join skills that NCPT says go together. Charts are ECharts 6 with the SVG renderer: radar with a shaded uncertainty ring, one curve per skill (band, dots per practice day, life-context strips, dashed and hatched forecast band), skill × week and time-of-day × weekday heatmaps (cells under 10 answers left empty), and the ACS gauge with its range on the dial. Every chart lists its series in `data-series`, and the e2e test checks that each estimate has its range. `/twin/stream` pushes `twin_updated` from the scored-round NOTIFY, so every open tab refreshes. The agent page lights up graph nodes from the session's events and lists decisions with their "why" cards and the session trace. `make seed` with `--token` prints a sign-in link for the demo user (`?signin=`, removed from the address bar once used). On a phone the sidebar becomes a top row.
 
-**Redesign (agent first).** The conversation with Najma is now the whole app; the dashboard is reached from it. One column holds the greeting, the week pills and the thread. Najma's picks show as a dark "ticket" card in the thread, and the game opens wide right there, in the same card. The result card with the coach and the mood buttons follows it. Each turn's `route_intent` reading streams as an `intent` event, and when the turn is answered the UI puts the matching glance in the thread: the night sky for a Twin question, goals for a goal, the lab for an experiment, the week for "how am I doing". Each glance has a way into the full view. The full views (Brain Twin, Progress, Experiments, Agent, AI collaboration, Settings) open from the sidebar as a side panel. On wide screens the panel docks beside the conversation; on smaller screens it covers it. The "why" card is a modal. The composer (text, microphone, starter chips) stays at the bottom and hides during a game so keys go to it. Home is centred like a new conversation: a gold star, the greeting, the week pills, two ways in (Start a session, Detective story), then the composer and starter chips. Once the conversation starts, the greeting goes and the thread fills the column. A sidebar on the left holds the views; it folds to icons on narrower screens (and when a panel is open) and becomes a bottom tab bar on phones. While a game runs, the rest of the thread fades back and the game card opens wide, with a progress bar under its header. The type is Bricolage Grotesque for display, Geist for the interface and Geist Mono for labels and numbers. All three are self-hosted, so no font request leaves the device. The theme is a night sky: near-black surfaces, warm off-white text, gold for the star and every primary action, and starlight blue for data. Games play on a light "paper" stage inside the card, so each game's own colours keep their meaning.
+**Redesign (agent first).** The conversation with Lodestar is now the whole app; the dashboard is reached from it. One column holds the greeting, the week pills and the thread. Lodestar's picks show as a dark "ticket" card in the thread, and the game opens wide right there, in the same card. The result card with the coach and the mood buttons follows it. Each turn's `route_intent` reading streams as an `intent` event, and when the turn is answered the UI puts the matching glance in the thread: the night sky for a Twin question, goals for a goal, the lab for an experiment, the week for "how am I doing". Each glance has a way into the full view. The full views (Brain Twin, Progress, Experiments, Agent, AI collaboration, Settings) open from the sidebar as full pages; the conversation stays mounted behind them, so a running game keeps going. The "why" card is a modal. The composer (text, microphone, starter chips) stays at the bottom and hides during a game so keys go to it. Home is centred like a new conversation: a gold star, the greeting, the week pills, two ways in (Start a session, Detective story), then the composer and starter chips. Once the conversation starts, the greeting goes and the thread fills the column. A sidebar on the left holds the views; it folds to icons on narrower screens and becomes a bottom tab bar on phones. A pick is one card: the game's name, one plain sentence on what you do in it, the reason in one muted line with "Why?", and the button. After a round, the card shows the score from the round itself (right out of judged steps), each skill the game moved with its range, any story or encouragement line, and the mood row; the cited fact lines fold under "How I worked this out". While a game runs, the rest of the thread fades back and the game card opens wide, with a progress bar under its header. The type is Bricolage Grotesque for display, Geist for the interface and Geist Mono for labels and numbers. All three are self-hosted, so no font request leaves the device. The theme is a night sky: near-black surfaces, warm off-white text, gold for the star and every primary action, and starlight blue for data. Games play on a light "paper" stage inside the card, so each game's own colours keep their meaning.
 
 ## Screens
 
 | Screen | Purpose | Key elements |
 |---|---|---|
 | Welcome + consent | First run | Plain-language notice, separate switches, persona picker |
-| Home | Start here every time | Najma orb (tap or "Hey Najma"), today's suggestion with its reason, streak, quick resume |
-| Game | Play | Shared game frame (`06`), Najma's voice line, pause, "too hard?" |
+| Home | Start here every time | Lodestar orb (tap or "Hey Lodestar"), today's suggestion with its reason, streak, quick resume |
+| Game | Play | Shared game frame (`06`), Lodestar's voice line, pause, "too hard?" |
 | After-game | Feedback | Coach message with why chips, what changed in the Twin |
 | Brain Twin | The profile | Night sky, radar, per-skill pages |
 | Progress | History | Curves with bands, heatmaps, goals |
@@ -35,7 +35,7 @@ Library: ECharts for these; visx/D3 for the night sky.
 ## The night sky (Brain Twin visual identity)
 
 - Each dimension is a small constellation; position is fixed so users learn the map.
-- **Brightness = μ**, **blur radius = σ** (SVG `feGaussianBlur`, stdDeviation proportional to σ). Stars sharpen as Najma learns.
+- **Brightness = μ**, **blur radius = σ** (SVG `feGaussianBlur`, stdDeviation proportional to σ). Stars sharpen as Lodestar learns.
 - Stale skills slowly blur (the drift in `07`) and the Twin can say so.
 - Lines between constellations show correlated skills.
 - Tap a constellation → that skill's page (definition, games, curve, biases, evidence badge).
@@ -50,7 +50,7 @@ Library: ECharts for these; visx/D3 for the night sky.
 
 ## UX rules
 
-- Every decision Najma makes has a visible "why".
+- Every decision Lodestar makes has a visible "why".
 - One primary action per screen.
 - Keyboard and touch; works on a phone.
 - Captions for everything spoken.

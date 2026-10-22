@@ -1,7 +1,7 @@
 [project]
 name = "ai4brain"
 version = "0.1.0"
-description = "Najma, the cognitive growth agent (CISTAC 1.0)"
+description = "Lodestar, the cognitive growth agent (CISTAC 1.0)"
 readme = "README.md"
 license = "MIT"
 requires-python = "==3.14.*"

@@ -50,7 +50,7 @@ def test_every_table_accepts_and_returns_a_row(conn: Connection) -> None:
     round_id = _round(conn, user_id, session_id)
     item_id = conn.execute(
         insert(t.content_pool)
-        .values(game_id="souk_rush", level=0.5, content={"orders": []}, validator_report={})
+        .values(game_id="market_rush", level=0.5, content={"orders": []}, validator_report={})
         .returning(t.content_pool.c.item_id)
     ).scalar_one()
 
@@ -64,7 +64,7 @@ def test_every_table_accepts_and_returns_a_row(conn: Connection) -> None:
         t.llm_selection: {"user_id": user_id, "mode": "local", "provider": "ollama",
                           "model": "qwen3.5:4b"},
         t.events: {"user_id": user_id, "session_id": session_id, "type": "session.started",
-                   "payload": {"trigger": "ui", "persona": "zitouna"}},
+                   "payload": {"trigger": "ui", "persona": "willow"}},
         t.trials: {"trial_id": uuid4(), "user_id": user_id, "session_id": session_id,
                    "round_id": round_id, "game_id": "echo", "level": 0.4, "trial_index": 0,
                    "correct": True, "rt_ms": 420.0, "stimulus": {"letter": "K"}, "ts": NOW},
@@ -114,7 +114,7 @@ def test_event_log_is_append_only(engine: Engine) -> None:
 def test_app_role_cannot_rewrite_events(conn: Connection) -> None:
     user_id = _user(conn)
     conn.execute(insert(t.events).values(user_id=user_id, type="x", payload={}))
-    conn.execute(text("SET LOCAL ROLE najma_app"))
+    conn.execute(text("SET LOCAL ROLE lodestar_app"))
     conn.execute(text("SELECT set_config('app.user_id', :u, true)"), {"u": str(user_id)})  # RLS
     conn.execute(insert(t.events).values(user_id=user_id, type="y", payload={}))
     with pytest.raises(DBAPIError) as excinfo, conn.begin_nested():
@@ -175,7 +175,7 @@ def test_checkpoint_tables_exist(engine: Engine) -> None:
 
 
 def test_migrations_downgrade_and_upgrade_cleanly() -> None:
-    url = BASE_URL.rsplit("/", 1)[0] + "/najma_test_migrations"
+    url = BASE_URL.rsplit("/", 1)[0] + "/lodestar_test_migrations"
     recreate_database(url)
     config = alembic_config(url)
     command.upgrade(config, "head")

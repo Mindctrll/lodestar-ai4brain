@@ -72,7 +72,7 @@ async function answers(
 }
 
 const TowerPlugin = makePlugin<TowerItem>(
-  'najma-control-tower',
+  'lodestar-control-tower',
   async ({ stage, item, practice, e2e }) => {
     const rule = el('p', `ct-rule${item.rule_changed ? ' is-new' : ''}`)
     rule.textContent = `${item.rule_changed ? 'New rule: ' : ''}land the ${item.rule.toUpperCase()} plane`

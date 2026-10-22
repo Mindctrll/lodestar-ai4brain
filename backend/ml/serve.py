@@ -128,7 +128,7 @@ async def user_history(engine: AsyncEngine, user_id: UUID) -> list[tuple[date, s
 
 ENGAGEMENT_DAYS = 200
 FATIGUE_SESSIONS = 30
-BAD_ROUND = ("stopped", "eased")  # Najma's "failures": rounds that went badly
+BAD_ROUND = ("stopped", "eased")  # Lodestar's "failures": rounds that went badly
 
 
 async def load_engagement(engine: AsyncEngine) -> EngagementModel | None:

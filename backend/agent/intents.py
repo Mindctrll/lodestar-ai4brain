@@ -19,7 +19,7 @@ from backend.contracts.session import Intent, IntentKind
 from backend.llm.factory import LlmFactory, NoModelAvailable
 from backend.registry.models import Registry
 
-# Words people use for a skill, mapped to the dimension Najma trains for it. Order matters:
+# Words people use for a skill, mapped to the dimension Lodestar trains for it. Order matters:
 # "short-term memory" must win over "memory".
 SKILL_WORDS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bshort[- ]term memory\b", re.I), "short_term_memory"),
@@ -60,7 +60,7 @@ _KINDS: list[tuple[IntentKind, re.Pattern[str]]] = [
     (
         "settings",
         re.compile(
-            r"\b(settings?|zitouna|barq|hikma|sahbi|(change|switch) (my |the )?coach|"
+            r"\b(settings?|willow|spark|sage|buddy|(change|switch) (my |the )?coach|"
             r"(calmer|friendlier|stricter|funnier|nicer) coach|coach (to|that)|be more (of )?a|"
             r"(push|chill|balanced) mode|mode please|from now on|stop suggesting|"
             r"don'?t suggest|camera|microphone|voice (on|off)|turn (the )?\w+ (on|off))\b",
@@ -143,7 +143,7 @@ _PLAY = re.compile(
     re.I,
 )
 _SMALL_TALK = re.compile(
-    r"^\s*(hi|hello|hey|salam|thanks?( you)?|thank u|ok(ay)?( cool)?|cool|nice|bye|good night|"
+    r"^\s*(hi|hello|hey|thanks?( you)?|thank u|ok(ay)?( cool)?|cool|nice|bye|good night|"
     r"who are you|what can you do|how do (the|these) games work)\b",
     re.I,
 )
@@ -280,12 +280,12 @@ class RouterOutput(Contract):
     quick: bool = False
 
 
-ROUTER_PROMPT = """You route messages for Najma, a practice coach with short brain games.
+ROUTER_PROMPT = """You route messages for Lodestar, a practice coach with short brain games.
 Pick the kind:
 - play: wants to play now, names a game or skill, or turns one down ("not memory today")
-- chat: anything else said to Najma. tool = explain (asks why Najma chose something),
+- chat: anything else said to Lodestar. tool = explain (asks why Lodestar chose something),
   read_profile (asks about their skills now), get_history (asks how a skill changed over time),
-  search_memory (asks what Najma remembers about them), or null.
+  search_memory (asks what Lodestar remembers about them), or null.
 - twin_chat: asks their Twin about their own patterns (best time of day, what helps them)
 - experiment: wants to test something about themselves over several sessions
 - goal: wants to reach a level in a skill by a date

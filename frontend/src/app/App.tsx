@@ -64,6 +64,14 @@ const SETTINGS: NavItem = {
   ),
 }
 const ALL = [...NAV, SETTINGS]
+const SUBTITLE: Record<Panel, string> = {
+  twin: 'Every skill, with how sure Lodestar is about it.',
+  progress: 'Your goals and how each skill has moved.',
+  experiments: 'Try one change and see if it helps you.',
+  agent: 'What Lodestar did, step by step, and why.',
+  acs: 'How you work with AI: checking, trying first, and taking breaks.',
+  settings: 'Privacy, voice, your AI provider and your data.',
+}
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -86,8 +94,8 @@ export function App() {
   const [receipt, setReceipt] = useState<Receipt | null>(null)
   const [twinAsk, setTwinAsk] = useState('')
   const dash = useDashboard(registered)
-  const [persona, setPersona] = useState<Persona>('zitouna')
-  // Voice in, voice out: once someone talks to Najma, replies are spoken too (and always shown).
+  const [persona, setPersona] = useState<Persona>('willow')
+  // Voice in, voice out: once someone talks to Lodestar, replies are spoken too (and always shown).
   const [voiceUsed, setVoiceUsed] = useState(false)
   useSpeakReplies(session.state, persona, voiceUsed || speakReplies())
   const { registry, twin, progress, forecast, goals, acs, decisions } = dash
@@ -147,13 +155,15 @@ export function App() {
       <main className="solo">
         <p className="brand brand--solo">
           <span className="brand__mark" aria-hidden="true" />
-          Najma
+          Lodestar
         </p>
         {receipt ? (
           <section className="card" data-testid="receipt">
             <h2>Everything is deleted</h2>
             <p>{receipt.message}</p>
-            <p className="muted">Najma keeps only a receipt with these counts, not who you were.</p>
+            <p className="muted">
+              Lodestar keeps only a receipt with these counts, not who you were.
+            </p>
             <button
               type="button"
               className="primary"
@@ -204,7 +214,10 @@ export function App() {
               e.preventDefault()
               const said = twinAsk.trim()
               setTwinAsk('')
-              if (said) void session.send(`Twin, ${said}`)
+              if (said) {
+                setPanel(null)
+                void session.send(`Twin, ${said}`)
+              }
             }}
           >
             <input
@@ -220,7 +233,7 @@ export function App() {
               Ask
             </button>
           </form>
-          <p className="muted small">The Twin answers in the conversation.</p>
+          <p className="muted small">The answer shows up in the conversation.</p>
         </section>
         <section className="panel-block">
           <h3>All skills at a glance</h3>
@@ -239,7 +252,7 @@ export function App() {
           <h3>Each skill over time</h3>
           <p className="muted small">
             Line: estimate. Shaded: the 80% range. Dashed: the forecast for the next sessions.
-            Orange strips: what you told Najma about your days.
+            Orange strips: what you told Lodestar about your days.
           </p>
           <div className="curves">
             {measured.map((d) => (
@@ -287,10 +300,6 @@ export function App() {
   } else if (panel === 'acs' && acs) {
     body = (
       <section className="panel-block">
-        <p className="muted">
-          From moments in play: checking the AI&apos;s work, trying before asking, trying again
-          after a miss, knowing how sure you are, and taking breaks.
-        </p>
         <AcsPanel acs={acs} />
       </section>
     )
@@ -339,7 +348,7 @@ export function App() {
       <aside className="rail">
         <p className="brand">
           <span className="brand__mark" aria-hidden="true" />
-          <span className="brand__name">Najma</span>
+          <span className="brand__name">Lodestar</span>
         </p>
         <nav aria-label="Main" className="rail__nav">
           <button
@@ -363,7 +372,7 @@ export function App() {
           {NAV.slice(3).map(navButton)}
           <span className="rail__spacer" />
           {localMode && (
-            <p className="rail__note" title="Najma uses the model on this server">
+            <p className="rail__note" title="Lodestar uses the model on this server">
               <span className="rail__dot" aria-hidden="true" />
               <span className="rail__label">Local mode</span>
             </p>
@@ -374,7 +383,7 @@ export function App() {
       <SignalIndicator />
 
       <div className="workspace">
-        <main className={`stage${home ? ' stage--home' : ''}`}>
+        <main className={`stage${home ? ' stage--home' : ''}`} hidden={panel !== null}>
           {dash.error && (
             <p role="alert" className="notice">
               Couldn&apos;t load your Twin: {dash.error}
@@ -401,24 +410,13 @@ export function App() {
         </main>
 
         {panel && (
-          <aside className="sheet" role="dialog" aria-label={title} data-panel={panel}>
-            <header className="sheet__head">
-              <h2>{title}</h2>
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="Close panel"
-                onClick={() => {
-                  setPanel(null)
-                }}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
+          <section className="page" aria-label={title} data-panel={panel}>
+            <header className="page__head">
+              <h1>{title}</h1>
+              <p className="muted">{SUBTITLE[panel]}</p>
             </header>
-            <div className="sheet__body">{body ?? <p className="muted">Loading…</p>}</div>
-          </aside>
+            <div className="page__body">{body ?? <p className="muted">Loading…</p>}</div>
+          </section>
         )}
       </div>
 

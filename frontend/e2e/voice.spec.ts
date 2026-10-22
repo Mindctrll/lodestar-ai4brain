@@ -30,7 +30,7 @@ test.use({
 test('uw4 voice request: "give me a memory game about football"', async ({ page }) => {
   await prepare(page)
   await page.addInitScript(() => {
-    localStorage.setItem('najma.voice.engine', 'private')
+    localStorage.setItem('lodestar.voice.engine', 'private')
   })
   const started: Request[] = []
   page.on('request', (r) => {

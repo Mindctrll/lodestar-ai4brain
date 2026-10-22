@@ -24,11 +24,11 @@ RUN python -c "from fastembed import TextEmbedding, SparseTextEmbedding; TextEmb
     && python -c "from faster_whisper import WhisperModel; WhisperModel('base.en', device='cpu', compute_type='int8')" \
     && chmod -R a+rX /opt/fastembed /opt/hf
 
-RUN useradd --create-home --uid 1000 najma && mkdir -p /app/memory /app/models && chown najma /app/memory /app/models
+RUN useradd --create-home --uid 1000 lodestar && mkdir -p /app/memory /app/models && chown lodestar /app/memory /app/models
 COPY alembic.ini ./
 COPY backend ./backend
 COPY registry ./registry
 
-USER najma
+USER lodestar
 EXPOSE 8000
 CMD ["sh", "-c", "alembic upgrade head && uvicorn backend.api.main:app --host 0.0.0.0 --port 8000"]

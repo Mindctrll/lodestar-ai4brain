@@ -1,4 +1,4 @@
-# The skills Najma measures (docs/plan/05: the plan's 16, plus any added since). Source of truth for the UI, the scorer and the agent.
+# The skills Lodestar measures (docs/plan/05: the plan's 16, plus any added since). Source of truth for the UI, the scorer and the agent.
 # Which games measure a skill, and how strongly, lives in each game's file (registry/games/*.yaml).
 # `group` places the skill's constellation in the night sky (docs/plan/13).
 

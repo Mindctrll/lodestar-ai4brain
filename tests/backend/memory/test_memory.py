@@ -97,13 +97,13 @@ async def test_consolidation_promotes_facts_and_rewrites_core(
     await memory.write(user, "Exam tomorrow", importance=0.7, expires_at=NOW - timedelta(hours=1))
     report = await consolidate_user(
         memory, notes, user, summary="Session on 21 Oct: played Echo.",
-        header_lines=["Prefers the Zitouna coach"], now=NOW,
+        header_lines=["Prefers the Willow coach"], now=NOW,
     )  # fmt: skip
     assert (
         report.merged == 1 and report.promoted == 1 and report.expired == 1 and report.decayed == 1
     )
     core = notes.read_core(user)
-    assert core[0] == "Prefers the Zitouna coach" and "timed games" in core[1]
+    assert core[0] == "Prefers the Willow coach" and "timed games" in core[1]
     assert "played Echo" in (notes.read_journal(user, NOW.date()) or "")
     facts = await memory.points(user, "facts")
     assert len(facts) == 1 and 0.6 <= facts[0].payload["confidence"] <= 0.9
@@ -146,13 +146,13 @@ async def test_knowledge_is_shared_and_filterable(memory: MemoryStore) -> None:
 
 async def test_novelty_check_finds_recently_served_items(memory: MemoryStore) -> None:
     user = uuid4()
-    await memory.record_served(user, "souk_rush", 0.4, uuid4(), "Two kilos of oranges and harissa")
+    await memory.record_served(user, "market_rush", 0.4, uuid4(), "Two kilos of oranges and chilli")
     since = NOW - timedelta(days=30)
     same = await memory.max_similarity_served(
-        user, "souk_rush", "Two kilos of oranges and harissa", since
+        user, "market_rush", "Two kilos of oranges and chilli", since
     )
     other_user = await memory.max_similarity_served(
-        uuid4(), "souk_rush", "Two kilos of oranges", since
+        uuid4(), "market_rush", "Two kilos of oranges", since
     )
     assert same > 0.9 and other_user == 0.0
 
@@ -160,9 +160,9 @@ async def test_novelty_check_finds_recently_served_items(memory: MemoryStore) ->
 def test_notes_are_atomic_and_deletable(tmp_path: Path) -> None:
     notes = Notes(tmp_path)
     user = UUID(int=7)
-    notes.write_core(user, ["Prefers the Zitouna persona", "Usually plays in the evening"])
+    notes.write_core(user, ["Prefers the Willow persona", "Usually plays in the evening"])
     assert notes.remove_core_line(user, "Usually plays in the evening")
-    assert notes.read_core(user) == ["Prefers the Zitouna persona"]
+    assert notes.read_core(user) == ["Prefers the Willow persona"]
     notes.append_journal(user, date(2026, 10, 21), "Played Echo.")
     assert not list(tmp_path.rglob("*.tmp"))
     assert notes.delete_user(user) == 2 and not (tmp_path / str(user)).exists()

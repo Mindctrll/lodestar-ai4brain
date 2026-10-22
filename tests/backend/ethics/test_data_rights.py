@@ -196,7 +196,7 @@ async def test_cloud_ai_gets_deidentified_text(aengine: AsyncEngine, fake: FakeP
     user_id = await new_user(aengine)
     async with aengine.begin() as conn:
         await conn.execute(
-            update(t.users).where(t.users.c.user_id == user_id).values(display_name="Amira")
+            update(t.users).where(t.users.c.user_id == user_id).values(display_name="Alex")
         )
         await save_credential(
             conn,
@@ -206,13 +206,13 @@ async def test_cloud_ai_gets_deidentified_text(aengine: AsyncEngine, fake: FakeP
             "ok",
         )
     said = (
-        "My name is Amira, write to amira.b@insat.tn or +216 22 333 444. "
-        f"Id {user_id}. Amira likes maths."
+        "My name is Alex, write to alex.b@example.com or +216 22 333 444. "
+        f"Id {user_id}. Alex likes maths."
     )
     hosted = LlmSelection(mode="hosted", provider="openai", model="m")
     await llm.generate(user_id, hosted, [HumanMessage(said)])
     sent = json.dumps(fake.requests[-1].body)
-    for secret in ("Amira", "amira.b@insat.tn", "333 444", str(user_id)):
+    for secret in ("Alex", "alex.b@example.com", "333 444", str(user_id)):
         assert secret not in sent, secret
     assert "likes maths" in sent  # the meaning survives
 
@@ -273,9 +273,7 @@ async def test_memory_lines_can_be_seen_and_deleted(
     user_id, headers = await _lived_in(client, app, aengine)
     services: Services = app.state.services
     assert services.notes is not None
-    services.notes.write_core(
-        user_id, ["Usually plays in the evening", "Prefers the Zitouna coach"]
-    )
+    services.notes.write_core(user_id, ["Usually plays in the evening", "Prefers the Willow coach"])
     point_id = await memory.write(
         user_id, "Usually plays in the evening", collection="facts", kind="preference",
         importance=0.8,
@@ -287,7 +285,7 @@ async def test_memory_lines_can_be_seen_and_deleted(
         "/me/core/forget", json={"line": "Usually plays in the evening"}, headers=headers
     )
     assert gone.status_code == 204
-    assert services.notes.read_core(user_id) == ["Prefers the Zitouna coach"]
+    assert services.notes.read_core(user_id) == ["Prefers the Willow coach"]
     assert await memory.get(user_id, "facts", point_id) is None  # gone from Qdrant too
     other_id, other = await signup(client)
     episodic = (await client.get("/me/data", headers=headers)).json()["memories"]
@@ -397,7 +395,7 @@ async def test_retention_drops_old_data_and_keeps_the_profile_rebuildable(
         await conn.execute(
             text(
                 "INSERT INTO twin.events (user_id, ts, type, payload) VALUES "
-                '(:u, :ts, \'session.started\', \'{"trigger": "ui", "persona": "zitouna"}\')'
+                '(:u, :ts, \'session.started\', \'{"trigger": "ui", "persona": "willow"}\')'
             ),
             {"u": user_id, "ts": old},
         )

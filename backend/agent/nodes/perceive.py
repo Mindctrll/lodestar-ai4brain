@@ -12,8 +12,8 @@ from typing import Any
 from langgraph.runtime import Runtime
 from sqlalchemy import func, select
 
-from backend.agent.context import NajmaContext
-from backend.agent.state import NajmaState
+from backend.agent.context import LodestarContext
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import traced
 from backend.contracts.twin import DimensionState, LifeContextWindow, TwinSnapshot
 from backend.db import tables as t
@@ -31,7 +31,7 @@ async def _guarded(name: str, work: Awaitable[dict[str, Any]]) -> dict[str, Any]
         return {"degraded": [f"{name}:{type(exc).__name__}->empty"]}
 
 
-async def read_twin_snapshot(ctx: NajmaContext, now: datetime | None = None) -> TwinSnapshot:
+async def read_twin_snapshot(ctx: LodestarContext, now: datetime | None = None) -> TwinSnapshot:
     now = now or datetime.now(UTC)
     async with ctx.services.engine.connect() as conn:
         rows = await conn.execute(
@@ -46,7 +46,7 @@ async def read_twin_snapshot(ctx: NajmaContext, now: datetime | None = None) -> 
     return TwinSnapshot(user_id=ctx.user_id, as_of=now, dims=dims)
 
 
-async def read_profile_facts(ctx: NajmaContext, state: NajmaState) -> dict[str, Any]:
+async def read_profile_facts(ctx: LodestarContext, state: LodestarState) -> dict[str, Any]:
     """Goals, the time away since the last session, and the warm-up battery for a new user."""
     async with ctx.services.engine.connect() as conn:
         goals = (
@@ -93,7 +93,7 @@ async def read_profile_facts(ctx: NajmaContext, state: NajmaState) -> dict[str, 
 
 
 @traced("load_twin")
-async def load_twin(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def load_twin(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     async def work() -> dict[str, Any]:
         twin = await read_twin_snapshot(runtime.context)
         return {"twin": twin, **await read_profile_facts(runtime.context, state)}
@@ -102,7 +102,7 @@ async def load_twin(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
 
 
 @traced("recall_memory")
-async def recall_memory(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def recall_memory(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     memory = runtime.context.services.memory
     if memory is None:
         return {}
@@ -116,13 +116,13 @@ async def recall_memory(state: NajmaState, runtime: Runtime[NajmaContext]) -> di
 
 
 @traced("read_affect")
-async def read_affect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def read_affect(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     # Behaviour-only rules arrive in WP2.9; at session start there is nothing to read yet.
     return {}
 
 
 @traced("read_context")
-async def read_context(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def read_context(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     async def work() -> dict[str, Any]:
         now = datetime.now(UTC)
         async with runtime.context.services.engine.connect() as conn:
@@ -148,7 +148,7 @@ async def read_context(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
 
 
 @traced("forecast")
-async def forecast(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def forecast(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """The models (docs/plan/10): growth bands for each skill with at least three days of
     practice, and, at the start of a session, the engagement risk and the fatigue point."""
     ctx = runtime.context

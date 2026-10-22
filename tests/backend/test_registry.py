@@ -16,7 +16,7 @@ PLAN_DIMENSIONS = {
 # docs/plan/06, "Core set".
 PLAN_P1_GAMES = {
     "quick_draw", "ink_clash", "arrow_storm", "odd_one_out", "hold_it", "echo", "light_path",
-    "market_list", "souk_rush", "symbol_code", "switch", "pattern_gap", "spot_the_mistake",
+    "market_list", "market_rush", "symbol_code", "switch", "pattern_gap", "spot_the_mistake",
     "turn_it", "number_line",
 }  # fmt: skip
 
@@ -79,7 +79,7 @@ def test_int_knob_rounds_half_up() -> None:
 
 def test_reliability_follows_origin(registry: Registry) -> None:
     assert registry.game("echo").effective_reliability == 1.0
-    assert registry.game("souk_rush").effective_reliability == 0.8
+    assert registry.game("market_rush").effective_reliability == 0.8
     assert registry.game("teach_me").effective_reliability == 0.5
 
 

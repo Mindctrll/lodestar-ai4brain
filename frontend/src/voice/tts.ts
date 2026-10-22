@@ -4,13 +4,13 @@ import type { Persona } from '../api/types'
  * browser ("natural"), one voice and rate per coach. Everything spoken is also on screen as text
  * (captions). */
 const STYLE: Record<Persona, { rate: number; pitch: number; kokoro: string }> = {
-  zitouna: { rate: 0.95, pitch: 1.0, kokoro: 'af_heart' },
-  barq: { rate: 1.12, pitch: 1.1, kokoro: 'am_puck' },
-  hikma: { rate: 1.0, pitch: 0.9, kokoro: 'bm_george' },
-  sahbi: { rate: 1.05, pitch: 1.05, kokoro: 'am_michael' },
+  willow: { rate: 0.95, pitch: 1.0, kokoro: 'af_heart' },
+  spark: { rate: 1.12, pitch: 1.1, kokoro: 'am_puck' },
+  sage: { rate: 1.0, pitch: 0.9, kokoro: 'bm_george' },
+  buddy: { rate: 1.05, pitch: 1.05, kokoro: 'am_michael' },
 }
-const SPEAK_KEY = 'najma.voice.speak'
-const VOICE_KEY = 'najma.voice.tts'
+const SPEAK_KEY = 'lodestar.voice.speak'
+const VOICE_KEY = 'lodestar.voice.tts'
 const KOKORO_MODEL = 'onnx-community/Kokoro-82M-v1.0-ONNX'
 
 export type VoiceKind = 'browser' | 'natural'
@@ -137,9 +137,9 @@ export function stopSpeaking(): void {
   if (canSpeak()) window.speechSynthesis.cancel()
 }
 
-/** Voice coaching in games (docs/plan/12): Najma reads the instructions and says "ready, go"
+/** Voice coaching in games (docs/plan/12): Lodestar reads the instructions and says "ready, go"
  * when replies are spoken. useSpeakReplies keeps the coach and the switch up to date. */
-let coach: { persona: Persona; on: boolean } = { persona: 'zitouna', on: false }
+let coach: { persona: Persona; on: boolean } = { persona: 'willow', on: false }
 
 export function setCoachVoice(persona: Persona, on: boolean): void {
   coach = { persona, on }

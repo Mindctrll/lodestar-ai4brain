@@ -109,7 +109,7 @@ test('the Twin updates live while another tab plays', async ({ page, context }) 
 
   const player = await context.newPage()
   await player.addInitScript(() => {
-    ;(window as unknown as { __NAJMA_E2E__: boolean }).__NAJMA_E2E__ = true
+    ;(window as unknown as { __LODESTAR_E2E__: boolean }).__LODESTAR_E2E__ = true
   })
   await startSession(player, 'play Quick Draw')
   await playCurrentGame(player)

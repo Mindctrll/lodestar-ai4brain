@@ -2,11 +2,11 @@ import { API_BASE, ApiError, getToken } from '../api/client'
 
 /** Speech to text (docs/plan/12, Voice stack). "browser" uses the browser's own recognition,
  * which may send audio to its maker (Chrome: Google). "private" records here, converts to 16 kHz
- * WAV, and transcribes on Najma's server, where the audio is not kept. "device" runs Whisper in
+ * WAV, and transcribes on Lodestar's server, where the audio is not kept. "device" runs Whisper in
  * this browser (Transformers.js), so the audio never leaves the device. */
 export type SpeechEngine = 'browser' | 'private' | 'device'
 
-const ENGINE_KEY = 'najma.voice.engine'
+const ENGINE_KEY = 'lodestar.voice.engine'
 const RATE = 16_000
 const WHISPER_MODEL = 'onnx-community/whisper-base.en'
 // A turn started by the wake word ends by itself after this much quiet once speech has begun.
@@ -19,7 +19,7 @@ const TAP_WORKLET = `class Tap extends AudioWorkletProcessor {
     return true
   }
 }
-registerProcessor('najma-tap', Tap)`
+registerProcessor('lodestar-tap', Tap)`
 
 interface RecognitionResult {
   isFinal: boolean
@@ -177,7 +177,7 @@ async function record(onQuiet?: () => void): Promise<{
   const module = URL.createObjectURL(new Blob([TAP_WORKLET], { type: 'application/javascript' }))
   await context.audioWorklet.addModule(module)
   URL.revokeObjectURL(module)
-  const tap = new AudioWorkletNode(context, 'najma-tap')
+  const tap = new AudioWorkletNode(context, 'lodestar-tap')
   let spoke = false
   let quietSince = 0
   tap.port.onmessage = (e: MessageEvent<Float32Array>) => {

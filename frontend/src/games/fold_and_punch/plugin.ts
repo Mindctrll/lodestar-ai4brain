@@ -159,7 +159,7 @@ function drawHoles(holes: Hole[], label: string): SVGSVGElement {
 }
 
 const FoldPlugin = makePlugin<FoldItem>(
-  'najma-fold-and-punch',
+  'lodestar-fold-and-punch',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const steps = el('div', 'fp-steps')
     steps.append(

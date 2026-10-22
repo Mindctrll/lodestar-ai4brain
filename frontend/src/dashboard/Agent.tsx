@@ -58,8 +58,8 @@ export function Agent({
         <h2>The agent, live</h2>
         <p className="muted">
           {sessionId
-            ? 'Nodes light up as Najma works through your session.'
-            : 'Start a session to watch Najma work.'}
+            ? 'Nodes light up as Lodestar works through your session.'
+            : 'Start a session to watch Lodestar work.'}
         </p>
         <div className="graph" role="list" aria-label="Agent graph">
           {LANES.map((lane) => (

@@ -24,7 +24,7 @@ export function makeItems(rng: Rng, count: number, size: number, deadline: numbe
 }
 
 const CodePlugin = makePlugin<CodeItem>(
-  'najma-symbol-code',
+  'lodestar-symbol-code',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const keyRow = el('div', 'sc-key')
     const cells = item.key.map((symbol, i) => {

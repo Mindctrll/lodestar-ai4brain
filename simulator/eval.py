@@ -52,7 +52,7 @@ from simulator.population import make_population
 from simulator.run import UserRun, random_game, simulate_user
 
 SEED = 2026
-DEFAULT_DB = "postgresql://najma:najma@localhost:5442/najma_eval"
+DEFAULT_DB = "postgresql://lodestar:lodestar@localhost:5442/lodestar_eval"
 BLUE, ORANGE, AQUA, GREY = "#2a78d6", "#eb6834", "#1baf7a", "#8a8984"
 
 
@@ -288,7 +288,7 @@ def _local_model_ready(settings: Any) -> bool:
 async def _packets(registry: Registry, n: int, ctx: Any) -> list[Any]:
     """Facts packets from the real `reflect` node, for simulated rounds."""
     from backend.agent.nodes.talk import reflect
-    from backend.agent.state import NajmaState
+    from backend.agent.state import LodestarState
     from backend.contracts.events import DimensionChange
     from backend.contracts.session import RoundSummary
     from backend.contracts.twin import ForecastBand
@@ -331,11 +331,11 @@ async def _packets(registry: Registry, n: int, ctx: Any) -> list[Any]:
             if i % 2
             else {}
         )
-        state = NajmaState(
+        state = LodestarState(
             user_id=str(ctx.user_id),
             session_id=str(ctx.session_id),
             trigger="ui",
-            persona="zitouna",
+            persona="willow",
             last_round=summary,
             forecast=forecast,
         )
@@ -344,7 +344,7 @@ async def _packets(registry: Registry, n: int, ctx: Any) -> list[Any]:
 
 
 async def exp8_coach(registry: Registry, n: int, out: Path, stub_only: bool) -> Row:
-    from backend.agent.context import NajmaContext, Services
+    from backend.agent.context import LodestarContext, Services
     from backend.agent.nodes.talk import draft_verified
     from backend.coach.verify import verify
     from backend.config import get_settings
@@ -359,14 +359,14 @@ async def exp8_coach(registry: Registry, n: int, out: Path, stub_only: bool) -> 
         else LlmSelection(mode="stub", provider="stub", model="stub")
     )
     llm = LlmFactory(registry, settings, engine=None, call_timeout_s=120)  # type: ignore[arg-type]
-    ctx = NajmaContext(
+    ctx = LodestarContext(
         user_id=uuid4(),
         session_id=uuid4(),
         llm=selection,
         consent=frozenset(),
         services=Services(engine=None, registry=registry, llm=llm),
     )  # type: ignore[arg-type]
-    personas = ["zitouna", "barq", "hikma", "sahbi"]
+    personas = ["willow", "spark", "sage", "buddy"]
     names = [d.name for d in registry.dimensions]
     first = repaired = template = final_ok = 0
     for i, packet in enumerate(await _packets(registry, n, ctx)):

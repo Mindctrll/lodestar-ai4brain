@@ -29,7 +29,7 @@ import { game as quickMaths } from './quick_maths/plugin'
 import { game as scramble } from './scramble/plugin'
 import { game as secretRules } from './secret_rules/plugin'
 import { game as seenIt } from './seen_it/plugin'
-import { game as soukRush } from './souk_rush/plugin'
+import { game as marketRush } from './market_rush/plugin'
 import { game as spotTheMistake } from './spot_the_mistake/plugin'
 import { game as sumAndKeep } from './sum_and_keep/plugin'
 import { game as switchGame } from './switch/plugin'
@@ -56,7 +56,7 @@ export const GAMES: Record<string, GameModule> = Object.fromEntries(
     holdIt,
     lightPath,
     marketList,
-    soukRush,
+    marketRush,
     symbolCode,
     switchGame,
     patternGap,

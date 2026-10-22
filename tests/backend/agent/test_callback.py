@@ -7,9 +7,9 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from backend.agent.context import NajmaContext, Services
+from backend.agent.context import LodestarContext, Services
 from backend.agent.nodes.play import plan_next, prepare_exercise
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.contracts.exercise import RoundResult
 from backend.contracts.llm import LlmSelection
 from backend.contracts.session import Intent
@@ -48,15 +48,15 @@ async def market_list(
     )  # fmt: skip
 
 
-async def setup(engine: AsyncEngine, minutes_ago: float) -> tuple[Any, NajmaState]:
+async def setup(engine: AsyncEngine, minutes_ago: float) -> tuple[Any, LodestarState]:
     user_id, session_id = await new_user(engine), uuid4()
-    ctx = NajmaContext(
+    ctx = LodestarContext(
         user_id=user_id, session_id=session_id, consent=frozenset(),
         llm=LlmSelection(mode="stub", provider="stub", model="stub"),
         services=Services(engine=engine, registry=REGISTRY, llm=None),  # type: ignore[arg-type]
     )  # fmt: skip
-    state = NajmaState(
-        user_id=str(user_id), session_id=str(session_id), trigger="ui", persona="zitouna",
+    state = LodestarState(
+        user_id=str(user_id), session_id=str(session_id), trigger="ui", persona="willow",
         rounds=[await market_list(engine, user_id, session_id, minutes_ago)],
     )  # fmt: skip
     return SimpleNamespace(context=ctx, store=None), state

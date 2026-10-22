@@ -14,7 +14,7 @@ flowchart LR
 
   subgraph Server["Backend (FastAPI, Python 3.14)"]
     API[REST + WebSocket gateway]
-    AG[Najma agent: LangGraph]
+    AG[Lodestar agent: LangGraph]
     SC[Scoring engine]
     ML[ML service: forecast, engagement, fatigue, bandit]
     GEN[Content generator + validators]
@@ -183,9 +183,9 @@ ai4brain/
 │   ├── acs/                     # collaboration score
 │   ├── mcp_server/              # MCP tools for CLI
 │   └── ethics/                  # consent, retention jobs, export, delete
-├── cli/                         # najma CLI
+├── cli/                         # lodestar CLI
 ├── simulator/                   # simulated users + experiments (see 15)
-├── memory/                      # Najma's Markdown notes per user (gitignored, see 04)
+├── memory/                      # Lodestar's Markdown notes per user (gitignored, see 04)
 ├── models/                      # trained model files (gitignored; registry in Postgres)
 ├── docs/                        # plan/ (this plan), dimension docs, model cards, figures
 └── design/reference.png         # dashboard reference image
@@ -209,7 +209,7 @@ Because the graph is paused and checkpointed in Postgres while the user plays, a
 | POST | `/sessions/{id}/resume` | Resume with game results or a user answer |
 | POST | `/events` | Append trial events (batched) |
 | GET | `/twin` | Current profile + history for the dashboard |
-| POST | `/chat` | Talk to Najma or the Twin |
+| POST | `/chat` | Talk to Lodestar or the Twin |
 | GET/POST | `/consent` | Read or update consent switches |
 | GET | `/llm/providers` | Supported providers and, for a saved key, its models |
 | PUT/DELETE | `/llm/credentials/{provider}` | Save (after a test call) or remove the user's key; responses show only the last 4 characters |

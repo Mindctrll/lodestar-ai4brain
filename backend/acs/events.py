@@ -7,7 +7,7 @@ A  autonomy: every Pattern Gap item, where hints are available: a success is sol
 I  iteration: a game played again after a failed round; a success is a better score. Also every
    Guide the Robot item whose first try failed: a success is a changed retry that works.
 R  responsible use: a suggested break; a success is not starting a new session within 10 minutes.
-C  clarification: every Guide the Robot and Teach Me item; a success is asking Najma first when
+C  clarification: every Guide the Robot and Teach Me item; a success is asking Lodestar first when
    the request is ambiguous and not asking when it is clear.
 """
 

@@ -21,7 +21,7 @@ def named(volume: list[float], fails: list[float] | None = None) -> dict[str, fl
     return dict(zip(FEATURES, feature_row(v, f, len(v) - 1), strict=True))
 
 
-def test_features_read_the_days_the_same_way_for_oulad_and_najma() -> None:
+def test_features_read_the_days_the_same_way_for_oulad_and_lodestar() -> None:
     days = [0.0] * 20 + [5, 5, 0, 0, 2, 2, 2, 0, 0, 0, 1]  # last day is "today"
     row = named(days)
     assert row["days_since_last"] == 0 and row["streak"] == 1
@@ -138,42 +138,44 @@ def test_each_change_is_credited_to_the_game_played_before_on_that_skill() -> No
     rounds = [
         ("echo", "working_memory", 0.0),
         ("quick_draw", "processing_speed", 0.1),
-        ("souk_rush", "working_memory", 0.3),  # learned from echo
-        ("echo", "working_memory", -0.1),  # learned from souk_rush
+        ("market_rush", "working_memory", 0.3),  # learned from echo
+        ("echo", "working_memory", -0.1),  # learned from market_rush
     ]
-    assert bandit.credited(rounds) == {"echo": [0.3], "souk_rush": [-0.1]}
+    assert bandit.credited(rounds) == {"echo": [0.3], "market_rush": [-0.1]}
 
 
 def test_population_prior_recovers_each_games_gain_per_round() -> None:
     rng = np.random.default_rng(4)
-    true = {"echo": 0.05, "souk_rush": 0.01}
+    true = {"echo": 0.05, "market_rush": 0.01}
     people = []
     for _ in range(400):
         rounds = []
         ability, est = 0.0, 0.0
         for _ in range(int(rng.integers(4, 12))):
-            game = "echo" if rng.random() < 0.5 else "souk_rush"
+            game = "echo" if rng.random() < 0.5 else "market_rush"
             new_est = ability + rng.normal(0, 0.3)
             rounds.append((game, "working_memory", new_est - est))
             est = new_est
             ability += true[game]
         people.append(rounds)
     priors = bandit.population_priors(people)
-    assert priors["echo"].mean > priors["souk_rush"].mean
+    assert priors["echo"].mean > priors["market_rush"].mean
     for game, gain in true.items():
         assert abs(priors[game].mean - gain) < 3 * priors[game].sd
 
 
 def test_thompson_prefers_the_better_game_and_scales_skills() -> None:
-    priors = {"echo": bandit.Prior(0.05, 0.01), "souk_rush": bandit.Prior(0.0, 0.01)}
-    posteriors = bandit.arms({}, ["echo", "souk_rush", "quick_draw"], priors)
+    priors = {"echo": bandit.Prior(0.05, 0.01), "market_rush": bandit.Prior(0.0, 0.01)}
+    posteriors = bandit.arms({}, ["echo", "market_rush", "quick_draw"], priors)
     assert posteriors["quick_draw"].sd == pytest.approx(bandit.UNKNOWN_SD)
     rng = np.random.default_rng(5)
-    wins = sum((s := bandit.thompson(posteriors, rng))["echo"] > s["souk_rush"] for _ in range(200))
+    wins = sum(
+        (s := bandit.thompson(posteriors, rng))["echo"] > s["market_rush"] for _ in range(200)
+    )
     assert wins > 180
     gains = bandit.skill_gains(
-        {"echo": 0.05, "souk_rush": 0.0, "quick_draw": 0.01},
-        {"working_memory": ["echo", "souk_rush"], "processing_speed": ["quick_draw"]},
+        {"echo": 0.05, "market_rush": 0.0, "quick_draw": 0.01},
+        {"working_memory": ["echo", "market_rush"], "processing_speed": ["quick_draw"]},
     )
     assert gains == {"working_memory": 1.0, "processing_speed": 0.0}
     assert not bandit.ready({"echo": [0.1] * 3}, {})

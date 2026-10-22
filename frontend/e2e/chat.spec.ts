@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test'
 
 import { prepare } from './helpers'
 
-// WP2.11: talk to Najma before playing. A change (noting a bad night) waits for a yes; a
+// WP2.11: talk to Lodestar before playing. A change (noting a bad night) waits for a yes; a
 // question about a pick cites it, and the citation opens the "why" card (UW7, UW9).
-test('tell Najma about a bad night, then ask why it picked a game', async ({ page }) => {
+test('tell Lodestar about a bad night, then ask why it picked a game', async ({ page }) => {
   await prepare(page)
   await page.goto('/')
   const say = page.getByTestId('say')

@@ -141,7 +141,7 @@ test('every valid recipe runs to the end in jsPsych, even with no answers', asyn
       const jsPsych = initJsPsych({
         display_element: display,
         on_data_update: (data: Record<string, unknown>) => {
-          records.push(...((data['najma'] as TrialRecord[] | undefined) ?? []))
+          records.push(...((data['lodestar'] as TrialRecord[] | undefined) ?? []))
         },
         on_finish: () => {
           done.finished = true

@@ -54,7 +54,7 @@ export function keyForInk(item: InkItem): string {
 const hexOf = (name: string) => config.colours.find((c) => c.name === name)?.hex ?? '#000'
 
 const InkClashPlugin = makePlugin<InkItem>(
-  'najma-ink-clash',
+  'lodestar-ink-clash',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const word = document.createElement('div')
     word.className = 'ic-word'

@@ -185,7 +185,7 @@ async def test_parallel_writers_are_serialised(aengine: AsyncEngine) -> None:
 
 async def test_rebuild_gives_identical_projections(aengine: AsyncEngine) -> None:
     user_id = await _new_user(aengine)
-    for results, game in [([True] * 9 + [False] * 3, "echo"), ([True] * 12, "souk_rush"),
+    for results, game in [([True] * 9 + [False] * 3, "echo"), ([True] * 12, "market_rush"),
                           ([False] * 5 + [True] * 7, "echo")]:  # fmt: skip
         round_id = await _played_round(aengine, user_id, results, game)
         await score_round_tx(aengine, user_id, _result(round_id, 12, game), REGISTRY)

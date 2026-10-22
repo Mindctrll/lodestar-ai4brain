@@ -62,8 +62,8 @@ export function makeItems(scenes: Scene[], rng: Rng): SceneItem[] {
   })
 }
 
-const SoukPlugin = makePlugin<SceneItem>(
-  'najma-souk-rush',
+const MarketRushPlugin = makePlugin<SceneItem>(
+  'lodestar-stalls-rush',
   async ({ jsPsych, stage, item, e2e }) => {
     const talk = el('div', 'sr-talk')
     stage.append(talk)
@@ -144,15 +144,15 @@ export function metrics(trials: TrialRecord[]): Record<string, number> {
 }
 
 export const game: GameModule = {
-  id: 'souk_rush',
-  name: 'Souk Rush',
+  id: 'market_rush',
+  name: 'Market Rush',
   instructions:
     'Customers will tell you their orders, and some will change their minds. Then fill each basket from memory.',
   keysHint: 'Tap the items for each basket, then Basket ready.',
   timeline({ spec, rng, e2e }) {
     const scenes = (spec.content?.['scenes'] as Scene[] | undefined) ?? []
-    if (scenes.length === 0) throw new Error('Souk Rush needs orders from the server')
-    return itemsToTimeline(SoukPlugin, makeItems(scenes, rng), 0, e2e)
+    if (scenes.length === 0) throw new Error('Market Rush needs orders from the server')
+    return itemsToTimeline(MarketRushPlugin, makeItems(scenes, rng), 0, e2e)
   },
   metrics,
 }

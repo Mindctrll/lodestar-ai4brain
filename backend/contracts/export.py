@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import BaseModel, TypeAdapter
 from pydantic.json_schema import models_json_schema
 
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.api.main import app
 from backend.contracts.acs import AcsEvent
 from backend.contracts.affect import AffectReading, BehaviourSignals, BiometricCues
@@ -86,8 +86,8 @@ def main() -> None:
     _write(OUT / "openapi.json", build_openapi())
     for name, schema in build_registry_schemas().items():
         _write(OUT / "registry" / name, schema)
-    # NajmaState is internal to the backend; checking that it builds a schema catches typos early.
-    NajmaState.model_json_schema()
+    # LodestarState is internal to the backend; checking it builds a schema catches typos early.
+    LodestarState.model_json_schema()
     print(f"contracts written to {OUT}/")
 
 

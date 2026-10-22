@@ -29,7 +29,7 @@ export const backwards = (digits: number[]) => [...digits].reverse().join('')
 export const digitsOnly = (typed: string) => typed.replace(/\D/g, '')
 
 const DigitsPlugin = makePlugin<DigitsItem>(
-  'najma-digits-back',
+  'lodestar-digits-back',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const digits = item.digits.slice(0, span.length)
     const show = el('div', 'big-symbol')

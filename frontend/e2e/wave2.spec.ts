@@ -9,7 +9,7 @@ import { playCurrentGame } from './helpers'
 test('wave 2 gate: a whole first week in one go', async ({ page }) => {
   test.setTimeout(300_000)
   await page.addInitScript(() => {
-    ;(window as unknown as { __NAJMA_E2E__: boolean }).__NAJMA_E2E__ = true
+    ;(window as unknown as { __LODESTAR_E2E__: boolean }).__LODESTAR_E2E__ = true
   })
   await page.goto('/')
 
@@ -17,7 +17,7 @@ test('wave 2 gate: a whole first week in one go', async ({ page }) => {
   await page.getByRole('button', { name: 'Get started' }).click()
   await page.getByRole('button', { name: "I'm 18 or older" }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByRole('radio', { name: /Zitouna/ }).check()
+  await page.getByRole('radio', { name: /Willow/ }).check()
   await page.getByRole('button', { name: "Let's start" }).click()
 
   // Onboarding: the warm-up battery, three games, each explained before it starts.
@@ -33,6 +33,8 @@ test('wave 2 gate: a whole first week in one go', async ({ page }) => {
     }
     await playCurrentGame(page)
     // The coach answers from facts; every fact is a chip next to the sentence that uses it.
+    // Fact lines sit behind \"How I worked this out\".
+    await page.getByTestId('coach').getByText('How I worked this out').click({ timeout: 60_000 })
     await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({
       timeout: 60_000,
     })

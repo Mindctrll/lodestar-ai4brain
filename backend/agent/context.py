@@ -34,7 +34,7 @@ class Services:
 
 
 @dataclass(frozen=True)
-class NajmaContext:
+class LodestarContext:
     user_id: UUID
     session_id: UUID
     llm: LlmSelection

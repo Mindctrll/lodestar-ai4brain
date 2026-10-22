@@ -25,7 +25,7 @@ export function recalled(typed: string, words: string[]): Set<string> {
 }
 
 const ListPlugin = makePlugin<ListItem>(
-  'najma-market-list',
+  'lodestar-market-list',
   async ({ jsPsych, stage, item, e2e }) => {
     const word = el('div', 'ml-word')
     stage.append(word)

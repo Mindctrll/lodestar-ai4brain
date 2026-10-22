@@ -22,7 +22,7 @@ export function makeItems(rng: Rng, count: number, goRatio: number, windowMs: nu
 }
 
 const HoldPlugin = makePlugin<HoldItem>(
-  'najma-hold-it',
+  'lodestar-hold-it',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const shape = el('div', item.go ? 'hi-shape hi-go' : 'hi-shape hi-hold', item.go ? '' : 'Hold')
     shape.setAttribute('aria-label', item.go ? 'Circle: press' : 'Hold shape: do not press')

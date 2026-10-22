@@ -57,7 +57,7 @@ function jar(dots: [number, number][], label: string): SVGSVGElement {
 }
 
 const JarPlugin = makePlugin<JarItem>(
-  'najma-which-jar',
+  'lodestar-which-jar',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const jars = el('div', 'wj-jars')
     jars.append(jar(item.dots[0] ?? [], 'Left jar'), jar(item.dots[1] ?? [], 'Right jar'))

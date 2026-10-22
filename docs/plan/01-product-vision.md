@@ -2,7 +2,7 @@
 
 ## One sentence
 
-Najma is an AI agent that runs your thinking-skills practice: it measures you with short games, keeps an honest, changing profile of you, explains what it sees, and adapts your training, all without ever pretending to diagnose anything.
+Lodestar is an AI agent that runs your thinking-skills practice: it measures you with short games, keeps an honest, changing profile of you, explains what it sees, and adapts your training, all without ever pretending to diagnose anything.
 
 ## Who it's for
 
@@ -11,25 +11,25 @@ Students and young adults who want to understand and improve how they focus, rem
 ## What the user experiences
 
 1. **First visit.** Plain-language consent with separate switches for camera, microphone and cloud AI. Pick a coach personality. A 5-minute warm-up of about 6 quick games gives a rough first profile with wide uncertainty.
-2. **Every session.** Say "Hey Najma", tap the orb, or type. Najma checks your profile, history, memory of past chats and your current state, then picks what to do and says why: "Your memory reading is still blurry and you haven't practised it in 9 days. One round?"
-3. **During games.** Difficulty adapts so you succeed about 75–85% of the time when training. If you start struggling (mistake streaks, slowing down), Najma eases off or suggests a break.
+2. **Every session.** Say "Hey Lodestar", tap the orb, or type. Lodestar checks your profile, history, memory of past chats and your current state, then picks what to do and says why: "Your memory reading is still blurry and you haven't practised it in 9 days. One round?"
+3. **During games.** Difficulty adapts so you succeed about 75–85% of the time when training. If you start struggling (mistake streaks, slowing down), Lodestar eases off or suggests a break.
 4. **After games.** The coach explains what changed, with tappable "why" cards linked to your real data.
-5. **Over weeks.** The Brain Twin (a night sky where each skill is a cluster of stars) gets sharper as Najma learns about you. Forecasts appear as ranges. You can chat with your Twin, set goals, tell Najma about your life ("exam week"), and agree to small personal experiments ("Do you focus better before noon?").
+5. **Over weeks.** The Brain Twin (a night sky where each skill is a cluster of stars) gets sharper as Lodestar learns about you. Forecasts appear as ranges. You can chat with your Twin, set goals, tell Lodestar about your life ("exam week"), and agree to small personal experiments ("Do you focus better before noon?").
 
-## Najma and the four personalities
+## Lodestar and the four personalities
 
-Najma is one agent with one set of rules. The personality only changes how it talks, never what it decides or what facts it states.
+Lodestar is one agent with one set of rules. The personality only changes how it talks, never what it decides or what facts it states.
 
 | Persona | Meaning | Style | Voice |
 |---|---|---|---|
-| **Zitouna** | Olive tree | Calm mentor. Patient, warm, uses metaphors of growth | Slow, low |
-| **Barq** | Lightning | Energetic trainer. Short sentences, challenges, celebrates streaks | Fast, bright |
-| **Hikma** | Wisdom | Factual analyst. Numbers first, minimal emotion, shows the ranges | Neutral |
-| **Sahbi** | My friend (Tunisian) | Casual buddy. Jokes, light Tunisian flavour, still English | Relaxed |
+| **Willow** | Willow tree | Calm mentor. Patient, warm, uses metaphors of growth | Slow, low |
+| **Spark** | Lightning | Energetic trainer. Short sentences, challenges, celebrates streaks | Fast, bright |
+| **Sage** | Wisdom | Factual analyst. Numbers first, minimal emotion, shows the ranges | Neutral |
+| **Buddy** | A close friend | Casual friend. Jokes, plain English | Relaxed |
 
 ## What makes us different (our innovation story)
 
-Commercial apps (Lumosity, Elevate, Peak, NeuroNation, CogniFit, BrainHQ) give fixed workouts and a single score. Najma adds:
+Commercial apps (Lumosity, Elevate, Peak, NeuroNation, CogniFit, BrainHQ) give fixed workouts and a single score. Lodestar adds:
 
 1. **A real agent loop** that decides, acts and explains, instead of a fixed workout.
 2. **Uncertainty everywhere.** Scores come with ranges that shrink with practice and grow with time away, and the visuals show it.

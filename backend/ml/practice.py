@@ -7,7 +7,7 @@ and the simulator's people learn at this rate times a personal factor, so the wo
 matches the data.
 
 In 98.6% of the data a session holds exactly one play of a game family, so one session here is
-one round in Najma. Scores are on the population scale of backend/ml/curves.py.
+one round in Lodestar. Scores are on the population scale of backend/ml/curves.py.
 Run with `make practice-prior` after `make ml-data`.
 """
 

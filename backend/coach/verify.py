@@ -28,12 +28,12 @@ _RANGE = re.compile(r"\d+\s*%?\s*(?:-|\u2013|to)\s*\d+|\bbetween\s+\d+|\blikely\
 
 MAX_SENTENCES = 6
 MAX_CHARS = 700
-# Persona style rules (docs/plan/09, "Personas"). They change how Najma talks, never what it says.
+# Persona style rules (docs/plan/09, "Personas"). They change how Lodestar talks, not what it says.
 STYLE_RULES: dict[str, dict[str, float]] = {
-    "zitouna": {"max_sentences": 4},
-    "barq": {"max_words_per_sentence": 14},
-    "hikma": {"no_exclamations": 1},
-    "sahbi": {"max_sentences": 5},
+    "willow": {"max_sentences": 4},
+    "spark": {"max_words_per_sentence": 14},
+    "sage": {"no_exclamations": 1},
+    "buddy": {"max_sentences": 5},
 }
 
 

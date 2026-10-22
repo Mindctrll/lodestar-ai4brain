@@ -1,5 +1,5 @@
 """Database fixtures. Tests run against a throwaway database in the compose Postgres
-(`make up`). Set NAJMA_REQUIRE_DB=1 (as CI does) to fail instead of skipping when it's down."""
+(`make up`). Set LODESTAR_REQUIRE_DB=1 (as CI does) to fail instead of skipping when it's down."""
 
 import os
 import uuid
@@ -18,7 +18,9 @@ from backend.db.engine import libpq_url, sync_url
 from backend.memory.embeddings import Embedder
 from backend.memory.store import MemoryStore
 
-BASE_URL = os.environ.get("TEST_DATABASE_URL", "postgresql://najma:najma@localhost:5442/najma_test")
+BASE_URL = os.environ.get(
+    "TEST_DATABASE_URL", "postgresql://lodestar:lodestar@localhost:5442/lodestar_test"
+)
 
 
 def _admin_conninfo(url: str) -> str:
@@ -32,7 +34,7 @@ def recreate_database(url: str) -> None:
             conn.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
             conn.execute(f'CREATE DATABASE "{name}"')
     except psycopg.OperationalError as exc:
-        if os.environ.get("NAJMA_REQUIRE_DB"):
+        if os.environ.get("LODESTAR_REQUIRE_DB"):
             raise
         pytest.skip(f"Postgres not reachable ({exc.__class__.__name__}); run `make up`")
 
@@ -80,7 +82,7 @@ async def memory(embedder: Embedder) -> AsyncIterator[MemoryStore]:
         async with httpx.AsyncClient(timeout=2) as http:
             (await http.get(QDRANT_URL)).raise_for_status()
     except httpx.HTTPError:
-        if os.environ.get("NAJMA_REQUIRE_DB"):
+        if os.environ.get("LODESTAR_REQUIRE_DB"):
             raise
         pytest.skip("Qdrant not reachable; run `make up`")
     client = AsyncQdrantClient(url=QDRANT_URL, timeout=30)

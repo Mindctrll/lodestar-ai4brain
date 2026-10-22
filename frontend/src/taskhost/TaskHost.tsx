@@ -8,7 +8,7 @@ import type { ExerciseSpec, RoundResult, TrialEvent } from '../api/types'
 import { mulberry32 } from '../lib/rng'
 import { TrialBatcher } from './batcher'
 import { calibration } from './calibration'
-import type { GameModule, TrialRecord } from './types'
+import type { GameModule, Score, TrialRecord } from './types'
 
 export type FinishStatus = 'completed' | 'stopped' | 'eased'
 
@@ -16,7 +16,7 @@ interface Props {
   spec: ExerciseSpec
   sessionId: string
   game: GameModule
-  onFinish: (result: RoundResult) => void
+  onFinish: (result: RoundResult, score: Score) => void
   onProgress?: (done: number, total: number) => void
   /** Called once when the user misses several in a row: the frame offers an easier game. */
   onStruggle?: () => void
@@ -67,7 +67,7 @@ export function TaskHost({
     try {
       const rng = mulberry32(spec.seed)
       return {
-        timeline: game.timeline({ spec, rng, e2e: window.__NAJMA_E2E__ === true }),
+        timeline: game.timeline({ spec, rng, e2e: window.__LODESTAR_E2E__ === true }),
         error: null,
       }
     } catch (e) {
@@ -107,18 +107,24 @@ export function TaskHost({
       await batcher.close()
       await sendCues(sessionId) // the coarse camera / voice cues, if any, before the result
       const scored = records.filter((r) => !r.practice)
-      callbacks.current.onFinish({
-        round_id: spec.round_id,
-        game_id: spec.game_id,
-        status,
-        stop_reason: status === 'stopped' ? 'user' : null,
-        trial_count: scored.length,
-        metrics: { ...game.metrics(records), ...calibration(records) },
-        behaviour: summarise(spec.game_id, records, rapidTaps, status),
-        final_level: spec.level,
-        started_at: started.toISOString(),
-        ended_at: new Date().toISOString(),
-      })
+      callbacks.current.onFinish(
+        {
+          round_id: spec.round_id,
+          game_id: spec.game_id,
+          status,
+          stop_reason: status === 'stopped' ? 'user' : null,
+          trial_count: scored.length,
+          metrics: { ...game.metrics(records), ...calibration(records) },
+          behaviour: summarise(spec.game_id, records, rapidTaps, status),
+          final_level: spec.level,
+          started_at: started.toISOString(),
+          ended_at: new Date().toISOString(),
+        },
+        {
+          right: scored.filter((r) => r.correct === true).length,
+          total: scored.filter((r) => r.correct !== null).length,
+        },
+      )
     }
 
     const timeline = built.timeline
@@ -126,7 +132,7 @@ export function TaskHost({
     const jsPsych = initJsPsych({
       display_element: element,
       on_data_update: (data: Record<string, unknown>) => {
-        const found = data['najma'] as TrialRecord[] | undefined
+        const found = data['lodestar'] as TrialRecord[] | undefined
         if (!found || disposed) return
         for (const record of found) {
           records.push(record)
@@ -176,5 +182,5 @@ export function TaskHost({
   }, [built, spec, sessionId, game, controlsRef])
 
   if (built.error) return <p role="alert">Something went wrong loading this game: {built.error}</p>
-  return <div ref={stageRef} className="najma-taskhost" data-testid="taskhost" />
+  return <div ref={stageRef} className="lodestar-taskhost" data-testid="taskhost" />
 }

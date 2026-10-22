@@ -1,6 +1,12 @@
 import type { ExerciseSpec } from '../api/types'
 import type { Rng } from '../lib/rng'
 
+/** Right answers out of the scored, judged steps of a round; shown to the player, not sent. */
+export interface Score {
+  right: number
+  total: number
+}
+
 /** What every game records per trial (docs/plan/06, shared game rules). */
 export interface TrialRecord {
   trial_index: number
@@ -35,6 +41,6 @@ export interface GameModule {
 
 declare global {
   interface Window {
-    __NAJMA_E2E__?: boolean
+    __LODESTAR_E2E__?: boolean
   }
 }

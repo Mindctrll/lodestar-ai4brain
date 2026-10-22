@@ -8,9 +8,9 @@ import { Porcupine } from '@picovoice/porcupine-web'
 import { mulberry32 } from '../lib/rng'
 
 /** Wake-word false triggers (WP3.4 done-when; docs/plan/12). Runs the real Porcupine engine over
- * background audio that never says "Hey Najma" and counts detections. Needs the person's own
+ * background audio that never says "Hey Lodestar" and counts detections. Needs the person's own
  * key and keyword file, so it skips without them:
- *   PORCUPINE_ACCESS_KEY=...  PORCUPINE_KEYWORD_PPN=path/to/hey-najma_en_wasm_v4_0_0.ppn
+ *   PORCUPINE_ACCESS_KEY=...  PORCUPINE_KEYWORD_PPN=path/to/hey-lodestar_en_wasm_v4_0_0.ppn
  *   WAKE_BACKGROUND_WAV=path/to/background.wav   (optional: the 30-minute run)
  * Without WAKE_BACKGROUND_WAV it uses about two minutes built from the speech fixtures and noise.
  * See tests/fixtures/voice/README.md for making the 30-minute file. */
@@ -73,7 +73,7 @@ test.skipIf(!ACCESS_KEY || !KEYWORD)(
       [
         {
           base64: readFileSync(KEYWORD ?? '').toString('base64'),
-          label: 'Hey Najma',
+          label: 'Hey Lodestar',
           forceWrite: true,
         },
       ],

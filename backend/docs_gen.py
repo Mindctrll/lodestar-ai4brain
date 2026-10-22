@@ -237,8 +237,8 @@ def data_policy_page(reg: Registry) -> str:
     c = reg.consent
     lines = [
         "# Data policy\n",
-        f"Consent notice version {c.version} (`registry/consent.yaml`). Najma is for people aged "
-        f"{c.age_minimum} or over. Every change of a switch is logged as a `consent.changed` "
+        f"Consent notice version {c.version} (`registry/consent.yaml`). Lodestar is for people "
+        f"aged {c.age_minimum} or over. Every change of a switch is logged as a `consent.changed` "
         "event with the notice version, and turning a switch off stops that processing at once.\n",
         "## Consent switches\n",
         "| Switch | Default | Required | What it allows |",
@@ -291,7 +291,7 @@ def data_policy_page(reg: Registry) -> str:
 def model_cards_page() -> str:
     lines = [
         "# Model cards\n",
-        "Each model Najma uses has a card in `backend/ml/model_cards/` with what it does, its "
+        "Each model Lodestar uses has a card in `backend/ml/model_cards/` with what it does, its "
         "data, its limits and what it must not be used for.\n",
         "| Model | What it does |",
         "|---|---|",

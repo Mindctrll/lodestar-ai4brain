@@ -48,7 +48,7 @@ Phase = build group (see `16`): **P1** = core set, built in waves 1–2 (WP1.3, 
 | Game | Skill(s) | What you do | Metrics | Knobs | Origin | Phase |
 |---|---|---|---|---|---|---|
 | Echo (n-back) | Working memory | Does this match the one *n* steps back? | d′ by n | n, pace | Classic; ExpFactory / timelines | **P1** |
-| Souk Rush | Working memory, short-term memory | Fill market orders from memory; customers change their minds | Items correct, order accuracy | Customers, items per order, changes | **Original** | **P1** |
+| Market Rush | Working memory, short-term memory | Fill market orders from memory; customers change their minds | Items correct, order accuracy | Customers, items per order, changes | **Original** | **P1** |
 | Light Path (Corsi) | Spatial thinking, working memory | Tap squares in the order they lit (or backwards) | Span | Sequence length, speed, backwards | Classic (check contrib licence) | **P1** |
 | Digits Back | Working memory | Hear or see digits, type them backwards | Span | Length, speed | Classic | P2 |
 | Sum & Keep (operation span) | Working memory | Solve sums while remembering letters | Span, maths accuracy | Set size | Classic | L |
@@ -82,14 +82,14 @@ Phase = build group (see `16`): **P1** = core set, built in waves 1–2 (WP1.3, 
 | Game | Skill(s) | What you do | Metrics | Knobs | Origin | Phase |
 |---|---|---|---|---|---|---|
 | Pattern Gap (matrices) | Reasoning | What completes the pattern? | Accuracy by item difficulty | Rules per item | Classic; **LLM + solver-generated** | **P1** |
-| Spot the AI's Mistake | Reasoning + ACS (verification) | Najma solves a puzzle; find the planted error, or confirm it's correct | Balanced accuracy | Error subtlety, % correct items | **Original** | **P1** |
+| Spot the AI's Mistake | Reasoning + ACS (verification) | Lodestar solves a puzzle; find the planted error, or confirm it's correct | Balanced accuracy | Error subtlety, % correct items | **Original** | **P1** |
 | Logic Lock | Reasoning | If-then puzzles | Accuracy | Premises | Classic | P2 |
 | Detective (story mode) | Reasoning + several | A mystery where each chapter is a game | Per-game metrics | — | **Original** | L |
 | Turn It (mental rotation) | Spatial | Same shape or mirrored? | Angle–RT slope | Angle, 2D/3D | Classic | **P1** |
 | Fold & Punch | Spatial | Where do the holes end up? | Accuracy | Folds | Classic | L |
 | Word Burst (fluency) | Verbal | Words starting with a letter in 60s | Valid words/min | Letter, time | Classic | P2 |
 | Scramble (anagrams) | Verbal | Unscramble words | Solved, time | Length | Classic | P2 |
-| Teach Me | Verbal, reasoning + ACS (clarification) | Explain something to a confused Najma | Rubric score (LLM-rated, low weight) | Topic difficulty | **Original** | P2 |
+| Teach Me | Verbal, reasoning + ACS (clarification) | Explain something to a confused Lodestar | Rubric score (LLM-rated, low weight) | Topic difficulty | **Original** | P2 |
 | Number Line | Numerical | Place a number on a line | % absolute error | Range | Classic | **P1** |
 | Which Jar? (estimation) | Numerical | Which side has more? | Accuracy, RT | Ratio | Classic | P2 |
 | Quick Maths | Numerical | Fast arithmetic | Correct/min | Operations, size | Classic | P2 |
@@ -105,7 +105,7 @@ Phase = build group (see `16`): **P1** = core set, built in waves 1–2 (WP1.3, 
 
 ## Core set (15 P1 games, covering every Established dimension except sustained attention)
 
-Quick Draw, Ink Clash, Arrow Storm, Odd One Out, Hold It, Echo, Light Path, Market List, Souk Rush, Symbol Code, Switch, Pattern Gap, Spot the AI's Mistake, Turn It, Number Line.
+Quick Draw, Ink Clash, Arrow Storm, Odd One Out, Hold It, Echo, Light Path, Market List, Market Rush, Symbol Code, Switch, Pattern Gap, Spot the AI's Mistake, Turn It, Number Line.
 
 Night Guard (sustained attention) is a P2 game because a good vigilance test needs about 3 minutes, which is too long for the onboarding battery.
 
@@ -130,9 +130,9 @@ Night Guard (sustained attention) is a P2 game because a good vigilance test nee
 A game is offered by the agent only when `available: true`, which means its browser plugin exists in `frontend/src/games/<game-id>/` (a test keeps the two lists in sync). How to add one: `frontend/src/taskhost/README.md`.
 
 ```yaml
-# registry/games/souk_rush.yaml
-id: souk_rush
-name: Souk Rush
+# registry/games/market_rush.yaml
+id: market_rush
+name: Market Rush
 dims: {working_memory: 1.0, short_term_memory: 0.5}
 origin: original
 licence_notes: none

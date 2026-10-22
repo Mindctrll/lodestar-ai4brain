@@ -20,13 +20,13 @@ export async function prepare(
   { firstVisit = false }: { firstVisit?: boolean } = {},
 ): Promise<SentTrial[]> {
   await page.addInitScript(() => {
-    ;(window as unknown as { __NAJMA_E2E__: boolean }).__NAJMA_E2E__ = true
+    ;(window as unknown as { __LODESTAR_E2E__: boolean }).__LODESTAR_E2E__ = true
   })
   if (!firstVisit) {
     const created = await page.request.post('/api/users', { data: { age_confirmed: true } })
     const { token } = (await created.json()) as { token: string }
     await page.addInitScript((t: string) => {
-      if (!localStorage.getItem('najma.token')) localStorage.setItem('najma.token', t)
+      if (!localStorage.getItem('lodestar.token')) localStorage.setItem('lodestar.token', t)
     }, token)
   }
   const sent: SentTrial[] = []
@@ -49,7 +49,7 @@ export async function startSession(page: Page, ask: string): Promise<void> {
 /** Perform one expected answer (see markAnswer in src/taskhost/plugin.ts). */
 async function perform(page: Page, answer: string): Promise<void> {
   if (answer.includes(' >> ')) {
-    // Several actions in order, e.g. ask Najma first, then type (Guide the Robot, Teach Me).
+    // Several actions in order, e.g. ask Lodestar first, then type (Guide the Robot, Teach Me).
     for (const part of answer.split(' >> ')) await perform(page, part)
     return
   }

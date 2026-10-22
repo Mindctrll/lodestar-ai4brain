@@ -9,16 +9,16 @@ switches:
     required: true
     default: true
     plain: >-
-      Your game results, your skill profile and the notes Najma keeps about you, stored on this
-      server. Najma can't work without it. To stop it, delete your data.
+      Your game results, your skill profile and the notes Lodestar keeps about you, stored on this
+      server. Lodestar can't work without it. To stop it, delete your data.
   - id: cloud_ai
     title: Cloud AI
     required: false
     default: false
     plain: >-
-      Lets Najma send short, de-identified summaries (no name, no raw answers) to the AI provider
+      Lets Lodestar send short, de-identified summaries (no name, no raw answers) to the AI provider
       you pick, with your own key. The provider and where it processes data are shown before you
-      turn this on. Off means Najma uses the local model on this server.
+      turn this on. Off means Lodestar uses the local model on this server.
   - id: microphone
     title: Microphone
     required: false
@@ -45,11 +45,11 @@ switches:
     required: false
     default: true
     plain: >-
-      In Spot the AI's Mistake, Najma's worked answers sometimes contain a mistake on purpose, so
+      In Spot the AI's Mistake, Lodestar's worked answers sometimes contain a mistake on purpose, so
       you can practise checking AI. You're always told when a game does this.
   - id: research_export
     title: Research export
     required: false
     default: false
     plain: >-
-      Lets the team include your anonymised results in its evaluation of Najma.
+      Lets the team include your anonymised results in its evaluation of Lodestar.

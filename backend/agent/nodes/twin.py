@@ -10,10 +10,10 @@ from uuid import uuid4
 from langchain_core.messages import AIMessage
 from langgraph.runtime import Runtime
 
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.nodes.converse import user_timezone
 from backend.agent.nodes.talk import draft_verified, emit_reply
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import record_decision, traced
 from backend.agent.twin import (
     TIME_OF_DAY,
@@ -32,14 +32,14 @@ TWIN_STYLE = (
 
 
 @traced("twin_chat")
-async def twin_chat(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def twin_chat(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     ctx = runtime.context
     text = state.said or ""
     cause = UNKNOWN_CAUSE.search(text)
     if cause and not TIME_OF_DAY.search(text):
         reply = (
-            f"I don't know that yet: Najma doesn't record {cause.group(1).lower()}. For now I can "
-            "test mornings against evenings for you, if you'd like."
+            f"I don't know that yet: Lodestar doesn't record {cause.group(1).lower()}. For now I "
+            "can test mornings against evenings for you, if you'd like."
         )
         emit_reply(reply, FactsPacket(), "twin")
         await _offer(ctx)
@@ -68,7 +68,7 @@ async def twin_chat(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[s
     return update
 
 
-async def _offer(ctx: NajmaContext) -> None:
+async def _offer(ctx: LodestarContext) -> None:
     """Remember the offer, so a "yes" next turn starts the experiment."""
     await record_decision(
         ctx,

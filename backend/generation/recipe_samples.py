@@ -75,7 +75,7 @@ REQUESTS = [
     "a game to remember shapes and pick the ones I saw",
     "a long memory challenge",
     "digits forwards with a maths break",
-    "a game about Tunisian food words",
+    "a game about food words",
     "make it hard: lots of letters fast",
     "a short game for my morning",
     "a sorting game with odd numbers",
@@ -90,7 +90,7 @@ QUIZ = [
     ("Which is a planet?", ["Mars", "Moon", "Sun"], "Mars"),
     ("Which number is even?", ["3", "8", "11"], "8"),
     ("Which animal lives in the sea?", ["Camel", "Octopus", "Fox"], "Octopus"),
-    ("What is the capital of Tunisia?", ["Sfax", "Tunis", "Sousse"], "Tunis"),
+    ("What is the capital of France?", ["Lyon", "Paris", "Marseille"], "Paris"),
     ("How many sides has a triangle?", ["3", "4", "5"], "3"),
     ("Which is a fruit?", ["Carrot", "Apple", "Onion"], "Apple"),
 ]

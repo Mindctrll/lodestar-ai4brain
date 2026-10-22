@@ -18,9 +18,9 @@ from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import Range
 
 from backend.agent import experiments
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.slots import LifeEvent
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.contracts.common import Contract, DimensionId, GameId, Persona, SuccessMode
 from backend.contracts.events import (
     ContextAdded,
@@ -93,7 +93,9 @@ class StartExperimentArgs(Contract):
     design: dict[str, Any]
 
 
-Run = Callable[[NajmaContext, NajmaState, ToolCall], Awaitable[tuple[ToolOutcome, dict[str, Any]]]]
+Run = Callable[
+    [LodestarContext, LodestarState, ToolCall], Awaitable[tuple[ToolOutcome, dict[str, Any]]]
+]
 
 
 @dataclass(frozen=True)
@@ -108,11 +110,11 @@ class ToolSpec:
 # Shared helpers -------------------------------------------------------------------------------
 
 
-def dim_name(ctx: NajmaContext, dim: str) -> str:
+def dim_name(ctx: LodestarContext, dim: str) -> str:
     return ctx.services.registry.dimension(dim).name
 
 
-def estimate_text(ctx: NajmaContext, view: DimensionView) -> str:
+def estimate_text(ctx: LodestarContext, view: DimensionView) -> str:
     """The same wording the after-game coach uses, so facts read the same everywhere."""
     name = dim_name(ctx, view.dim)
     text = (
@@ -134,7 +136,7 @@ def _when(d: date) -> str:
 
 
 async def read_profile(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     args = ReadProfileArgs.model_validate(call.args)
     async with ctx.services.engine.connect() as conn:
@@ -161,7 +163,7 @@ async def read_profile(
 
 
 async def get_history(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     args = GetHistoryArgs.model_validate(call.args)
     since = datetime.now(UTC).date() - timedelta(days=args.days)
@@ -206,7 +208,7 @@ async def get_history(
 
 
 async def search_memory(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     args = SearchMemoryArgs.model_validate(call.args)
     memory = ctx.services.memory
@@ -229,7 +231,7 @@ async def search_memory(
 
 
 async def explain(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     """UW7: the latest pick (or a given one), with its top candidates and their scores."""
     args = ExplainArgs.model_validate(call.args)
@@ -271,7 +273,7 @@ async def explain(
 
 
 async def start_game(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     """Hand over to plan_next with what the user asked for; the policy still decides."""
     args = StartGameArgs.model_validate(call.args)
@@ -282,7 +284,7 @@ async def start_game(
 # Write tools ----------------------------------------------------------------------------------
 
 
-async def goal_facts(ctx: NajmaContext, args: SetGoalArgs) -> FactsPacket:
+async def goal_facts(ctx: LodestarContext, args: SetGoalArgs) -> FactsPacket:
     async with ctx.services.engine.connect() as conn:
         twin = await read_twin(conn, ctx.user_id, norms=ctx.services.norms)
     view = next((v for v in twin.dims if v.dim == args.dim), None)
@@ -316,9 +318,9 @@ async def goal_facts(ctx: NajmaContext, args: SetGoalArgs) -> FactsPacket:
 
 
 async def propose_goal(
-    ctx: NajmaContext, dim: str, due: date, call_id: UUID, target: int | None = None
+    ctx: LodestarContext, dim: str, due: date, call_id: UUID, target: int | None = None
 ) -> ToolCall:
-    """Najma suggests a reachable target, or uses the one the user named; never one narrower
+    """Lodestar suggests a reachable target, or uses the one the user named; never one narrower
     than the range can get (the floor plus 2 points, as in `suggest_target`)."""
     async with ctx.services.engine.connect() as conn:
         twin = await read_twin(conn, ctx.user_id, norms=ctx.services.norms)
@@ -337,7 +339,7 @@ async def propose_goal(
     if widened:  # say so, rather than quietly set a different goal than the one asked for
         closest = Fact(
             id=f"F{len(packet.facts) + 1}",
-            text=f"Closest {name} range Najma can reach: ±{target} points",
+            text=f"Closest {name} range Lodestar can reach: ±{target} points",
             dim=dim,
         )
         packet = FactsPacket(facts=[*packet.facts, closest])
@@ -365,7 +367,7 @@ async def propose_goal(
 
 
 async def set_goal(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     args = SetGoalArgs.model_validate(call.args)
     now = datetime.now(UTC)
@@ -448,7 +450,7 @@ def period_words(event: LifeEvent, tz: Any) -> str:
 
 
 async def log_life_context(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     """UW9: a labelled window in which rounds count less (scoring weight 0.5)."""
     args = LogLifeContextArgs.model_validate(call.args)
@@ -497,7 +499,7 @@ async def log_life_context(
     return ToolOutcome(name="log_life_context", reply=reply), update_
 
 
-def propose_settings(ctx: NajmaContext, args: UpdateSettingsArgs, call_id: UUID) -> ToolCall:
+def propose_settings(ctx: LodestarContext, args: UpdateSettingsArgs, call_id: UUID) -> ToolCall:
     asks: list[str] = []
     facts: list[Fact] = []
     if args.persona is not None:
@@ -539,7 +541,7 @@ def propose_settings(ctx: NajmaContext, args: UpdateSettingsArgs, call_id: UUID)
 
 
 async def update_settings(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     """UW20 (coach and difficulty mode) and UW3 (stop suggesting a skill for a while)."""
     args = UpdateSettingsArgs.model_validate(call.args)
@@ -607,7 +609,7 @@ async def update_settings(
 DEFAULT_EXPERIMENT_GAMES = ["quick_draw", "arrow_storm", "echo"]
 
 
-async def propose_experiment(ctx: NajmaContext, call_id: UUID) -> ToolCall:
+async def propose_experiment(ctx: LodestarContext, call_id: UUID) -> ToolCall:
     """UW10: three sessions in the morning and three in the evening, with the same three games
     (the ones this person plays most, so the comparison is fair)."""
     registry = ctx.services.registry
@@ -651,7 +653,7 @@ async def propose_experiment(ctx: NajmaContext, call_id: UUID) -> ToolCall:
     )
 
 
-async def experiment_in_progress(ctx: NajmaContext) -> ToolOutcome | None:
+async def experiment_in_progress(ctx: LodestarContext) -> ToolOutcome | None:
     """One experiment at a time: if one is running, say how far along it is."""
     async with ctx.services.engine.connect() as conn:
         current = await experiments.running(conn, ctx.user_id)
@@ -672,7 +674,7 @@ async def experiment_in_progress(ctx: NajmaContext) -> ToolOutcome | None:
 
 
 async def start_experiment(
-    ctx: NajmaContext, state: NajmaState, call: ToolCall
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
     args = StartExperimentArgs.model_validate(call.args)
     async with ctx.services.engine.begin() as conn:
@@ -691,9 +693,11 @@ TOOLS: dict[str, ToolSpec] = {
     for spec in (
         ToolSpec("read_profile", ReadProfileArgs, False, read_profile, "Current skill estimates"),
         ToolSpec("get_history", GetHistoryArgs, False, get_history, "How a skill changed"),
-        ToolSpec("search_memory", SearchMemoryArgs, False, search_memory, "What Najma remembers"),
+        ToolSpec(
+            "search_memory", SearchMemoryArgs, False, search_memory, "What Lodestar remembers"
+        ),
         ToolSpec("start_game", StartGameArgs, False, start_game, "Start a round"),
-        ToolSpec("explain", ExplainArgs, False, explain, "Why Najma chose something"),
+        ToolSpec("explain", ExplainArgs, False, explain, "Why Lodestar chose something"),
         ToolSpec("set_goal", SetGoalArgs, True, set_goal, "Set a range goal for a skill"),
         ToolSpec(
             "log_life_context", LogLifeContextArgs, True, log_life_context, "Note sleep, exams…"

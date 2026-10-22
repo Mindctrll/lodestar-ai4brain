@@ -135,7 +135,7 @@ const SELF_CONTAINED = [
   'turn_it',
   'number_line',
 ]
-const NEEDS_CONTENT = ['souk_rush', 'pattern_gap', 'spot_the_mistake', 'custom_blocks']
+const NEEDS_CONTENT = ['market_rush', 'pattern_gap', 'spot_the_mistake', 'custom_blocks']
 
 test('every self-contained game builds a seeded timeline with its practice trials first', () => {
   const knobs = {

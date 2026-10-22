@@ -28,9 +28,9 @@ def upgrade() -> None:
             created_at  timestamptz NOT NULL DEFAULT now()
         );
         CREATE INDEX skill_pauses_user_idx ON app.skill_pauses (user_id, until);
-        GRANT SELECT, INSERT, UPDATE, DELETE ON app.skill_pauses TO najma_app;
-        GRANT SELECT, INSERT, DELETE ON app.skill_pauses TO najma_jobs;
-        GRANT SELECT ON app.skill_pauses TO najma_readonly;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON app.skill_pauses TO lodestar_app;
+        GRANT SELECT, INSERT, DELETE ON app.skill_pauses TO lodestar_jobs;
+        GRANT SELECT ON app.skill_pauses TO lodestar_readonly;
         """
     )
 

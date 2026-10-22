@@ -15,10 +15,10 @@ export interface MistakePuzzle {
 }
 
 const MistakePlugin = makePlugin<MistakePuzzle>(
-  'najma-spot-the-mistake',
+  'lodestar-spot-the-mistake',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     stage.append(el('p', 'sm-question', item.question))
-    stage.append(el('p', 'muted', "Najma's working. Which step is wrong, if any?"))
+    stage.append(el('p', 'muted', "Lodestar's working. Which step is wrong, if any?"))
     const list = el('ol', 'sm-steps')
     const buttons = item.steps.map((step, i) => {
       const b = button(step.text, `step-${String(i)}`, 'sm-step')
@@ -74,7 +74,7 @@ export const game: GameModule = {
   id: 'spot_the_mistake',
   name: "Spot the AI's Mistake",
   instructions:
-    "Najma will solve a few puzzles step by step. Some solutions have one mistake, some don't. Find the wrong step, or say they're all right.",
+    "Lodestar will solve a few puzzles step by step. Some solutions have one mistake, some don't. Find the wrong step, or say they're all right.",
   keysHint: 'Tap a step, or All steps are right.',
   timeline({ spec, e2e }) {
     const puzzles = (spec.content?.['puzzles'] as MistakePuzzle[] | undefined) ?? []

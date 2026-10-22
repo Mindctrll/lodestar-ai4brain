@@ -47,7 +47,7 @@ export function makeItems(
 }
 
 const SearchPlugin = makePlugin<SearchItem>(
-  'najma-odd-one-out',
+  'lodestar-odd-one-out',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const grid = el('div', 'oo-grid')
     grid.style.gridTemplateColumns = `repeat(${String(Math.ceil(Math.sqrt(item.set_size)))}, 2.75rem)`

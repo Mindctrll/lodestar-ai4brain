@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { playCurrentGame, prepare, startSession } from './helpers'
 
 // WP2.9 (docs/plan/12): four misses in a row bring the "easier?" offer; after the round the user
-// can tap a mood and tell Najma whether easing off was the right call. Both go to the event log.
+// can tap a mood and tell Lodestar whether easing off was the right call. Both go to the event log.
 test('a run of misses offers an easier round, then mood and "Was I right?"', async ({ page }) => {
   await prepare(page)
   const labels: unknown[] = []

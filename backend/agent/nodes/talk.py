@@ -12,8 +12,8 @@ from typing import Any
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.runtime import Runtime
 
-from backend.agent.context import NajmaContext
-from backend.agent.state import NajmaState
+from backend.agent.context import LodestarContext
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import emit, traced
 from backend.coach.personas import CLOSING, RULES, STYLE
 from backend.coach.verify import verify
@@ -35,13 +35,13 @@ from backend.scoring.kalman_elo import Belief
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
 
 
-def _pct(ctx: NajmaContext, dim: str, mu: float, sigma: float) -> tuple[int, int, int]:
+def _pct(ctx: LodestarContext, dim: str, mu: float, sigma: float) -> tuple[int, int, int]:
     pr = ctx.services.norms.percentile(dim, Belief(mu=mu, sigma=sigma))
     return round(pr.value), round(pr.low), round(pr.high)
 
 
 @traced("reflect")
-async def reflect(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def reflect(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Build the facts packet from this round's numbers."""
     ctx = runtime.context
     registry = ctx.services.registry
@@ -118,7 +118,7 @@ MAX_REPAIRS = 2
 
 
 async def draft_verified(
-    ctx: NajmaContext,
+    ctx: LodestarContext,
     packet: FactsPacket,
     persona: Persona,
     instruction: str,
@@ -181,7 +181,7 @@ async def draft_verified(
 
 
 @traced("coach")
-async def coach(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def coach(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     packet = state.facts or FactsPacket()
     final, reply_model, degraded = await draft_verified(
         runtime.context, packet, state.persona, "Write the short message shown after this game."
@@ -222,12 +222,12 @@ async def _say(text: str, packet: FactsPacket | None = None) -> dict[str, Any]:
 
 
 @traced("respond")
-async def respond(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def respond(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     return {}
 
 
 @traced("remember")
-async def remember(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def remember(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Score salience and keep what's worth remembering (docs/plan/04, "What gets remembered").
     Routine rounds are not stored in Qdrant; they stay in twin.events."""
     ctx = runtime.context
@@ -272,7 +272,7 @@ async def remember(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
     return {"degraded": degraded} if degraded else {}
 
 
-def after_remember(state: NajmaState) -> str:
+def after_remember(state: LodestarState) -> str:
     if state.verdict in ("end", "break"):
         return "consolidate"
     if state.game_waiting() and state.intent and state.intent.kind not in ("play", "proactive"):
@@ -291,7 +291,7 @@ def after_remember(state: NajmaState) -> str:
 
 
 @traced("consolidate")
-async def consolidate(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def consolidate(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """End-of-session "sleep". WP1.5 adds the journal, dedupe, fact promotion and decay."""
     ctx = runtime.context
     now = datetime.now(UTC)

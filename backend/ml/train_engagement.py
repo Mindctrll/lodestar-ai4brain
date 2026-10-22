@@ -234,8 +234,8 @@ def card(r: dict[str, Any]) -> str:
         "## What it predicts",
         "",
         "The chance that a person has no activity at all in the next 7 days, as a range "
-        "(inductive Venn-Abers). Najma uses it to offer a shorter, easier session to someone who "
-        "is drifting away. It is never shown as a score of the person.",
+        "(inductive Venn-Abers). Lodestar uses it to offer a shorter, easier session to someone "
+        "who is drifting away. It is never shown as a score of the person.",
         "",
         "## Data",
         "",
@@ -245,7 +245,7 @@ def card(r: dict[str, Any]) -> str:
         f"{r['examples']['calib']:,} calibration and {r['examples']['test']:,} test examples, "
         f"split by student. A week off happens in {r['base_rate'] * 100:.0f}% of examples.",
         "",
-        "Features are behaviour only, the ones Najma has too: days since last activity, active "
+        "Features are behaviour only, the ones Lodestar has too: days since last activity, active "
         "days in the last 7 days, the 7 before and the last 28, the trend in activity per active "
         "day, the current streak, failures in the last 28 days and days since starting. "
         "**No demographics** (gender, age, region, disability and deprivation are left out).",
@@ -279,8 +279,8 @@ def card(r: dict[str, Any]) -> str:
         "## Limits",
         "",
         "- OULAD is about online courses, not brain games. This is a transfer of behaviour "
-        "patterns, and it has not been validated on Najma users yet; that needs pilot data.",
-        '- "Activity" is clicks in OULAD and rounds in Najma. The trend feature is a ratio, so '
+        "patterns, and it has not been validated on Lodestar users yet; that needs pilot data.",
+        '- "Activity" is clicks in OULAD and rounds in Lodestar. The trend feature is a ratio, so '
         "the scale doesn't matter, but habits around a course and a game differ.",
         "- A course has deadlines and an end; practice doesn't.",
         "",

@@ -1,0 +1,3 @@
+# Market Rush. Knobs: registry/games/market_rush.yaml. Orders come from the server.
+read_ms_per_item: 900
+extra_choices: 4

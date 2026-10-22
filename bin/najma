@@ -1,5 +1,0 @@
-#!/bin/sh
-# The `najma` CLI (docs/plan/18, UW19). Put this folder on your PATH, or:
-#   alias najma=/path/to/ai4brain-plan/bin/najma
-here=$(cd "$(dirname "$0")/.." && pwd)
-exec uv run --quiet --directory "$here" python -m cli "$@"

@@ -49,7 +49,7 @@ export const span = { size: 3 }
 export const lettersOnly = (typed: string) => typed.toUpperCase().replace(/[^A-Z]/g, '')
 
 const KeepPlugin = makePlugin<KeepItem>(
-  'najma-sum-and-keep',
+  'lodestar-sum-and-keep',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const size = practice ? config.min_size : span.size
     const letters = item.letters.slice(0, size)

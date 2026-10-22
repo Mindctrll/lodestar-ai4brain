@@ -127,8 +127,8 @@ async def test_without_any_llm_play_still_gets_valid_content(aengine: AsyncEngin
     service = ContentService(aengine, llm=None)
     user = await _user(aengine)
     prepared = await service.prepare(
-        user_id=user, selection=STUB, game_id="souk_rush", level=0.5,
-        knobs=REGISTRY.game("souk_rush").knobs_at(0.5), seed=1,
+        user_id=user, selection=STUB, game_id="market_rush", level=0.5,
+        knobs=REGISTRY.game("market_rush").knobs_at(0.5), seed=1,
     )  # fmt: skip
     assert prepared is not None and prepared.source in ("code", "pool")
     assert await service.prepare(user_id=user, selection=STUB, game_id="echo", level=0.5,
@@ -156,8 +156,8 @@ async def test_novelty_rejects_what_this_user_just_saw(
 
 
 @pytest.mark.skipif(
-    not __import__("os").environ.get("NAJMA_OLLAMA_TESTS"),
-    reason="needs a local Ollama; set NAJMA_OLLAMA_TESTS=1 (slow on CPU)",
+    not __import__("os").environ.get("LODESTAR_OLLAMA_TESTS"),
+    reason="needs a local Ollama; set LODESTAR_OLLAMA_TESTS=1 (slow on CPU)",
 )
 async def test_local_ollama_generations_are_valid_or_fall_back(aengine: AsyncEngine) -> None:
     """The same guarantee with a real local model: whatever it writes, nothing invalid is served."""
@@ -167,7 +167,7 @@ async def test_local_ollama_generations_are_valid_or_fall_back(aengine: AsyncEng
     service = ContentService(aengine, LlmFactory(REGISTRY, settings, aengine), live_llm="always")
     local = LlmSelection(mode="local", provider="ollama", model=settings.local_model)
     user = await _user(aengine)
-    runs = int(os.environ.get("NAJMA_OLLAMA_RUNS", "8"))
+    runs = int(os.environ.get("LODESTAR_OLLAMA_RUNS", "8"))
     sources: Counter[str] = Counter()
     for i in range(runs):
         game_id = sorted(GENERATORS)[i % len(GENERATORS)]

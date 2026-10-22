@@ -1,6 +1,6 @@
 # 04 · Memory and storage: Postgres + Qdrant
 
-Decision: **Postgres for all structured data, Qdrant for searchable memory, Markdown files only for Najma's readable notes.** No JSON or JSONL files, no SQLite.
+Decision: **Postgres for all structured data, Qdrant for searchable memory, Markdown files only for Lodestar's readable notes.** No JSON or JSONL files, no SQLite.
 
 ## Three kinds of memory
 
@@ -37,7 +37,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 | `skill_pauses` | `pause_id`, `user_id`, `dim`, `until` | "Stop suggesting memory this week" (UW3) |
 | `user_tokens` | `token_hash pk`, `user_id`, `created_at`, `last_used` | Bearer tokens for the API; only a SHA-256 hash is stored |
 | `deletion_receipts` | `receipt_id`, `user_hash`, `counts jsonb`, `deleted_at` | Counts only, no personal content |
-| `llm_credentials` | `credential_id pk`, `unique (user_id, provider)`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`NAJMA_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
+| `llm_credentials` | `credential_id pk`, `unique (user_id, provider)`, `key_ciphertext bytea`, `nonce bytea`, `master_key_version`, `key_last4`, `status`, `checked_at`, `created_at` | AES-GCM with a server master key from the environment (`LODESTAR_MASTER_KEY`); the version allows rotation. Never exported, never logged (`AGENTS.md` rule 9) |
 | `llm_selection` | `user_id pk`, `mode` (`hosted` or `local`), `provider`, `model`, `updated_at` | The active choice; `local` = Ollama |
 
 ### `twin`: the record and the profile
@@ -53,7 +53,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 | `acs_observations` | `user_id`, `component`, `success`, `source`, `ts` | Input to the ACS (`11`) |
 | `life_context` | `context_id`, `user_id`, `label`, `period tstzrange`, `weight` | "Exam week"; GiST index on `period` for "is this trial inside a window?" |
 
-### `agent`: what Najma did and why
+### `agent`: what Lodestar did and why
 
 | Table | Key columns | Notes |
 |---|---|---|
@@ -92,23 +92,23 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 Add views or materialised views for the heavier ones, refreshed after each session.
 
-## Najma's readable notes (Markdown, the only files)
+## Lodestar's readable notes (Markdown, the only files)
 
 ```
 memory/<user_id>/
-  core.md                    # stable facts Najma maintains about the user
+  core.md                    # stable facts Lodestar maintains about the user
   journal/2026-10-21.md      # human-readable session summaries
 ```
 
 ```markdown
-# Core memory — Amira
-- Prefers the Zitouna persona; asked for fewer timed games (2026-10-22)
+# Core memory — Alex
+- Prefers the Willow persona; asked for fewer timed games (2026-10-22)
 - Goal: raise working memory confidence to ±5 by 7 Nov
 - Usually plays in the evening, around 21:00
 - Exams: 3–14 Nov (life context; bad days down-weighted)
 ```
 
-Najma reads `core.md` at the start of every session and rewrites it during consolidation. Users can view and edit it in settings, so they see exactly what Najma remembers. Writes are atomic (temp file, then rename).
+Lodestar reads `core.md` at the start of every session and rewrites it during consolidation. Users can view and edit it in settings, so they see exactly what Lodestar remembers. Writes are atomic (temp file, then rename).
 
 ## Qdrant
 

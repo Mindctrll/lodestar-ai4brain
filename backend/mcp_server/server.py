@@ -1,13 +1,13 @@
 """MCP tool server (docs/plan/02 and 03, converse subgraph; UW19).
 
-The `najma` CLI, and any other MCP client, talks to the same agent as the web app: `chat` runs
+The `lodestar` CLI, and any other MCP client, talks to the same agent as the web app: `chat` runs
 the LangGraph session through the web app's SessionRunner, and the converse tools are the
 functions in `backend.agent.tools`. Both read and write the same rows, so the terminal and the
 browser always show the same profile and goals.
 
 Calls are signed in with the user's bearer token in the `Authorization` header, the token the web
 app uses. Write tools ask first, like the confirm card in the web app: the first call returns an
-MCP input request (the 2026-07-28 multi-round flow) with Najma's question and the facts behind
+MCP input request (the 2026-07-28 multi-round flow) with Lodestar's question and the facts behind
 each number in it, and nothing is written until the client answers yes. API keys never pass
 through here (AGENTS.md rule 9).
 """
@@ -32,11 +32,11 @@ from pydantic import AwareDatetime, BaseModel, Field, JsonValue
 from sqlalchemy import select
 
 from backend.agent import tools
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.nodes.converse import user_timezone
 from backend.agent.runner import SessionNotFound, SessionRunner
 from backend.agent.slots import LifeEvent, local_tz
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.api.goals import goal_views
 from backend.contracts.common import (
     Contract,
@@ -61,12 +61,12 @@ from backend.db.twin_store import (
 )
 
 INSTRUCTIONS = (
-    "Najma is a practice coach with short brain games. Use `chat` to talk to Najma as the "
+    "Lodestar is a practice coach with short brain games. Use `chat` to talk to Lodestar as the "
     "user would: it picks games, explains its picks and sets goals. Read tools return facts with "
     "ids: answer only from those facts, cite them, and always give a skill as its range, never "
     "a single number. Write tools ask the user first."
 )
-NOT_SIGNED_IN = "Not signed in. Run `najma login` with the sign-in code from Settings."
+NOT_SIGNED_IN = "Not signed in. Run `lodestar login` with the sign-in code from Settings."
 NO_SESSION = UUID(int=0)  # reads outside a session: they write nothing, so no session is made
 CONFIRM_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -95,7 +95,7 @@ class FactOut(Contract):
 class Answer(Contract):
     """What a converse tool found or did."""
 
-    reply: str | None = Field(default=None, description="Najma's answer, when it is fixed text")
+    reply: str | None = Field(default=None, description="Lodestar's answer, when it is fixed text")
     instruction: str | None = Field(
         default=None, description="Without a reply: how to answer from the facts, citing them"
     )
@@ -139,7 +139,7 @@ class DecisionOut(Contract):
 class Turn(Contract):
     session_id: UUID
     persona: str
-    said: list[str] = Field(description="What Najma said, sentence by sentence, with citations")
+    said: list[str] = Field(description="What Lodestar said, sentence by sentence, with citations")
     decisions: list[DecisionOut]
     tool: str | None = Field(default=None, description="The converse tool this turn used")
     waiting: Waiting | None = None
@@ -176,7 +176,7 @@ def _answer(outcome: ToolOutcome) -> Answer:
 
 
 def _question(call: ToolCall) -> str:
-    """Najma's question with the facts its numbers come from, as the confirm card shows them."""
+    """Lodestar's question with the facts its numbers come from, as the confirm card shows them."""
     lines = [f"[{f.id}] {f.text}" for f in _facts(call.facts)]
     return "\n\n".join([call.prompt or "Shall I go ahead?", *(["\n".join(lines)] if lines else [])])
 
@@ -190,9 +190,9 @@ def _state(raw: str | None) -> tuple[UUID | None, UUID | None]:
         return None, None
 
 
-def _graph_state(user_id: UUID, session_id: UUID, persona: str) -> NajmaState:
+def _graph_state(user_id: UUID, session_id: UUID, persona: str) -> LodestarState:
     """The little state a converse tool reads (goal skills, life context) outside the graph."""
-    return NajmaState.model_validate(
+    return LodestarState.model_validate(
         {
             "user_id": str(user_id),
             "session_id": str(session_id),
@@ -204,7 +204,7 @@ def _graph_state(user_id: UUID, session_id: UUID, persona: str) -> NajmaState:
 
 def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
     """The server; `get_runner` returns the app's SessionRunner once the lifespan has made it."""
-    server: MCPServer = MCPServer("najma", instructions=INSTRUCTIONS, version="0.1.0")
+    server: MCPServer = MCPServer("lodestar", instructions=INSTRUCTIONS, version="0.1.0")
 
     async def user_of(ctx: Context) -> UUID:
         header = (ctx.headers or {}).get("authorization") or ""
@@ -285,31 +285,31 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
 
     async def read(
         ctx: Context, name: ToolName, args: Contract, session_id: UUID | None
-    ) -> tuple[ToolOutcome, NajmaContext]:
+    ) -> tuple[ToolOutcome, LodestarContext]:
         user_id = await user_of(ctx)
         if session_id is not None:
             _, persona = await session(user_id, session_id)
         else:
             persona = await persona_of(user_id)
         sid = session_id or NO_SESSION
-        najma = await get_runner().context_for(user_id, sid)
+        lodestar = await get_runner().context_for(user_id, sid)
         state = _graph_state(user_id, sid, persona)
         call = ToolCall(call_id=uuid4(), name=name, args=args.model_dump(mode="json"))
-        outcome, _ = await tools.TOOLS[name].run(najma, state, call)
-        return outcome, najma
+        outcome, _ = await tools.TOOLS[name].run(lodestar, state, call)
+        return outcome, lodestar
 
     async def write(
         ctx: Context,
         name: ToolName,
         session_id: UUID | None,
-        propose: Callable[[NajmaContext, UUID], Awaitable[ToolCall | ToolOutcome]],
+        propose: Callable[[LodestarContext, UUID], Awaitable[ToolCall | ToolOutcome]],
     ) -> Answer | InputRequiredResult:
         """Propose, ask, then write: the same steps as the converse subgraph's confirm."""
         user_id = await user_of(ctx)
         call_id, asked_in = _state(ctx.request_state)
         sid, persona = await session(user_id, asked_in or session_id)
-        najma = await get_runner().context_for(user_id, sid)
-        proposal = await propose(najma, call_id or uuid4())
+        lodestar = await get_runner().context_for(user_id, sid)
+        proposal = await propose(lodestar, call_id or uuid4())
         if isinstance(proposal, ToolOutcome):  # nothing to ask, e.g. an experiment is running
             return _answer(proposal)
         if ctx.protocol_version in HANDSHAKE_PROTOCOL_VERSIONS:  # older clients: ask in place
@@ -329,7 +329,7 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         if not yes:
             return Answer(reply=NOTHING_CHANGED)
         state = _graph_state(user_id, sid, persona)
-        outcome, _ = await tools.TOOLS[name].run(najma, state, proposal)
+        outcome, _ = await tools.TOOLS[name].run(lodestar, state, proposal)
         return _answer(outcome)
 
     # Session tools ----------------------------------------------------------------------------
@@ -338,8 +338,8 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
     async def chat(
         ctx: Context, message: Message | None = None, session_id: UUID | None = None
     ) -> Turn:
-        """Say something to Najma, as the user. Without a session_id this starts a session (and
-        without a message, Najma suggests a game). The turn may end waiting for a yes or no
+        """Say something to Lodestar, as the user. Without a session_id this starts a session (and
+        without a message, Lodestar suggests a game). The turn may end waiting for a yes or no
         (`confirm`) or for a game (`finish_round`)."""
         user_id = await user_of(ctx)
         sid, persona = await session(user_id, session_id)
@@ -366,7 +366,7 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         stop_reason: StopReason | None = None,
         metrics: dict[str, float] | None = None,
     ) -> Turn:
-        """Send the answers of the game the session is waiting on; Najma scores it and goes on.
+        """Send the answers of the game the session is waiting on; Lodestar scores it and goes on.
         Sending the same answers twice records them once."""
         user_id = await user_of(ctx)
         _, persona = await session(user_id, session_id)
@@ -419,7 +419,7 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         dim: DimensionId | None = None,
         session_id: UUID | None = None,
     ) -> Turn:
-        """Ask for a round, of a given game or skill if wanted. Najma's policy still picks the
+        """Ask for a round, of a given game or skill if wanted. Lodestar's policy still picks the
         level, and may say why it suggests something else."""
         registry = get_runner().services.registry
         if game_id is not None and not registry.game(game_id).available:
@@ -443,10 +443,10 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
     ) -> Profile:
         """The user's skill estimates, each with its 80% range, as the Brain Twin shows them."""
         args = tools.ReadProfileArgs(dim=dim, question=question)
-        outcome, najma = await read(ctx, "read_profile", args, session_id)
-        registry = najma.services.registry
-        async with najma.services.engine.connect() as conn:
-            twin = await read_twin(conn, najma.user_id, norms=najma.services.norms)
+        outcome, lodestar = await read(ctx, "read_profile", args, session_id)
+        registry = lodestar.services.registry
+        async with lodestar.services.engine.connect() as conn:
+            twin = await read_twin(conn, lodestar.user_id, norms=lodestar.services.norms)
         skills = [
             Skill(
                 dim=v.dim,
@@ -481,7 +481,7 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         query: Annotated[str, Field(min_length=1, max_length=300)],
         session_id: UUID | None = None,
     ) -> Answer:
-        """What Najma remembers about the user that matches the query."""
+        """What Lodestar remembers about the user that matches the query."""
         args = tools.SearchMemoryArgs(query=query)
         return _answer((await read(ctx, "search_memory", args, session_id))[0])
 
@@ -492,7 +492,7 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         question: str = "",
         session_id: UUID | None = None,
     ) -> Answer:
-        """Why Najma chose something: the latest game pick, or a given decision."""
+        """Why Lodestar chose something: the latest game pick, or a given decision."""
         args = tools.ExplainArgs(decision_id=decision_id, question=question)
         return _answer((await read(ctx, "explain", args, session_id))[0])
 
@@ -514,10 +514,10 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         session_id: UUID | None = None,
     ) -> Answer | InputRequiredResult:
         """Set a range goal: the skill's range within ± `target` points by `due`. Without a
-        target, Najma suggests a reachable one."""
+        target, Lodestar suggests a reachable one."""
 
-        async def propose(najma: NajmaContext, call_id: UUID) -> ToolCall:
-            return await tools.propose_goal(najma, dim, due, call_id, target)
+        async def propose(lodestar: LodestarContext, call_id: UUID) -> ToolCall:
+            return await tools.propose_goal(lodestar, dim, due, call_id, target)
 
         return await write(ctx, "set_goal", session_id, propose)
 
@@ -534,8 +534,8 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         if end <= start:
             raise ToolError("The end must be after the start")
 
-        async def propose(najma: NajmaContext, call_id: UUID) -> ToolCall:
-            tz = local_tz(await user_timezone(najma))
+        async def propose(lodestar: LodestarContext, call_id: UUID) -> ToolCall:
+            tz = local_tz(await user_timezone(lodestar))
             return tools.propose_life_context(LifeEvent(label, start, end, light), tz, call_id)
 
         return await write(ctx, "log_life_context", session_id, propose)
@@ -556,8 +556,8 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
             persona=persona, success_mode=success_mode, pause_dim=pause_dim, pause_days=pause_days
         )
 
-        async def propose(najma: NajmaContext, call_id: UUID) -> ToolCall:
-            return tools.propose_settings(najma, args, call_id)
+        async def propose(lodestar: LodestarContext, call_id: UUID) -> ToolCall:
+            return tools.propose_settings(lodestar, args, call_id)
 
         return await write(ctx, "update_settings", session_id, propose)
 
@@ -567,9 +567,9 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
     ) -> Answer | InputRequiredResult:
         """Test whether the user does better in the morning or the evening (6 sessions)."""
 
-        async def propose(najma: NajmaContext, call_id: UUID) -> ToolCall | ToolOutcome:
-            running = await tools.experiment_in_progress(najma)
-            return running or await tools.propose_experiment(najma, call_id)
+        async def propose(lodestar: LodestarContext, call_id: UUID) -> ToolCall | ToolOutcome:
+            running = await tools.experiment_in_progress(lodestar)
+            return running or await tools.propose_experiment(lodestar, call_id)
 
         return await write(ctx, "start_experiment", session_id, propose)
 

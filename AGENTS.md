@@ -4,7 +4,7 @@ These rules apply to every coding agent (and every human) working in this repo. 
 
 ## Hard rules
 
-1. **Postgres for structured data, Qdrant for memory search, Markdown for Najma's notes.** No JSON or JSONL files for storage, no SQLite. Flexible payloads go in `jsonb` columns. Every schema change is an Alembic migration (see `04`).
+1. **Postgres for structured data, Qdrant for memory search, Markdown for Lodestar's notes.** No JSON or JSONL files for storage, no SQLite. Flexible payloads go in `jsonb` columns. Every schema change is an Alembic migration (see `04`).
 2. **Clinical words are banned in user-facing text.** See the list in `09`. Run `make lint-language` before committing UI copy or prompts.
 3. **Camera and voice-tone signals never write to the Brain Twin.** There is no code path from `affect.biometric.*` to `profile.*`. A test enforces this.
 4. **Every number the coach says must come from a facts packet.** See `09`.

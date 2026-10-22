@@ -57,7 +57,7 @@ export function makeItems(rng: Rng, count: number, premises: number): LockItem[]
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 const LockPlugin = makePlugin<LockItem>(
-  'najma-logic-lock',
+  'lodestar-logic-lock',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const list = el('ul', 'll-premises')
     list.append(...item.premises.map((p) => el('li', '', p)))

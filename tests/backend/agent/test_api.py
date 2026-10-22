@@ -171,7 +171,7 @@ async def test_session_endpoints_play_a_round(
 def test_websocket_through_the_real_lifespan(db_url: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """The browser path: real lifespan, auth frame, start, trials over HTTP, resume over WS."""
     monkeypatch.setenv("DATABASE_URL", db_url)
-    monkeypatch.setenv("NAJMA_MASTER_KEY", MASTER_KEY)
+    monkeypatch.setenv("LODESTAR_MASTER_KEY", MASTER_KEY)
     monkeypatch.setenv("OLLAMA_URL", "http://127.0.0.1:9")
     get_settings.cache_clear()
     get_async_engine.cache_clear()

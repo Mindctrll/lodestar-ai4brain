@@ -99,7 +99,7 @@ function card(look: Look, name?: string): HTMLElement {
 }
 
 const TagsPlugin = makePlugin<TagsItem>(
-  'najma-name-tags',
+  'lodestar-name-tags',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const grid = el('div', 'nt-grid')
     grid.append(...item.people.map((p) => card(p.look, p.name)))

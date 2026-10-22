@@ -4,9 +4,9 @@
 (docs/plan/11): flagging a wrong AI answer and accepting a right one both count, so blanket
 distrust doesn't win.
 
-**Paradigm:** original. Najma shows a worked solution; most have one subtle planted error
+**Paradigm:** original. Lodestar shows a worked solution; most have one subtle planted error
 (an arithmetic slip or a wrong operation), confirmed by a solver; the rest are right. The consent
-screen tells users Najma will sometimes be wrong on purpose.
+screen tells users Lodestar will sometimes be wrong on purpose.
 
 **What you do:** read the steps. Tap the step that's wrong, or "All steps are right".
 

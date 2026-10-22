@@ -85,7 +85,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app(*, with_lifespan: bool = True) -> FastAPI:
-    app = FastAPI(title="Najma API", version="0.1.0", lifespan=lifespan if with_lifespan else None)
+    app = FastAPI(
+        title="Lodestar API", version="0.1.0", lifespan=lifespan if with_lifespan else None
+    )
     app.include_router(registry.router)
     app.include_router(twin.router)
     app.include_router(llm.router)

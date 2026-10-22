@@ -118,7 +118,7 @@ async def put_credential(
     if not factory.vault.available:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
-            "Saving keys needs NAJMA_MASTER_KEY on the server.",
+            "Saving keys needs LODESTAR_MASTER_KEY on the server.",
         )
     api_key = body.api_key.get_secret_value().strip()
     try:

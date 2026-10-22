@@ -11,8 +11,8 @@ help: ## list targets
 env: ## create .env from .env.example with a fresh master key (only if .env is missing)
 	@test -f .env || python3 -c "import base64, os, re; t = open('.env.example').read(); \
 	k = base64.b64encode(os.urandom(32)).decode(); \
-	open('.env', 'w').write(re.sub(r'(?m)^NAJMA_MASTER_KEY=$$', 'NAJMA_MASTER_KEY=' + k, t)); \
-	print('Created .env with a new NAJMA_MASTER_KEY (keep it: saved API keys need it)')"
+	open('.env', 'w').write(re.sub(r'(?m)^LODESTAR_MASTER_KEY=$$', 'LODESTAR_MASTER_KEY=' + k, t)); \
+	print('Created .env with a new LODESTAR_MASTER_KEY (keep it: saved API keys need it)')"
 
 up: env ## build and start every service, wait until healthy
 	$(COMPOSE) up -d --build --wait
@@ -60,10 +60,10 @@ format: ## auto-format backend and frontend
 migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postgres)
 	uv run alembic upgrade head
 
-seed: ## add the demo user (Amira) with three weeks of practice; prints a sign-in link
+seed: ## add the demo user (Alex) with three weeks of practice; prints a sign-in link
 	uv run python -m backend.db.seed --token
 
-cli: ## the najma CLI against the running app, e.g. make cli ARGS="chat" (or use bin/najma)
+cli: ## the lodestar CLI against the running app, e.g. make cli ARGS="chat" (or use bin/lodestar)
 	uv run python -m cli $(ARGS)
 
 pool: ## fill agent.content_pool so play never waits on an LLM
@@ -91,7 +91,7 @@ retention: ## run the daily retention job now (old traces, checkpoints, events; 
 	uv run python -m backend.ethics.retention
 
 db-shell: ## open psql inside the Postgres container
-	$(COMPOSE) exec postgres psql -U najma -d najma
+	$(COMPOSE) exec postgres psql -U lodestar -d lodestar
 
 docs: ## regenerate docs/generated/ (skill pages, ACS, data policy, model cards) from the registry and code
 	uv run python -m backend.docs_gen

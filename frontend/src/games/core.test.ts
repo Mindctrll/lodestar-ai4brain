@@ -7,7 +7,7 @@ import { recalled } from './market_list/plugin'
 import { makeItems as lineItems, metrics as lineMetrics, scoreFor } from './number_line/plugin'
 import { metrics as searchMetrics } from './odd_one_out/plugin'
 import { metrics as gapMetrics } from './pattern_gap/plugin'
-import { finalOrders, type Scene } from './souk_rush/plugin'
+import { finalOrders, type Scene } from './market_rush/plugin'
 import { metrics as mistakeMetrics } from './spot_the_mistake/plugin'
 import { expectedKey, makeItems as switchItems, metrics as switchMetrics } from './switch/plugin'
 import { metrics as codeMetrics } from './symbol_code/plugin'
@@ -73,12 +73,12 @@ test('Market List recall is case- and order-insensitive', () => {
   )
 })
 
-test('Souk Rush applies changes to the final orders', () => {
+test('Market Rush applies changes to the final orders', () => {
   const scene: Scene = {
-    orders: [{ customer: 'Amira', items: ['figs', 'dates'], line: '' }],
-    changes: [{ customer: 'Amira', remove: 'figs', add: 'lemons', line: '' }],
+    orders: [{ customer: 'Alex', items: ['figs', 'dates'], line: '' }],
+    changes: [{ customer: 'Alex', remove: 'figs', add: 'lemons', line: '' }],
   }
-  expect(finalOrders(scene).get('Amira')).toEqual(['lemons', 'dates'])
+  expect(finalOrders(scene).get('Alex')).toEqual(['lemons', 'dates'])
 })
 
 test('Symbol Code items per minute (hand fixture)', () => {

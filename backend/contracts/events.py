@@ -107,7 +107,7 @@ class SettingsChangedPayload(Contract):
     persona: Persona | None = None
     success_mode: SuccessMode | None = None
     paused_dim: DimensionId | None = Field(
-        default=None, description="A skill Najma stops suggesting until `paused_until`"
+        default=None, description="A skill Lodestar stops suggesting until `paused_until`"
     )
     paused_until: AwareDatetime | None = None
 

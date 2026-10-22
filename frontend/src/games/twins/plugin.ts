@@ -49,7 +49,7 @@ export function makeItems(rng: Rng, count: number, complexity: number): TwinsIte
 }
 
 const TwinsPlugin = makePlugin<TwinsItem>(
-  'najma-twins',
+  'lodestar-twins',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const pair = el('div', 'twins-pair')
     pair.append(el('span', 'twins-string', item.left), el('span', 'twins-string', item.right))

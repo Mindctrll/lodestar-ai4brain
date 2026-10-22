@@ -1,6 +1,6 @@
-"""Najma's readable notes: `memory/<user_id>/core.md` and `journal/<date>.md` (docs/plan/04).
+"""Lodestar's readable notes: `memory/<user_id>/core.md` and `journal/<date>.md` (docs/plan/04).
 
-The only files Najma writes. Users can read and edit them in Memory & data; writes are atomic
+The only files Lodestar writes. Users can read and edit them in Memory & data; writes are atomic
 (temp file, then rename).
 """
 

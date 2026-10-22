@@ -43,7 +43,7 @@ export function makeItems(rng: Rng, n: number, paceMs: number, afterWarmup: numb
 }
 
 const EchoPlugin = makePlugin<EchoItem>(
-  'najma-echo',
+  'lodestar-echo',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const letter = document.createElement('div')
     letter.className = 'echo-letter'

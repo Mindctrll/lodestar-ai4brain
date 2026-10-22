@@ -80,7 +80,7 @@ def _weekday(text: str, today: date) -> date | None:
 
 def due_date(text: str, today: date, exam_day: date | None = None) -> date:
     """When a goal is due: an explicit date, a weekday, "in 2 weeks", "next month", "end of the
-    month", "before exams" (the exam period the user told Najma about), else two weeks."""
+    month", "before exams" (the exam period the user told Lodestar about), else two weeks."""
     lowered = text.lower()
     found = _explicit_date(lowered, today) or _weekday(lowered, today)
     if found:
@@ -178,10 +178,10 @@ def life_event(text: str, now: datetime, tz: ZoneInfo) -> LifeEvent | None:
 
 
 PERSONA_WORDS: list[tuple[re.Pattern[str], Persona]] = [
-    (re.compile(r"\bzitouna\b|\b(calm(er)?|gentle|patient|mentor)\b", re.I), "zitouna"),
-    (re.compile(r"\bbarq\b|\b(energetic|hype|pump|trainer|punchy)\b", re.I), "barq"),
-    (re.compile(r"\bhikma\b|\b(factual|analyst|numbers person|neutral)\b", re.I), "hikma"),
-    (re.compile(r"\bsahbi\b|\b(friend|casual|funn(y|ier)|chill(er)? coach)\b", re.I), "sahbi"),
+    (re.compile(r"\bwillow\b|\b(calm(er)?|gentle|patient|mentor)\b", re.I), "willow"),
+    (re.compile(r"\bspark\b|\b(energetic|hype|pump|trainer|punchy)\b", re.I), "spark"),
+    (re.compile(r"\bsage\b|\b(factual|analyst|numbers person|neutral)\b", re.I), "sage"),
+    (re.compile(r"\bbuddy\b|\b(friend|casual|funn(y|ier)|chill(er)? coach)\b", re.I), "buddy"),
 ]
 MODE_WORDS: list[tuple[re.Pattern[str], SuccessMode]] = [
     (re.compile(r"\bpush\b|\b(harder|challenge me more|tougher)\b", re.I), "push"),

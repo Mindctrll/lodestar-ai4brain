@@ -18,7 +18,7 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import func, select
 
-from backend.agent.context import NajmaContext
+from backend.agent.context import LodestarContext
 from backend.agent.nodes.talk import draft_verified, emit_reply
 from backend.agent.slots import (
     asks_for_switches,
@@ -30,7 +30,7 @@ from backend.agent.slots import (
     mode_in,
     persona_in,
 )
-from backend.agent.state import NajmaState
+from backend.agent.state import LodestarState
 from backend.agent.telemetry import traced
 from backend.agent.tools import (
     TOOLS,
@@ -54,13 +54,13 @@ HELP = (
 )
 SMALL_TALK: list[tuple[re.Pattern[str], str]] = [
     (
-        re.compile(r"^\s*(hi|hello|hey|salam)\b", re.I),
+        re.compile(r"^\s*(hi|hello|hey)\b", re.I),
         "Hi! Say 'play' when you're ready, or ask me how your skills are going.",
     ),
     (re.compile(r"^\s*(thanks?|thank (you|u))\b", re.I), "Any time."),
     (
         re.compile(r"\b(who are you|what can you do|how do (the|these) games work)\b", re.I),
-        "I'm Najma, a practice coach. I pick short games for the skill I know least about, keep "
+        "I'm Lodestar, a practice coach. I pick short games for the skill I know least about, keep "
         "them hard but doable, and explain every choice. You can also ask how a skill is going, "
         "set a goal, or tell me how your day is.",
     ),
@@ -77,13 +77,13 @@ WHICH_SKILL = (
     "Which skill would you like a goal for? For example memory, focus, speed or reasoning."
 )
 WHICH_SETTING = (
-    "I can switch your coach (Zitouna, Barq, Hikma or Sahbi) or the difficulty mode (Chill, "
+    "I can switch your coach (Willow, Spark, Sage or Buddy) or the difficulty mode (Chill, "
     "Balanced or Push). Which would you like?"
 )
 DECLINED = "Okay, I've left it as it was."
 
 
-async def user_timezone(ctx: NajmaContext) -> str | None:
+async def user_timezone(ctx: LodestarContext) -> str | None:
     async with ctx.services.engine.connect() as conn:
         tz: str | None = (
             await conn.execute(select(t.users.c.timezone).where(t.users.c.user_id == ctx.user_id))
@@ -91,8 +91,8 @@ async def user_timezone(ctx: NajmaContext) -> str | None:
     return tz
 
 
-async def exam_day(ctx: NajmaContext, now: datetime) -> date | None:
-    """The start of the next exam period the user told Najma about, for "before my exams"."""
+async def exam_day(ctx: LodestarContext, now: datetime) -> date | None:
+    """The start of the next exam period the user told Lodestar about, for "before my exams"."""
     async with ctx.services.engine.connect() as conn:
         start = (
             await conn.execute(
@@ -106,7 +106,7 @@ async def exam_day(ctx: NajmaContext, now: datetime) -> date | None:
     return start.date() if start is not None else None
 
 
-async def _profile_facts(ctx: NajmaContext) -> list[Fact]:
+async def _profile_facts(ctx: LodestarContext) -> list[Fact]:
     async with ctx.services.engine.connect() as conn:
         twin = await read_twin(conn, ctx.user_id, norms=ctx.services.norms)
     views = sorted((v for v in twin.dims if v.n > 0), key=lambda v: v.percent, reverse=True)
@@ -119,13 +119,13 @@ def _call(name: str, args: dict[str, Any], call_id: UUID) -> ToolCall:
     return ToolCall(call_id=call_id, name=name, args=args, writes=TOOLS[name].writes)
 
 
-async def _free_chat(ctx: NajmaContext, state: NajmaState, text: str) -> ToolOutcome:
+async def _free_chat(ctx: LodestarContext, state: LodestarState, text: str) -> ToolOutcome:
     for pattern, reply in SMALL_TALK:
         if pattern.search(text):
             return ToolOutcome(reply=reply)
     memories = [MemoryItem(id=f"M{i + 1}", text=m.text) for i, m in enumerate(state.memories[:2])]
     instruction = (
-        f'Reply to this message from the user in at most 3 sentences: "{text}". You are Najma, '
+        f'Reply to this message from the user in at most 3 sentences: "{text}". You are Lodestar, '
         "a practice coach with short brain games: you explain your picks, show progress, set "
         "goals and note how the user's day is going. If they ask for something else, say kindly "
         "what you can do. Only use a fact if it helps, and cite it."
@@ -135,7 +135,7 @@ async def _free_chat(ctx: NajmaContext, state: NajmaState, text: str) -> ToolOut
 
 
 @traced("converse")
-async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def converse(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Choose what to do with a chat, goal, life-context or settings turn."""
     ctx = runtime.context
     intent = state.intent or Intent(kind="chat")
@@ -163,7 +163,7 @@ async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
             outcome = running
         elif UNKNOWN_CAUSE.search(text) and not TIME_OF_DAY.search(text):
             outcome = ToolOutcome(
-                reply="For now I can only test mornings against evenings: Najma doesn't record "
+                reply="For now I can only test mornings against evenings: Lodestar doesn't record "
                 "things like music or coffee. Want to test the time of day instead?"
             )
         else:
@@ -192,7 +192,7 @@ async def converse(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
     return {"tool_call": call, "confirmed": None, "tool_outcome": outcome}
 
 
-def after_converse(state: NajmaState) -> str:
+def after_converse(state: LodestarState) -> str:
     call = state.tool_call
     if call is None:
         return "answer"
@@ -200,7 +200,7 @@ def after_converse(state: NajmaState) -> str:
 
 
 @traced("confirm")
-async def confirm(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def confirm(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Tools that change data ask first (docs/plan/03). Nothing is written before the answer."""
     call = state.tool_call
     assert call is not None
@@ -218,7 +218,7 @@ async def confirm(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str
 
 
 @traced("use_tool")
-async def use_tool(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def use_tool(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     call = state.tool_call
     assert call is not None
     spec = TOOLS[call.name]
@@ -229,7 +229,7 @@ async def use_tool(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[st
 
 
 @traced("answer")
-async def answer(state: NajmaState, runtime: Runtime[NajmaContext]) -> dict[str, Any]:
+async def answer(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     outcome = state.tool_outcome or ToolOutcome(reply=HELP)
     packet = outcome.facts
     degraded: list[str] = []

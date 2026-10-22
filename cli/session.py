@@ -1,4 +1,4 @@
-"""The chat loop: say something, read Najma's turn, and follow it up (a yes or no, or a game).
+"""The chat loop: say something, read Lodestar's turn, and follow it up (a yes or no, or a game).
 
 A game with a text version is played right here; any other game opens in the browser, which
 picks up this same session (`?session=<id>`).
@@ -16,14 +16,14 @@ QUIT = {"quit", "exit", "bye", "q", ":q"}
 
 
 class Chat:
-    def __init__(self, najma: Client, io: Io, web: str) -> None:
-        self.najma = najma
+    def __init__(self, lodestar: Client, io: Io, web: str) -> None:
+        self.lodestar = lodestar
         self.io = io
         self.web = web.rstrip("/")
         self.asked: set[str] = set()  # rounds already offered, so a "no" isn't asked again
 
     async def run(self, tool: str = "chat", args: dict[str, Any] | None = None) -> None:
-        turn = await self.follow(await call(self.najma, tool, args))
+        turn = await self.follow(await call(self.lodestar, tool, args))
         while True:
             try:
                 line = self.io.read("> ").strip()
@@ -34,7 +34,7 @@ class Chat:
                 return
             if line:
                 message = {"message": line, "session_id": turn["session_id"]}
-                turn = await self.follow(await call(self.najma, "chat", message))
+                turn = await self.follow(await call(self.lodestar, "chat", message))
 
     async def follow(self, turn: dict[str, Any]) -> dict[str, Any]:
         """Show a turn, then answer what it waits on, until it waits on the user's next line."""
@@ -50,7 +50,7 @@ class Chat:
                 render.facts(self.io.console, waiting["facts"])
                 yes = ask_yes(self.io)
                 answer = {"session_id": turn["session_id"], "yes": yes}
-                turn = await call(self.najma, "confirm", answer)
+                turn = await call(self.lodestar, "confirm", answer)
                 continue
             if waiting["type"] != "exercise":
                 return turn
@@ -58,10 +58,10 @@ class Chat:
             if played is None:
                 return turn
             result = {"session_id": turn["session_id"], **played}
-            turn = await call(self.najma, "finish_round", result)
+            turn = await call(self.lodestar, "finish_round", result)
 
     async def offer(self, session_id: str, waiting: dict[str, Any]) -> dict[str, Any] | None:
-        """Offer the game Najma picked; play it here if it has a text version."""
+        """Offer the game Lodestar picked; play it here if it has a text version."""
         spec = waiting["spec"]
         if spec["round_id"] in self.asked:
             return None
@@ -89,5 +89,5 @@ class Chat:
         )
 
     async def profile(self, session_id: str | None = None) -> None:
-        profile = await call(self.najma, "read_profile", {"session_id": session_id})
+        profile = await call(self.lodestar, "read_profile", {"session_id": session_id})
         self.io.console.print(render.profile_table(profile["skills"]))

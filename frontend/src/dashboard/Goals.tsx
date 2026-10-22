@@ -6,7 +6,7 @@ export function Goals({ goals, testId = 'goals' }: { goals: GoalView[]; testId?:
   if (goals.length === 0)
     return (
       <p className="muted">
-        No goal yet. Tell Najma something like &ldquo;I want my memory solid before exams&rdquo;.
+        No goal yet. Tell Lodestar something like &ldquo;I want my memory solid before exams&rdquo;.
       </p>
     )
   return (

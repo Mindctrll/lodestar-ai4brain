@@ -12,7 +12,7 @@
 | Market List (`market_list`) | Free word recall | 1 | classic | 1 | binary | items_recalled | yes |
 | Name Tags (`name_tags`) | Face-name association (drawn characters only) | 1 | classic | 1 | binary | accuracy | yes |
 | Seen It? (`seen_it`) | Picture recognition | 1 | classic | 1 | binary | recognition_d_prime | yes |
-| Souk Rush (`souk_rush`) | Updating with interference | 0.5 | original | 0.8 | binary | items_correct, order_accuracy | yes |
+| Market Rush (`market_rush`) | Updating with interference | 0.5 | original | 0.8 | binary | items_correct, order_accuracy | yes |
 
 ## Scoring
 

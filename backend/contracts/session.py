@@ -60,7 +60,7 @@ ToolName = Literal[
 
 
 class ToolCall(Contract):
-    """A converse tool Najma is about to use (docs/plan/03, converse subgraph). Tools that write
+    """A converse tool Lodestar is about to use (docs/plan/03, converse subgraph). Tools that write
     carry the question shown before writing, and the facts behind any number in it."""
 
     call_id: UUID

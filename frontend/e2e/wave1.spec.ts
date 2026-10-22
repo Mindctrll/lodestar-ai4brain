@@ -13,7 +13,7 @@ test('wave 1 gate: play Quick Draw, the Twin updates, the coach replies', async 
     })
   })
   await startSession(page, 'play Quick Draw')
-  const token = await page.evaluate(() => localStorage.getItem('najma.token'))
+  const token = await page.evaluate(() => localStorage.getItem('lodestar.token'))
   const before = await page.request.get('/api/twin', {
     headers: { Authorization: `Bearer ${token ?? ''}` },
   })
@@ -21,6 +21,8 @@ test('wave 1 gate: play Quick Draw, the Twin updates, the coach replies', async 
 
   await playCurrentGame(page)
   // Citations render as chips (docs/plan/09: every number traces to a fact).
+  // Fact lines sit behind \"How I worked this out\".
+  await page.getByTestId('coach').getByText('How I worked this out').click({ timeout: 60_000 })
   await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({ timeout: 60_000 })
   expect(frames.some((f) => f.includes('"kind": "say"') || f.includes('"kind":"say"'))).toBe(true)
 

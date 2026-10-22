@@ -1,7 +1,7 @@
-"""WP3.6: the MCP tool server and the `najma` CLI (UW19).
+"""WP3.6: the MCP tool server and the `lodestar` CLI (UW19).
 
 The CLI's commands run against the real FastAPI app in this process (MCP over HTTP through an
-ASGI transport), with the user's input scripted; the last test runs the real `najma` command
+ASGI transport), with the user's input scripted; the last test runs the real `lodestar` command
 against a real server process.
 """
 
@@ -107,7 +107,7 @@ def scripted(lines: list[str]) -> tuple[Io, StringIO]:
     return Io(console=console, read=read, pause=no_wait), out
 
 
-def najma(app: FastAPI, token: str, io: Io) -> Client:
+def lodestar(app: FastAPI, token: str, io: Io) -> Client:
     return connect(f"{LOCAL}/mcp", token, io, http=http(app, token))
 
 
@@ -120,7 +120,7 @@ async def web(app: FastAPI, token: str, path: str) -> Any:
 
 async def test_the_server_lists_the_converse_tools_and_needs_a_sign_in(app: FastAPI) -> None:
     io, _ = scripted([])
-    async with najma(app, "not-a-real-code", io) as client:
+    async with lodestar(app, "not-a-real-code", io) as client:
         names = {tool.name for tool in (await client.list_tools()).tools}
         assert set(TOOLS) <= names
         assert {"chat", "confirm", "finish_round", "goals"} <= names
@@ -132,7 +132,7 @@ async def test_uw19_profile_and_goal_match_the_web_app(app: FastAPI, aengine: As
     user_id = await returning_user(aengine)
     token = await sign_in(aengine, user_id)
     io, out = scripted(["y", "n"])
-    async with najma(app, token, io) as client:
+    async with lodestar(app, token, io) as client:
         await main.show_profile(client, io)
         await main.set_goal(client, io, "working memory", 9, date(2026, 11, 3))
         await main.set_goal(client, io, "inhibition", 9, date(2026, 11, 3))  # answered "n"
@@ -169,12 +169,12 @@ async def test_uw19_chat_shows_the_profile_and_sets_a_goal(
     user_id = await returning_user(aengine)
     token = await sign_in(aengine, user_id)
     io, out = scripted(["set a goal for working memory ±9 by 3 Nov", "y", "quit"])
-    async with najma(app, token, io) as client:
+    async with lodestar(app, token, io) as client:
         await Chat(client, io, WEB).run("chat", {"message": "show my profile"})
     text = out.getvalue()
-    assert "Najma (Zitouna):" in text and "80% range" in text  # the coach, then the table
+    assert "Lodestar (Willow):" in text and "80% range" in text  # the coach, then the table
     assert "Shall I set this goal?" in text and "Goal set" in text and "[y/n]" in text
-    assert "narrower than ±" in text  # ±9 is tighter than the range can get: Najma says so
+    assert "narrower than ±" in text  # ±9 is tighter than the range can get: Lodestar says so
     [goal] = await web(app, token, "/goals")
     assert goal["dim"] == "working_memory" and goal["target"] >= 9 and goal["due"].endswith("11-03")
 
@@ -186,7 +186,7 @@ async def test_text_game_played_in_the_terminal_is_scored(
     token = await sign_in(aengine, user_id)
     words = " ".join(games.fallback_list({"seed": 0, "knobs": {"list_length": 99}}))
     io, out = scripted(["y", "", words, "quit"])
-    async with najma(app, token, io) as client:
+    async with lodestar(app, token, io) as client:
         await Chat(client, io, WEB).run("start_game", {"game_id": "market_list"})
     text = out.getvalue()
     assert "Play Market List now?" in text
@@ -212,7 +212,7 @@ async def test_a_browser_game_hands_the_session_to_the_web_app(
     user_id = await returning_user(aengine)
     token = await sign_in(aengine, user_id)
     io, out = scripted(["quit"])
-    async with najma(app, token, io) as client:
+    async with lodestar(app, token, io) as client:
         chat = Chat(client, io, WEB)
         await chat.run("start_game", {"game_id": "arrow_storm"})
     match = re.search(
@@ -313,7 +313,7 @@ async def test_a_write_tool_called_directly_asks_first(app: FastAPI, aengine: As
     user_id = await new_user(aengine)
     token = await sign_in(aengine, user_id)
     io, _ = scripted(["y"])
-    async with najma(app, token, io) as client:
+    async with lodestar(app, token, io) as client:
         answer = await call(client, "update_settings", {"success_mode": "chill"})
     assert "Games now aim for about" in answer["reply"]
     async with aengine.connect() as conn:
@@ -339,7 +339,7 @@ def server(db_url: str, tmp_path: Any) -> Any:
         **os.environ,
         "DATABASE_URL": db_url,
         "QDRANT_URL": "http://127.0.0.1:9",  # memory off: not needed here
-        "NAJMA_MEMORY_DIR": str(tmp_path),
+        "LODESTAR_MEMORY_DIR": str(tmp_path),
     }
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "backend.api.main:app", "--port", str(port)],
@@ -368,13 +368,13 @@ async def test_uw19_cli_process(server: str, aengine: AsyncEngine, tmp_path: Any
     token = await sign_in(aengine, user_id)
     env = {
         **os.environ,
-        "NAJMA_URL": f"{server}/mcp",
-        "NAJMA_TOKEN": token,
+        "LODESTAR_URL": f"{server}/mcp",
+        "LODESTAR_TOKEN": token,
         "XDG_CONFIG_HOME": str(tmp_path),
         "COLUMNS": "120",
     }
 
-    async def najma_cmd(*args: str, typed: str = "") -> str:
+    async def lodestar_cmd(*args: str, typed: str = "") -> str:
         proc = await asyncio.create_subprocess_exec(
             sys.executable, "-m", "cli", *args,
             cwd=ROOT, env=env,
@@ -388,16 +388,16 @@ async def test_uw19_cli_process(server: str, aengine: AsyncEngine, tmp_path: Any
     async with httpx.AsyncClient(
         base_url=server, headers={"Authorization": f"Bearer {token}"}
     ) as web_app:
-        shown = await najma_cmd("profile")
+        shown = await lodestar_cmd("profile")
         twin = (await web_app.get("/twin")).json()
         measured = [v for v in twin["dims"] if v["n"]]
         assert measured and all(f"{pct(v['percent'])}%" in shown for v in measured)
-        said = await najma_cmd(
+        said = await lodestar_cmd(
             "goal", "working memory", "--within", "9", "--by", "2026-11-03", typed="y\n"
         )
         assert "Goal set" in said
-        assert "Working memory" in await najma_cmd("goals")
-        chatted = await najma_cmd("chat", "show", "my", "profile", typed="quit\n")
-        assert "Najma (Zitouna):" in chatted and "See you soon." in chatted
+        assert "Working memory" in await lodestar_cmd("goals")
+        chatted = await lodestar_cmd("chat", "show", "my", "profile", typed="quit\n")
+        assert "Lodestar (Willow):" in chatted and "See you soon." in chatted
         goals = (await web_app.get("/goals")).json()
     assert [g["due"] for g in goals] == ["2026-11-03"]

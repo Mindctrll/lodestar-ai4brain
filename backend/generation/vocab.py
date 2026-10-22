@@ -17,11 +17,11 @@ def themes() -> dict[str, Any]:
     return data
 
 
-def souk_items(theme: str) -> list[str]:
-    souk: dict[str, list[str]] = themes()["souk"]
-    if theme == "mixed" or theme not in souk:
-        return sorted({item for items in souk.values() for item in items})
-    return list(souk[theme])
+def stall_items(theme: str) -> list[str]:
+    stalls: dict[str, list[str]] = themes()["stalls"]
+    if theme == "mixed" or theme not in stalls:
+        return sorted({item for items in stalls.values() for item in items})
+    return list(stalls[theme])
 
 
 def word_theme(theme: str) -> list[str] | None:

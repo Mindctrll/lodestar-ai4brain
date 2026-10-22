@@ -6,7 +6,7 @@ const TIPS: Record<string, string> = {
   A: 'Try a step yourself before asking for a hint.',
   I: 'After a miss, change something and try again.',
   C: 'Say how sure you are, then see if you were right.',
-  R: 'Take the breaks Najma suggests.',
+  R: 'Take the breaks Lodestar suggests.',
 }
 
 /** The AI Collaboration Score (docs/plan/11): a gauge with its range, and each part with its own

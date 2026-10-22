@@ -6,6 +6,6 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-ENV NAJMA_API_URL=http://backend:8000
+ENV LODESTAR_API_URL=http://backend:8000
 EXPOSE 5173
 CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "5173"]

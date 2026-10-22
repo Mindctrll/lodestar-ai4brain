@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ensureUser, getToken } from '../api/client'
 import { SessionSocket } from '../api/session'
 import type { AgentEvent, ConfirmRequest, ExerciseSpec, RoundResult } from '../api/types'
+import type { Score } from '../taskhost/types'
 
 export type Phase =
   | 'home'
@@ -16,7 +17,7 @@ export type Phase =
   | 'ended'
   | 'error'
 
-/** A line Najma says, with its citation map ([D1] -> decision id). */
+/** A line Lodestar says, with its citation map ([D1] -> decision id). */
 export interface Said {
   text: string
   refs?: Record<string, string> | undefined
@@ -28,11 +29,17 @@ export type Surface = 'twin' | 'goals' | 'progress' | 'experiments'
 /** One entry in the conversation. Games, results and the agent's surfaces live in the thread
  * next to the words, in the order they happened. */
 export type FeedItem =
-  | ({ kind: 'you' | 'najma' } & Said)
-  /** An exercise Najma picked: a suggestion, then the game itself, then a short record. */
+  | ({ kind: 'you' | 'lodestar' } & Said)
+  /** An exercise Lodestar picked: a suggestion, then the game itself, then a short record. */
   | { kind: 'pick'; spec: ExerciseSpec; reason: string | null; decision: string | null }
   /** The coach after a round, with the mood buttons. */
-  | { kind: 'result'; roundId: string | null; says: Said[] }
+  | {
+      kind: 'result'
+      roundId: string | null
+      says: Said[]
+      gameId?: string
+      score?: Score | undefined
+    }
   | { kind: 'show'; what: Surface; dim: string | null }
   | { kind: 'ended' }
 
@@ -53,14 +60,14 @@ export interface SessionState {
   /** The pick behind `reason`, for its "why" card. */
   reasonDecision: string | null
   feed: FeedItem[]
-  /** A change Najma wants to make, waiting for a yes or no. */
+  /** A change Lodestar wants to make, waiting for a yes or no. */
   confirm: ConfirmRequest | null
-  /** Najma is working on a reply. */
+  /** Lodestar is working on a reply. */
   busy: boolean
   timeline: AgentEvent[]
   error: string | null
   lastRoundId: string | null
-  /** Najma's last call on how to go on, so the user can say whether it was right. */
+  /** Lodestar's last call on how to go on, so the user can say whether it was right. */
   lastMonitor: { decisionId: string; chosen: string } | null
   /** A surface to open once this turn is answered (and any yes-or-no question settled). */
   surface: { what: Surface; dim: string | null } | null
@@ -82,10 +89,10 @@ const INITIAL: SessionState = {
   surface: null,
 }
 
-/** Najma's words in the feed, in order (chat replies and the after-game coach). */
-export function najmaLines(feed: FeedItem[]): string[] {
+/** Lodestar's words in the feed, in order (chat replies and the after-game coach). */
+export function lodestarLines(feed: FeedItem[]): string[] {
   return feed.flatMap((item) =>
-    item.kind === 'najma'
+    item.kind === 'lodestar'
       ? [item.text]
       : item.kind === 'result'
         ? item.says.map((l) => l.text)
@@ -97,11 +104,11 @@ export function najmaLines(feed: FeedItem[]): string[] {
 function addToResult(feed: FeedItem[], line: Said): FeedItem[] {
   const at = feed.findLastIndex((i) => i.kind === 'result')
   const item = feed[at]
-  if (item?.kind !== 'result') return [...feed, { kind: 'najma', ...line }]
+  if (item?.kind !== 'result') return [...feed, { kind: 'lodestar', ...line }]
   return feed.map((x, i) => (i === at ? { ...item, says: [...item.says, line] } : x))
 }
 
-const SESSION_KEY = 'najma.session'
+const SESSION_KEY = 'lodestar.session'
 
 function remember(sessionId: string | null): void {
   try {
@@ -134,8 +141,8 @@ function handedOver(): string | null {
 
 const WAITING_FOR_A_GAME: Phase[] = ['home', 'starting', 'chatting', 'ready', 'ended']
 
-/** One practice session with Najma: start, play each exercise, resume the graph, read coaching,
- * and talk to Najma in between. */
+/** One practice session with Lodestar: start, play each exercise, resume the graph, read coaching,
+ * and talk to Lodestar in between. */
 export function useSession() {
   const [state, setState] = useState<SessionState>(INITIAL)
   const socket = useRef<SessionSocket | null>(null)
@@ -161,7 +168,7 @@ export function useSession() {
           const after = event.node === 'coach' || event.node === 'story'
           if (after && (s.phase === 'scoring' || s.phase === 'after'))
             return { ...next, feed: addToResult(s.feed, line) }
-          return { ...next, feed: [...s.feed, { kind: 'najma', ...line }] }
+          return { ...next, feed: [...s.feed, { kind: 'lodestar', ...line }] }
         }
         case 'interrupt': {
           if (event.payload.type === 'confirm')
@@ -276,7 +283,7 @@ export function useSession() {
     [handle, attach],
   )
 
-  /** Say something to Najma: starts a session if there isn't a live one. */
+  /** Say something to Lodestar: starts a session if there isn't a live one. */
   const send = useCallback(
     async (text: string, trigger: 'ui' | 'voice' = 'ui') => {
       const message = text.trim()
@@ -306,7 +313,7 @@ export function useSession() {
     await socket.current?.confirm(confirmed)
   }, [])
 
-  /** From a conversation, ask Najma to pick a game. */
+  /** From a conversation, ask Lodestar to pick a game. */
   const nextGame = useCallback(async () => {
     setState((s) => ({ ...s, busy: true }))
     await socket.current?.next()
@@ -355,12 +362,15 @@ export function useSession() {
     setState((s) => ({ ...s, phase: 'playing' }))
   }, [])
 
-  const finish = useCallback((result: RoundResult) => {
+  const finish = useCallback((result: RoundResult, score?: Score) => {
     setState((s) => ({
       ...s,
       phase: 'scoring',
       spec: null,
-      feed: [...s.feed, { kind: 'result', roundId: result.round_id, says: [] }],
+      feed: [
+        ...s.feed,
+        { kind: 'result', roundId: result.round_id, says: [], gameId: result.game_id, score },
+      ],
       lastRoundId: result.round_id,
       lastMonitor: null,
     }))

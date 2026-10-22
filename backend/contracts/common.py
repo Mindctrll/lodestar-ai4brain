@@ -19,7 +19,7 @@ Milliseconds = Annotated[float, Field(ge=0.0)]
 DimensionId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]*$")]
 GameId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]*$")]
 
-Persona = Literal["zitouna", "barq", "hikma", "sahbi"]
+Persona = Literal["willow", "spark", "sage", "buddy"]
 Trigger = Literal["voice", "ui", "cli", "schedule", "proactive"]
 SuccessMode = Literal["chill", "balanced", "push"]
 ConsentSwitch = Literal[

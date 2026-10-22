@@ -20,7 +20,7 @@ import type {
   TwinView,
 } from './types'
 
-const TOKEN_KEY = 'najma.token'
+const TOKEN_KEY = 'lodestar.token'
 export const API_BASE = '/api'
 
 export class ApiError extends Error {
@@ -50,7 +50,7 @@ function setToken(token: string): void {
 
 let memoryToken: string | null = null
 
-/** The code `najma login` asks for: this browser's sign-in token (UW19). */
+/** The code `lodestar login` asks for: this browser's sign-in token (UW19). */
 export function signInCode(): string | null {
   return memoryToken ?? getToken()
 }
@@ -124,8 +124,8 @@ export function forgetUser(): void {
   memoryToken = null
   try {
     localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem('najma.session')
-    localStorage.removeItem('najma.voice.baseline') // voice tone baseline (affect/voiceTone.ts)
+    localStorage.removeItem('lodestar.session')
+    localStorage.removeItem('lodestar.voice.baseline') // voice tone baseline (affect/voiceTone.ts)
   } catch {
     // nothing stored
   }
@@ -200,7 +200,7 @@ export const api = {
     request<undefined>(`/me/memories/${collection}/${id}`, { method: 'DELETE' }),
   forgetLifeContext: (id: string) =>
     request<undefined>(`/me/life-context/${id}`, { method: 'DELETE' }),
-  exportData: () => download('/me/export', 'najma-export.json'),
+  exportData: () => download('/me/export', 'lodestar-export.json'),
   deleteEverything: () => request<Receipt>('/me', { method: 'DELETE' }),
   goals: () => request<GoalView[]>('/goals'),
   progress: () => request<ProgressView>('/progress'),

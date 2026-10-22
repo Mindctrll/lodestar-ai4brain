@@ -1,7 +1,7 @@
 import { listen, type Listening, type SpeechEngine } from '../voice/speech'
 import { recordCue, signalStarted, signalStopped } from './cues'
 
-/** Voice tone cues (docs/plan/12, "Optional voice tone"; WP3.9). While the user speaks to Najma or
+/** Voice tone cues (docs/plan/12, "Optional voice tone"; WP3.9). While the user speaks to Lodestar or
  * answers a spoken game, and only with the Voice tone switch on, an AudioWorklet turns the
  * microphone's samples into two numbers per 20 ms (loudness and pitch); the samples themselves
  * never leave the audio thread. At the end of the utterance those frames and the transcript give
@@ -12,7 +12,7 @@ export const FRAME_SEC = 0.02 // hop between analysis windows
 const WINDOW_SEC = 0.04
 const RATE = 16_000
 const PAUSE_FRAMES = 15 // 300 ms
-const BASELINE_KEY = 'najma.voice.baseline'
+const BASELINE_KEY = 'lodestar.voice.baseline'
 export const BASELINE_N = 10
 
 /** [loudness (RMS), pitch in Hz or 0 when unvoiced] for one 40 ms window. */
@@ -65,7 +65,7 @@ export function framesFromSamples(samples: Float32Array, rate = RATE): Frame[] {
 }
 
 export const TONE_WORKLET = `const analyse = ${analyseWindow.toString()};
-class NajmaTone extends AudioWorkletProcessor {
+class LodestarTone extends AudioWorkletProcessor {
   constructor() {
     super()
     this.buf = new Float32Array(Math.round(sampleRate * ${String(WINDOW_SEC)}))
@@ -85,7 +85,7 @@ class NajmaTone extends AudioWorkletProcessor {
     return true
   }
 }
-registerProcessor('najma-tone', NajmaTone)`
+registerProcessor('lodestar-tone', LodestarTone)`
 
 export interface ToneFeatures {
   speech_rate: number // syllable-like energy peaks per second of speaking
@@ -300,7 +300,7 @@ export async function startVoiceTone(): Promise<ToneTurn> {
     const module = URL.createObjectURL(new Blob([TONE_WORKLET], { type: 'application/javascript' }))
     await context.audioWorklet.addModule(module)
     URL.revokeObjectURL(module)
-    const node = new AudioWorkletNode(context, 'najma-tone')
+    const node = new AudioWorkletNode(context, 'lodestar-tone')
     node.port.onmessage = (e: MessageEvent<Frame>) => {
       frames.push(e.data)
     }

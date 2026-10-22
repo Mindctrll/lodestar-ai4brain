@@ -39,7 +39,7 @@ export function makeItems(rng: Rng, setSize: number, similarity: number): SeenIt
 }
 
 const SeenPlugin = makePlugin<SeenItem>(
-  'najma-seen-it',
+  'lodestar-seen-it',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const picture = el('div', 'big-symbol')
     stage.append(picture)

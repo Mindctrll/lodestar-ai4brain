@@ -48,7 +48,7 @@ function ring(gapDeg: number | null): SVGSVGElement {
 }
 
 const WatchPlugin = makePlugin<WatchItem>(
-  'najma-night-guard',
+  'lodestar-night-guard',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const light = el('div', 'ng-light')
     light.append(ring(item.signal ? item.gap_deg : null))

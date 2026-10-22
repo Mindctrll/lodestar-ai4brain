@@ -66,7 +66,7 @@ function drawCard(card: Card): HTMLElement {
 }
 
 const SortPlugin = makePlugin<SortItem>(
-  'najma-secret-rules',
+  'lodestar-secret-rules',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const feature = FEATURES[sorter.rule % item.rules] ?? 'colour'
     const right = matchFor(item.card, feature)
@@ -106,7 +106,11 @@ const SortPlugin = makePlugin<SortItem>(
     }
     // Feedback after every card is how the rule is learned.
     stage.append(
-      el('div', `najma-feedback ${correct ? 'is-right' : 'is-wrong'}`, correct ? 'Right' : 'Wrong'),
+      el(
+        'div',
+        `lodestar-feedback ${correct ? 'is-right' : 'is-wrong'}`,
+        correct ? 'Right' : 'Wrong',
+      ),
     )
     await wait(600)
     return {

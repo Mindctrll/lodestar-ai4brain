@@ -22,11 +22,11 @@ test('first visit: welcome, 18+, consent, coach, then practice', async ({ page }
   await page.getByRole('checkbox', { name: /Microphone/ }).check()
   await expect(page.getByRole('checkbox', { name: /Core practice data/ })).toBeDisabled()
   await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByRole('radio', { name: /Hikma/ }).check()
+  await page.getByRole('radio', { name: /Sage/ }).check()
   await page.getByRole('button', { name: "Let's start" }).click()
   await expect(page.getByRole('button', { name: 'Start a session' })).toBeVisible()
 
-  const token = await page.evaluate(() => localStorage.getItem('najma.token'))
+  const token = await page.evaluate(() => localStorage.getItem('lodestar.token'))
   const consent = await page.request.get('/api/consent', {
     headers: { Authorization: `Bearer ${token ?? ''}` },
   })
@@ -43,7 +43,7 @@ test('first visit: welcome, 18+, consent, coach, then practice', async ({ page }
 test('settings: switches, cloud AI consent, export, delete with a receipt', async ({ page }) => {
   await prepare(page)
   await page.goto('/')
-  const token = await page.evaluate(() => localStorage.getItem('najma.token'))
+  const token = await page.evaluate(() => localStorage.getItem('lodestar.token'))
   await page.getByRole('button', { name: 'Settings' }).click()
 
   const planted = page.getByRole('checkbox', { name: /planted mistakes/ })
@@ -61,7 +61,7 @@ test('settings: switches, cloud AI consent, export, delete with a receipt', asyn
   await page.getByRole('tab', { name: 'Memory & data' }).click()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export my data' }).click()
-  expect((await download).suggestedFilename()).toBe('najma-export.json')
+  expect((await download).suggestedFilename()).toBe('lodestar-export.json')
 
   await page.getByRole('button', { name: 'Delete everything' }).click()
   await page

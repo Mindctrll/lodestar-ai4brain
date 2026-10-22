@@ -3,9 +3,9 @@ import random
 import pytest
 
 from backend.generation.generators.market_list import MarketListGenerator, WordList
+from backend.generation.generators.market_rush import MarketLines, MarketRushGenerator
 from backend.generation.generators.pattern_gap import Hints, PatternGapGenerator, _HintSets
 from backend.generation.generators.registry import GENERATORS
-from backend.generation.generators.souk_rush import SoukLines, SoukRushGenerator
 from backend.generation.generators.spot_the_mistake import (
     SpotMistakeGenerator,
     StepTexts,
@@ -28,8 +28,8 @@ def test_code_built_content_is_always_valid(game_id: str) -> None:
             gen.schema.model_validate(content.model_dump())
 
 
-def test_souk_rush_follows_the_knobs() -> None:
-    gen = SoukRushGenerator()
+def test_market_rush_follows_the_knobs() -> None:
+    gen = MarketRushGenerator()
     knobs = {"customers": 3, "items_per_order": 4, "change_rate": 0.4}
     c = gen.build(knobs, random.Random(1), "spices")
     assert c.theme == "spices"
@@ -37,14 +37,14 @@ def test_souk_rush_follows_the_knobs() -> None:
     assert all(len(s.changes) == 2 for s in c.scenes)  # round(0.4 * 3 * 4 / 2)
 
 
-def test_souk_lines_must_name_every_item() -> None:
-    gen = SoukRushGenerator()
+def test_market_lines_must_name_every_item() -> None:
+    gen = MarketRushGenerator()
     knobs = {"customers": 1, "items_per_order": 2, "change_rate": 0.0}
     c = gen.build(knobs, random.Random(2), "fruit")
-    bad = gen.apply_text(c, SoukLines(lines=["Just some bread please."] * 4))
+    bad = gen.apply_text(c, MarketLines(lines=["Just some bread please."] * 4))
     assert any("leaves out" in e for e in gen.check(bad, knobs))
     good_lines = [f"Hi! {' and '.join(o.items)}, please." for s in c.scenes for o in s.orders]
-    assert gen.check(gen.apply_text(c, SoukLines(lines=good_lines)), knobs) == []
+    assert gen.check(gen.apply_text(c, MarketLines(lines=good_lines)), knobs) == []
 
 
 def test_market_list_custom_theme_uses_llm_words() -> None:

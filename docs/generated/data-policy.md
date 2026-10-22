@@ -2,19 +2,19 @@
 
 # Data policy
 
-Consent notice version 2026-10-21 (`registry/consent.yaml`). Najma is for people aged 18 or over. Every change of a switch is logged as a `consent.changed` event with the notice version, and turning a switch off stops that processing at once.
+Consent notice version 2026-10-21 (`registry/consent.yaml`). Lodestar is for people aged 18 or over. Every change of a switch is logged as a `consent.changed` event with the notice version, and turning a switch off stops that processing at once.
 
 ## Consent switches
 
 | Switch | Default | Required | What it allows |
 |---|---|---|---|
-| Core practice data (`core`) | on | yes | Your game results, your skill profile and the notes Najma keeps about you, stored on this server. Najma can't work without it. To stop it, delete your data. |
-| Cloud AI (`cloud_ai`) | off | no | Lets Najma send short, de-identified summaries (no name, no raw answers) to the AI provider you pick, with your own key. The provider and where it processes data are shown before you turn this on. Off means Najma uses the local model on this server. |
+| Core practice data (`core`) | on | yes | Your game results, your skill profile and the notes Lodestar keeps about you, stored on this server. Lodestar can't work without it. To stop it, delete your data. |
+| Cloud AI (`cloud_ai`) | off | no | Lets Lodestar send short, de-identified summaries (no name, no raw answers) to the AI provider you pick, with your own key. The provider and where it processes data are shown before you turn this on. Off means Lodestar uses the local model on this server. |
 | Microphone (`microphone`) | off | no | Voice commands. Your browser's speech recognition may send the audio to its maker (for Chrome, Google). Audio is not kept. |
 | Camera (`camera`) | off | no | Coarse "looks strained" cues worked out on this device only. No images leave it or are stored, and they never change your profile or scores. |
 | Voice tone (`voice_tone`) | off | no | Speaking speed and pauses, worked out on this device, to suggest a break. Never changes your profile or scores. |
-| Games with planted mistakes (`deliberate_mistakes`) | on | no | In Spot the AI's Mistake, Najma's worked answers sometimes contain a mistake on purpose, so you can practise checking AI. You're always told when a game does this. |
-| Research export (`research_export`) | off | no | Lets the team include your anonymised results in its evaluation of Najma. |
+| Games with planted mistakes (`deliberate_mistakes`) | on | no | In Spot the AI's Mistake, Lodestar's worked answers sometimes contain a mistake on purpose, so you can practise checking AI. You're always told when a game does this. |
+| Research export (`research_export`) | off | no | Lets the team include your anonymised results in its evaluation of Lodestar. |
 
 ## Retention
 

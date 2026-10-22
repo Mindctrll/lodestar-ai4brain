@@ -8,13 +8,13 @@ type Notice = Registry['consent']
 
 type Step = 'welcome' | 'age' | 'under' | 'consent' | 'coach'
 
-/** First visit (UW1): what Najma is, the age check, consent in plain words, and a coach. Nothing
+/** First visit (UW1): what Lodestar is, the age check, consent in plain words, and a coach. Nothing
  * is stored until the last step; the camera is never touched here. */
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState<Step>('welcome')
   const [notice, setNotice] = useState<Notice | null>(null)
   const [consent, setConsent] = useState<Record<string, boolean>>({})
-  const [persona, setPersona] = useState<Persona>('zitouna')
+  const [persona, setPersona] = useState<Persona>('willow')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -25,7 +25,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         setConsent(Object.fromEntries(registry.consent.switches.map((s) => [s.id, s.default])))
       },
       () => {
-        setError("Couldn't reach Najma. Try again in a moment.")
+        setError("Couldn't reach Lodestar. Try again in a moment.")
       },
     )
   }, [])
@@ -46,13 +46,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     <section className="card onboarding" data-testid="onboarding">
       {step === 'welcome' && (
         <>
-          <h2>Welcome to Najma</h2>
+          <h2>Welcome to Lodestar</h2>
           <p>
-            Najma picks short games that train how you focus, remember and reason, and explains
+            Lodestar picks short games that train how you focus, remember and reason, and explains
             every choice it makes.
           </p>
           <p className="muted">
-            Najma is a practice coach. It doesn&apos;t assess medical or psychological conditions.
+            Lodestar is a practice coach. It doesn&apos;t assess medical or psychological
+            conditions.
           </p>
           <button
             type="button"
@@ -96,15 +97,15 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         <>
           <h2>Not yet, sorry</h2>
           <p>
-            Najma needs a parent or guardian&apos;s consent for younger people, and this prototype
-            can&apos;t ask for it yet. Nothing about you has been stored.
+            Lodestar needs a parent or guardian&apos;s consent for younger people, and this
+            prototype can&apos;t ask for it yet. Nothing about you has been stored.
           </p>
         </>
       )}
 
       {step === 'consent' && notice && (
         <>
-          <h2>What Najma may do</h2>
+          <h2>What Lodestar may do</h2>
           <p className="muted">You can change any of these later in Settings.</p>
           <ul className="switches">
             {notice.switches.map((s) => (

@@ -1,12 +1,12 @@
-"""The `najma` command (UW19): chat, play text games, see your profile and goals, set a goal.
+"""The `lodestar` command (UW19): chat, play text games, see your profile and goals, set a goal.
 
-    najma login            paste the sign-in code from Settings > Terminal
-    najma chat             talk to Najma, who suggests a game
-    najma play [game]      play a round (text games here, others in the browser)
-    najma profile [skill]  your skills with their 80% ranges
-    najma goals            your goals and how far along they are
-    najma goal SKILL --within 5 --by 2026-11-03
-    najma why              why Najma picked the last game
+    lodestar login            paste the sign-in code from Settings > Terminal
+    lodestar chat             talk to Lodestar, who suggests a game
+    lodestar play [game]      play a round (text games here, others in the browser)
+    lodestar profile [skill]  your skills with their 80% ranges
+    lodestar goals            your goals and how far along they are
+    lodestar goal SKILL --within 5 --by 2026-11-03
+    lodestar why              why Lodestar picked the last game
 
 Every command goes through the MCP tool server, so it uses the same agent and data as the web app.
 """
@@ -26,7 +26,7 @@ from cli.client import (
     DEFAULT_URL,
     DEFAULT_WEB,
     Io,
-    NajmaError,
+    LodestarError,
     call,
     connect,
     forget_token,
@@ -39,8 +39,8 @@ from cli.session import Chat
 GOAL_DAYS_DEFAULT = 14  # as in backend/agent/slots.py
 
 app = typer.Typer(
-    name="najma",
-    help="Najma in your terminal: chat, play text games, see your profile and goals.",
+    name="lodestar",
+    help="Lodestar in your terminal: chat, play text games, see your profile and goals.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -57,14 +57,14 @@ class Options:
 def main(
     ctx: typer.Context,
     url: Annotated[
-        str, typer.Option(envvar="NAJMA_URL", help="Najma's MCP tool server")
+        str, typer.Option(envvar="LODESTAR_URL", help="Lodestar's MCP tool server")
     ] = DEFAULT_URL,
     web: Annotated[
-        str, typer.Option(envvar="NAJMA_WEB_URL", help="The web app, for browser games")
+        str, typer.Option(envvar="LODESTAR_WEB_URL", help="The web app, for browser games")
     ] = DEFAULT_WEB,
     token: Annotated[
         str | None,
-        typer.Option(envvar="NAJMA_TOKEN", help="Sign-in code (default: the saved one)"),
+        typer.Option(envvar="LODESTAR_TOKEN", help="Sign-in code (default: the saved one)"),
     ] = None,
 ) -> None:
     ctx.obj = Options(url=url, web=web, token=token)
@@ -84,16 +84,18 @@ def _run(ctx: typer.Context, work: Work, token: str | None = None) -> None:
     io = terminal_io()
     token = token or opts.token or saved_token()
     if not token:
-        io.console.print("Not signed in. Run `najma login` with the code from Settings > Terminal.")
+        io.console.print(
+            "Not signed in. Run `lodestar login` with the code from Settings > Terminal."
+        )
         raise typer.Exit(1)
 
     async def go() -> None:
-        async with connect(opts.url, token, io) as najma:
-            await work(najma, io)
+        async with connect(opts.url, token, io) as lodestar:
+            await work(lodestar, io)
 
     try:
         asyncio.run(go())
-    except NajmaError as exc:
+    except LodestarError as exc:
         io.console.print(str(exc))
         raise typer.Exit(1) from exc
     except KeyboardInterrupt:
@@ -101,41 +103,43 @@ def _run(ctx: typer.Context, work: Work, token: str | None = None) -> None:
     except Exception as exc:
         if not _unreachable(exc):
             raise
-        io.console.print(f"Can't reach Najma at {opts.url}. Is it running? (`make up`)")
+        io.console.print(f"Can't reach Lodestar at {opts.url}. Is it running? (`make up`)")
         raise typer.Exit(1) from exc
 
 
 # What each command does (async, so tests can run them against an in-process server) -----------
 
 
-async def show_profile(najma: Client, io: Io, skill: str | None = None) -> None:
-    dim = await resolve_skill(najma, skill) if skill else None
-    profile = await call(najma, "read_profile", {"dim": dim})
+async def show_profile(lodestar: Client, io: Io, skill: str | None = None) -> None:
+    dim = await resolve_skill(lodestar, skill) if skill else None
+    profile = await call(lodestar, "read_profile", {"dim": dim})
     if not any(s["rounds"] for s in profile["skills"]):
-        io.console.print("No skills measured yet. Play a round: `najma play`.")
+        io.console.print("No skills measured yet. Play a round: `lodestar play`.")
         return
     io.console.print(render.profile_table(profile["skills"]))
 
 
-async def show_goals(najma: Client, io: Io) -> None:
-    goals = await call(najma, "goals")
+async def show_goals(lodestar: Client, io: Io) -> None:
+    goals = await call(lodestar, "goals")
     if not goals:
-        io.console.print("No goals yet. Set one: `najma goal memory --within 5`.")
+        io.console.print("No goals yet. Set one: `lodestar goal memory --within 5`.")
         return
     io.console.print(render.goals_table(goals))
 
 
-async def set_goal(najma: Client, io: Io, skill: str, within: int | None, by: date | None) -> None:
-    dim = await resolve_skill(najma, skill)
+async def set_goal(
+    lodestar: Client, io: Io, skill: str, within: int | None, by: date | None
+) -> None:
+    dim = await resolve_skill(lodestar, skill)
     due = by or date.today() + timedelta(days=GOAL_DAYS_DEFAULT)
     answer = await call(
-        najma, "set_goal", {"dim": dim, "due": due.isoformat(), "target": within}
+        lodestar, "set_goal", {"dim": dim, "due": due.isoformat(), "target": within}
     )  # the server asks first; the question is answered in the terminal (cli.client.connect)
     show_answer(io, answer)
 
 
-async def explain(najma: Client, io: Io) -> None:
-    show_answer(io, await call(najma, "explain"))
+async def explain(lodestar: Client, io: Io) -> None:
+    show_answer(io, await call(lodestar, "explain"))
 
 
 def show_answer(io: Io, answer: dict[str, Any]) -> None:
@@ -145,9 +149,9 @@ def show_answer(io: Io, answer: dict[str, Any]) -> None:
         render.facts(io.console, answer.get("facts", []))
 
 
-async def resolve_skill(najma: Client, text: str) -> str:
+async def resolve_skill(lodestar: Client, text: str) -> str:
     """A skill id or name, or a unique part of one ("memory" is ambiguous; "working" isn't)."""
-    skills = (await call(najma, "read_profile"))["skills"]
+    skills = (await call(lodestar, "read_profile"))["skills"]
     wanted = text.strip().lower().replace("_", " ")
     exact = [s for s in skills if wanted in (s["dim"].replace("_", " "), s["name"].lower())]
     if exact:
@@ -156,7 +160,7 @@ async def resolve_skill(najma: Client, text: str) -> str:
     if len(partial) == 1:
         return str(partial[0]["dim"])
     options = ", ".join(s["name"].lower() for s in (partial or skills))
-    raise NajmaError(f'Which skill do you mean by "{text}"? Try one of: {options}')
+    raise LodestarError(f'Which skill do you mean by "{text}"? Try one of: {options}')
 
 
 # Commands -------------------------------------------------------------------------------------
@@ -171,10 +175,10 @@ def login(
     io = terminal_io()
     code = (code or io.console.input("Sign-in code: ", password=True)).strip()
 
-    async def check(najma: Client, io: Io) -> None:
-        await call(najma, "goals")
+    async def check(lodestar: Client, io: Io) -> None:
+        await call(lodestar, "goals")
         save_token(code)
-        io.console.print("Signed in. Try `najma chat`.")
+        io.console.print("Signed in. Try `lodestar chat`.")
 
     _run(ctx, check, token=code)
 
@@ -191,11 +195,11 @@ def chat(
     ctx: typer.Context,
     message: Annotated[list[str] | None, typer.Argument(help="What to say first")] = None,
 ) -> None:
-    """Talk to Najma. Without a message, Najma suggests a game. Type quit to leave."""
+    """Talk to Lodestar. Without a message, Lodestar suggests a game. Type quit to leave."""
     first = " ".join(message or []) or None
 
-    async def work(najma: Client, io: Io) -> None:
-        await Chat(najma, io, ctx.obj.web).run("chat", {"message": first})
+    async def work(lodestar: Client, io: Io) -> None:
+        await Chat(lodestar, io, ctx.obj.web).run("chat", {"message": first})
 
     _run(ctx, work)
 
@@ -207,8 +211,8 @@ def play(
 ) -> None:
     """Play a round. Text games are played here; others open in the browser."""
 
-    async def work(najma: Client, io: Io) -> None:
-        await Chat(najma, io, ctx.obj.web).run("start_game", {"game_id": game})
+    async def work(lodestar: Client, io: Io) -> None:
+        await Chat(lodestar, io, ctx.obj.web).run("start_game", {"game_id": game})
 
     _run(ctx, work)
 
@@ -219,7 +223,7 @@ def profile(
     skill: Annotated[str | None, typer.Argument(help="One skill, e.g. 'working memory'")] = None,
 ) -> None:
     """Your skills, each with its 80% range."""
-    _run(ctx, lambda najma, io: show_profile(najma, io, skill))
+    _run(ctx, lambda lodestar, io: show_profile(lodestar, io, skill))
 
 
 @app.command()
@@ -239,12 +243,12 @@ def goal(
         datetime | None, typer.Option(formats=["%Y-%m-%d"], help="Due date (default: 2 weeks)")
     ] = None,
 ) -> None:
-    """Set a goal: a skill's range within ± N points by a date. Najma asks before saving it."""
+    """Set a goal: a skill's range within ± N points by a date. Lodestar asks before saving it."""
     due = by.date() if by else None
-    _run(ctx, lambda najma, io: set_goal(najma, io, skill, within, due))
+    _run(ctx, lambda lodestar, io: set_goal(lodestar, io, skill, within, due))
 
 
 @app.command()
 def why(ctx: typer.Context) -> None:
-    """Why Najma picked the last game."""
+    """Why Lodestar picked the last game."""
     _run(ctx, explain)

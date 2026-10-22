@@ -92,12 +92,12 @@ export function makePlugin<I>(
   name: string,
   run: (ctx: TrialContext<I>) => Promise<StepOutcome>,
 ): new (jsPsych: JsPsych) => JsPsychPlugin<PluginInfo> {
-  class NajmaPlugin implements JsPsychPlugin<PluginInfo> {
+  class LodestarPlugin implements JsPsychPlugin<PluginInfo> {
     static info: PluginInfo = {
       name,
       version: '1.0.0',
       parameters: PARAMETERS,
-      data: { najma: { type: ParameterType.OBJECT } },
+      data: { lodestar: { type: ParameterType.OBJECT } },
     }
 
     constructor(private readonly jsPsych: JsPsych) {}
@@ -105,8 +105,8 @@ export function makePlugin<I>(
     async trial(display: HTMLElement, trial: Record<string, unknown>): Promise<void> {
       const index = String(trial['trial_index'])
       const practice = trial['practice'] === true
-      display.innerHTML = `<div class="najma-stage" data-testid="stage" data-trial="${index}" data-practice="${String(practice)}"></div>`
-      const stage = display.querySelector<HTMLElement>('.najma-stage')
+      display.innerHTML = `<div class="lodestar-stage" data-testid="stage" data-trial="${index}" data-practice="${String(practice)}"></div>`
+      const stage = display.querySelector<HTMLElement>('.lodestar-stage')
       if (!stage) throw new Error('stage missing')
       const outcome = await run({
         jsPsych: this.jsPsych,
@@ -128,7 +128,7 @@ export function makePlugin<I>(
       const outcomes = Array.isArray(outcome) ? outcome : [outcome]
       const base = trial['trial_index'] as number
       this.jsPsych.finishTrial({
-        najma: outcomes.map((o, i) => ({
+        lodestar: outcomes.map((o, i) => ({
           ...o,
           trial_index: base * 100 + i,
           practice,
@@ -136,7 +136,7 @@ export function makePlugin<I>(
       })
     }
   }
-  return NajmaPlugin
+  return LodestarPlugin
 }
 
 /** Timeline entries for a list of items: the first `practice` ones get feedback. */

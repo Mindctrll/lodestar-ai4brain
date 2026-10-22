@@ -41,7 +41,7 @@ def _beliefs(registry: Registry, game_id: str) -> dict[str, Belief]:
 def test_loading_matrix_skips_style_and_calibration(registry: Registry) -> None:
     matrix = loading_matrix(registry)
     assert "balloon_pump" not in matrix and "how_sure" not in matrix
-    assert matrix["souk_rush"] == {"working_memory": 1.0, "short_term_memory": 0.5}
+    assert matrix["market_rush"] == {"working_memory": 1.0, "short_term_memory": 0.5}
 
 
 def test_good_round_raises_mu_and_lowers_sigma(registry: Registry) -> None:
@@ -61,9 +61,9 @@ def test_practice_trials_do_not_count(registry: Registry) -> None:
 
 
 def test_secondary_loading_moves_less(registry: Registry) -> None:
-    game = registry.game("souk_rush")
-    out = score_round(game, _trials("souk_rush", [True] * 12), _beliefs(registry, "souk_rush"),
-                      loading_matrix(registry)["souk_rush"])  # fmt: skip
+    game = registry.game("market_rush")
+    out = score_round(game, _trials("market_rush", [True] * 12), _beliefs(registry, "market_rush"),
+                      loading_matrix(registry)["market_rush"])  # fmt: skip
     assert out.beliefs["working_memory"].mu > out.beliefs["short_term_memory"].mu > 0
 
 

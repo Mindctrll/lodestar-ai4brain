@@ -1,4 +1,4 @@
-# 03 · The Najma agent loop (LangGraph)
+# 03 · The Lodestar agent loop (LangGraph)
 
 This is the heart of the project and the part we show off. The goal is an agent loop that is **engineered**: every step is explicit, durable, explainable, testable and observable. It's not a chatbot with tools stapled on.
 
@@ -51,12 +51,12 @@ Double-bracket boxes are subgraphs. `play` is the pause.
 One Pydantic model, split into channels with reducers so parallel nodes can write safely.
 
 ```python
-class NajmaState(BaseModel):
+class LodestarState(BaseModel):
     # identity and trigger
     user_id: str
     session_id: str
     trigger: Literal["voice", "ui", "cli", "schedule", "proactive"]
-    persona: Literal["zitouna", "barq", "hikma", "sahbi"]
+    persona: Literal["willow", "spark", "sage", "buddy"]
     messages: Annotated[list[AnyMessage], add_messages] = []
 
     # perception (filled in parallel)
@@ -135,7 +135,7 @@ U(d) = 0.35 · uncertainty(d)      # sigma_d / sigma_start: what we know least a
      - 0.15 · repetition(d)       # avoid the same game twice in a row
 ```
 
-Mode decides the success target: **Assess** aims at 60–70% (more informative), **Train** at 75–85% (better for learning), and the user can pick Chill, Balanced or Push. The top three candidates and their score breakdown go into a `Decision`, so Najma can say: "I picked memory because it's the skill I'm least sure about (uncertainty 0.31) and you last practised it 9 days ago."
+Mode decides the success target: **Assess** aims at 60–70% (more informative), **Train** at 75–85% (better for learning), and the user can pick Chill, Balanced or Push. The top three candidates and their score breakdown go into a `Decision`, so Lodestar can say: "I picked memory because it's the skill I'm least sure about (uncertainty 0.31) and you last practised it 9 days ago."
 
 The LLM can suggest overrides ("the user said they want reasoning today"). These enter as `goal_weight` changes, never as direct picks, so the policy stays in charge.
 
@@ -144,7 +144,7 @@ The LLM can suggest overrides ("the user said they want reasoning today"). These
 ### The pause: how a game is played
 
 ```python
-def play(state: NajmaState) -> dict:
+def play(state: LodestarState) -> dict:
     results = interrupt({"type": "exercise", "spec": state.exercise.model_dump()})
     return {"rounds": [RoundResult.model_validate(results)]}
 ```
@@ -171,9 +171,9 @@ The browser resumes with `graph.invoke(Command(resume=results), config)`. Inside
 `read_profile(dim?)`, `get_history(dim, range)`, `search_memory(query)`, `start_game(game_id?)`, `set_goal(...)`, `log_life_context(note, start, end)`, `explain(decision_id)`, `update_settings(...)`, `start_experiment(hypothesis)`.
 Tools that change data ask for confirmation through an `interrupt` before writing.
 
-**As built (WP2.11).** `route_intent` runs keyword rules first (`backend/agent/intents.py`) and asks the model only when the rules aren't sure; one structured call returns the intent and, for a chat, the tool. On the 100 labelled utterances the rules get 100/100; on 30 held-out phrasings they get 22/30 alone and 25/30 with the local model, and only 1 of 30 is routed wrongly without asking. `safety_gate` works the same way: rules first, and a model check only when a message touches on health; the model can add a refusal, never lift one. Goal, life-context and settings turns use the converse tools (`set_goal`, `log_life_context`, `update_settings`), so the plan's `update_user` node is gone. The subgraph is four nodes, `converse → [confirm] → use_tool → answer`, so a pause or crash never repeats a model call or a write; writes are idempotent by the tool call id. A question asked while a game is waiting comes back to that game afterwards; only a new pick from `plan_next` abandons it. Declined skills stay out for the rest of the session, "something quick" means a game of 60 s or less, and after a skill is turned down in 3 sessions in a row Najma asks once whether to pause it (`app.skill_pauses`). Answers cite their facts; a `[D1]` citation carries the decision id, and the UI opens the decision card from `GET /decisions/{id}`.
+**As built (WP2.11).** `route_intent` runs keyword rules first (`backend/agent/intents.py`) and asks the model only when the rules aren't sure; one structured call returns the intent and, for a chat, the tool. On the 100 labelled utterances the rules get 100/100; on 30 held-out phrasings they get 22/30 alone and 25/30 with the local model, and only 1 of 30 is routed wrongly without asking. `safety_gate` works the same way: rules first, and a model check only when a message touches on health; the model can add a refusal, never lift one. Goal, life-context and settings turns use the converse tools (`set_goal`, `log_life_context`, `update_settings`), so the plan's `update_user` node is gone. The subgraph is four nodes, `converse → [confirm] → use_tool → answer`, so a pause or crash never repeats a model call or a write; writes are idempotent by the tool call id. A question asked while a game is waiting comes back to that game afterwards; only a new pick from `plan_next` abandons it. Declined skills stay out for the rest of the session, "something quick" means a game of 60 s or less, and after a skill is turned down in 3 sessions in a row Lodestar asks once whether to pause it (`app.skill_pauses`). Answers cite their facts; a `[D1]` citation carries the decision id, and the UI opens the decision card from `GET /decisions/{id}`.
 
-**As built (WP3.6): the MCP tool server.** `backend/mcp_server` exposes the converse tools over MCP (Streamable HTTP at `/mcp` on the API), plus `chat`, `confirm`, `finish_round`, `start_game` and `goals`. `chat` runs the same LangGraph session through the web app's `SessionRunner`; the read and write tools are the functions in `backend/agent/tools.py`. Calls sign in with the web app's bearer token. Write tools keep the "ask before writing" rule: the first call returns an MCP input request (the 2026-07-28 multi-round flow; older clients get an elicitation) with Najma's question and the facts behind its numbers, and nothing is written until the answer is yes. A goal asked for more narrowly than the range can get is widened, and Najma says so from a fact. The `najma` CLI (`cli/`, Typer + Rich, `bin/najma`) is one client of this server.
+**As built (WP3.6): the MCP tool server.** `backend/mcp_server` exposes the converse tools over MCP (Streamable HTTP at `/mcp` on the API), plus `chat`, `confirm`, `finish_round`, `start_game` and `goals`. `chat` runs the same LangGraph session through the web app's `SessionRunner`; the read and write tools are the functions in `backend/agent/tools.py`. Calls sign in with the web app's bearer token. Write tools keep the "ask before writing" rule: the first call returns an MCP input request (the 2026-07-28 multi-round flow; older clients get an elicitation) with Lodestar's question and the facts behind its numbers, and nothing is written until the answer is yes. A goal asked for more narrowly than the range can get is widened, and Lodestar says so from a fact. The `lodestar` CLI (`cli/`, Typer + Rich, `bin/lodestar`) is one client of this server.
 
 **Twin chat subgraph.** The Twin speaks in first person ("I'm sharper in the morning"), but only from a facts packet built for the question, plus memories. Same verifier as the coach.
 
@@ -233,7 +233,7 @@ We stream with modes `updates` and `custom` (the runner turns them into UI event
 {"kind": "degraded", "what": "llm", "from": "anthropic", "to": "ollama"}
 ```
 
-The UI shows a live timeline of Najma's steps and a small graph diagram (exported with `graph.get_graph().draw_mermaid()`) with the current node lit up. That makes the agent's work visible instead of hidden behind a chat box.
+The UI shows a live timeline of Lodestar's steps and a small graph diagram (exported with `graph.get_graph().draw_mermaid()`) with the current node lit up. That makes the agent's work visible instead of hidden behind a chat box.
 
 ## Reliability ladder
 

@@ -17,7 +17,7 @@ export type LlmSelection = Schemas['LlmSelection']
 export type KeySaved = Schemas['KeySaved']
 export type MyData = Schemas['MyData']
 export type Receipt = Schemas['Receipt']
-export type Persona = 'zitouna' | 'barq' | 'hikma' | 'sahbi'
+export type Persona = 'willow' | 'spark' | 'sage' | 'buddy'
 export type ProgressView = Schemas['ProgressView']
 export type ForecastView = Schemas['ForecastView']
 export type AcsView = Schemas['AcsView']
@@ -27,7 +27,7 @@ export type Dimension = Schemas['Dimension']
 export type MeView = Schemas['MeView']
 export type ExperimentView = Schemas['ExperimentView']
 
-/** A write Najma wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
+/** A write Lodestar wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
 export interface ConfirmRequest {
   type: 'confirm'
   call_id: string

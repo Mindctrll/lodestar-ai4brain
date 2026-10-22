@@ -1,8 +1,8 @@
-# AI4Brain: Najma, the Cognitive Growth Agent
+# AI4Brain: Lodestar, the Cognitive Growth Agent
 
 Plan for our CISTAC 1.0 entry. Read this file and [AGENTS.md](../../AGENTS.md) first, then whichever plan file you're working on.
 
-**Najma** (نجمة, "star") is an AI agent that measures how you think, explains what it sees, and coaches you to improve. You can summon it by voice ("Hey Najma"), talk to it in the web app, or use it from a terminal. It gives you short games, builds a profile of you that changes over time (the Brain Twin), and is always honest about how sure it is.
+**Lodestar** (نجمة, "star") is an AI agent that measures how you think, explains what it sees, and coaches you to improve. You can summon it by voice ("Hey Lodestar"), talk to it in the web app, or use it from a terminal. It gives you short games, builds a profile of you that changes over time (the Brain Twin), and is always honest about how sure it is.
 
 ## Deadlines
 
@@ -12,8 +12,8 @@ Phase 1: **Sun 1 Nov 2026** (public GitHub repo). Final: **Sat 7 Nov 2026**. The
 
 | Topic | Decision |
 |---|---|
-| Agent name | Najma ("star"), which matches the night-sky Brain Twin and is a good 3-syllable wake word |
-| Personalities | User picks one: Zitouna (calm mentor), Barq (energetic trainer), Hikma (factual analyst), Sahbi (casual friend) |
+| Agent name | Lodestar ("star"), which matches the night-sky Brain Twin and is a good 3-syllable wake word |
+| Personalities | User picks one: Willow (calm mentor), Spark (energetic trainer), Sage (factual analyst), Buddy (casual friend) |
 | Agent framework | LangGraph 1.2.x, with a custom engineered loop (see `03`) |
 | LLM | Bring your own key: the user picks Anthropic, OpenAI, Google Gemini, DeepSeek, xAI Grok, Mistral, Groq or OpenRouter and pastes their key, or uses the local Ollama model. Fixed templates if neither works (see `03`) |
 | Storage and memory | **Postgres** for all structured data (event log, profile, history, decisions, checkpoints) + **Qdrant** for searchable memory + Markdown notes (`core.md`, journal). No JSON files, no SQLite |
@@ -34,7 +34,7 @@ Phase 1: **Sun 1 Nov 2026** (public GitHub repo). Final: **Sat 7 Nov 2026**. The
 | [01-product-vision.md](01-product-vision.md) | What we're building, for whom, and why it's different |
 | [02-architecture.md](02-architecture.md) | System map, tech stack, repo layout |
 | [03-agent-langgraph.md](03-agent-langgraph.md) | The agent loop in LangGraph: state, nodes, subgraphs, pauses, checkpoints |
-| [04-memory-postgres-qdrant.md](04-memory-postgres-qdrant.md) | How Najma stores and remembers: Postgres tables, Qdrant collections, Markdown notes |
+| [04-memory-postgres-qdrant.md](04-memory-postgres-qdrant.md) | How Lodestar stores and remembers: Postgres tables, Qdrant collections, Markdown notes |
 | [05-cognitive-dimensions.md](05-cognitive-dimensions.md) | The 16 skills, how each is measured, known weaknesses |
 | [06-games-catalog.md](06-games-catalog.md) | Every game, where it comes from, what it measures, build phase |
 | [07-scoring-adaptation.md](07-scoring-adaptation.md) | Score math, uncertainty, difficulty targeting |
@@ -52,4 +52,4 @@ Phase 1: **Sun 1 Nov 2026** (public GitHub repo). Final: **Sat 7 Nov 2026**. The
 
 ## Our honesty rule
 
-We never claim Najma makes you smarter. We claim it measures your practice honestly, explains what it sees, and coaches you at the right level. The research (`17`) shows that's what the evidence supports, and most competitors overclaim.
+We never claim Lodestar makes you smarter. We claim it measures your practice honestly, explains what it sees, and coaches you at the right level. The research (`17`) shows that's what the evidence supports, and most competitors overclaim.

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useCameraCues } from '../affect/camera'
 import type { ExerciseSpec, RoundResult } from '../api/types'
 import { coachSays, stopSpeaking } from '../voice/tts'
-import type { GameModule } from './types'
+import type { GameModule, Score } from './types'
 import { TaskHost, type TaskControls } from './TaskHost'
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   sessionId: string
   game: GameModule
   skills: string[]
-  onFinish: (result: RoundResult) => void
+  onFinish: (result: RoundResult, score: Score) => void
   reason?: ReactNode
 }
 
@@ -30,7 +30,7 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
     frame.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
-  // Voice coaching (docs/plan/12): when Najma speaks, she reads the instructions out loud.
+  // Voice coaching (docs/plan/12): when Lodestar speaks, it reads the instructions out loud.
   useEffect(() => {
     coachSays(`${game.name}. ${game.instructions}`)
     return stopSpeaking

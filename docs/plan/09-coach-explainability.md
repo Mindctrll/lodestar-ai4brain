@@ -43,10 +43,10 @@ Each persona is a style block in the prompt plus a TTS voice and rate. **Persona
 
 | Persona | Style block (summary) |
 |---|---|
-| Zitouna | Calm, patient, growth metaphors, max 4 sentences, ends with one gentle suggestion |
-| Barq | Short punchy sentences, celebrates streaks, ends with a challenge |
-| Hikma | Numbers and ranges first, neutral tone, no exclamation marks |
-| Sahbi | Friendly and casual, light humour, the occasional Tunisian word ("yezzi", "behi") with meaning clear from context, English otherwise |
+| Willow | Calm, patient, growth metaphors, max 4 sentences, ends with one gentle suggestion |
+| Spark | Short punchy sentences, celebrates streaks, ends with a challenge |
+| Sage | Numbers and ranges first, neutral tone, no exclamation marks |
+| Buddy | Friendly and casual, light humour, plain everyday English |
 
 ## Language guardrails
 
@@ -63,7 +63,7 @@ Each persona is a style block in the prompt plus a TTS voice and rate. **Persona
 
 `make lint-language` checks UI strings, prompts and a red-team list of 200 tricky outputs.
 
-**If the user asks for a diagnosis** ("do I have ADHD?"), `safety_gate` routes to a kind, fixed reply: Najma can't and doesn't assess conditions, its scores are practice estimates only, and a doctor or psychologist is the right person to ask. If the user writes something suggesting crisis or self-harm, Najma stops the training flow and shows support resources.
+**If the user asks for a diagnosis** ("do I have ADHD?"), `safety_gate` routes to a kind, fixed reply: Lodestar can't and doesn't assess conditions, its scores are practice estimates only, and a doctor or psychologist is the right person to ask. If the user writes something suggesting crisis or self-harm, Lodestar stops the training flow and shows support resources.
 
 ## Talk to your Twin
 
@@ -77,14 +77,14 @@ Twin chat builds its facts packet from the question: time-of-day aggregates, tre
 ## Personal experiments
 
 1. **Hypothesis** comes from data ("evening accuracy looks higher") or the user.
-2. **Consent:** Najma explains the plan (for example, 6 sessions, alternating morning and evening, same games) and asks; the graph pauses for the answer.
+2. **Consent:** Lodestar explains the plan (for example, 6 sessions, alternating morning and evening, same games) and asks; the graph pauses for the answer.
 3. **Schedule:** sessions are tagged with the condition; `plan_next` gives them priority.
 4. **Analysis:** Bayesian comparison of the two conditions (difference in mean score with a credible interval), reported as "probability evening is better: 0.83".
 5. **Result card:** what was tested, how sure we are, what changes in the plan. Inconclusive results are reported as inconclusive.
 
 **As built (WP3.2).**
 - **Twin answers** come from `backend/agent/twin.py`: accuracy by morning (5-12), afternoon and evening (18-24) in the user's time zone. A Beta posterior gives the probability the best window really beats the worst, and the Twin calls itself sure only at 0.9 and 15 sessions. It speaks through the same verifier, with a first-person style; the fallback template also states the direction and how sure it is.
-- **Offers:** when the Twin isn't sure it offers an experiment, and "yes" next turn starts the proposal. Questions about things Najma doesn't record (coffee, music) get a plain "I don't know that yet".
+- **Offers:** when the Twin isn't sure it offers an experiment, and "yes" next turn starts the proposal. Questions about things Lodestar doesn't record (coffee, music) get a plain "I don't know that yet".
 - **Experiments:** a converse tool with the usual yes/no step. Three sessions in each window, with the three games the person plays most. A session counts by its local start time, and the Experiments page shows progress dots.
 - **Analysis:** a difference in mean round score with a pooled variance, normal approximation and 80% credible interval. A winner only at P ≥ 0.8, otherwise "inconclusive". The result card's numbers are facts, and a conclusive result is saved as a memory fact.
 

@@ -9,7 +9,9 @@ import pytest
 
 from simulator.eval import main
 
-BASE = os.environ.get("TEST_DATABASE_URL", "postgresql://najma:najma@localhost:5442/najma_test")
+BASE = os.environ.get(
+    "TEST_DATABASE_URL", "postgresql://lodestar:lodestar@localhost:5442/lodestar_test"
+)
 
 
 def test_eval_writes_every_figure_and_the_summary(

@@ -14,7 +14,7 @@ export interface BehaviourSignals {
   mood: null
 }
 
-const BASELINE_KEY = (game: string) => `najma.baseline.${game}`
+const BASELINE_KEY = (game: string) => `lodestar.baseline.${game}`
 export const STRUGGLE_STREAK = 4
 
 export function longestMissStreak(records: TrialRecord[]): number {

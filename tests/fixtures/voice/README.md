@@ -15,12 +15,12 @@ as a fake microphone, so a recording can end in silence. No real person's voice 
 
 `frontend/src/voice/wake.test.ts` builds about 3 minutes of background from the files above and
 quiet noise. For the 30-minute false-trigger run, make a 16 kHz mono 16-bit WAV of everyday sound
-with no "Hey Najma" in it (talk radio, a podcast, TV, kitchen noise) and point the test at it.
+with no "Hey Lodestar" in it (talk radio, a podcast, TV, kitchen noise) and point the test at it.
 It is not stored in the repo:
 
 ```
 ffmpeg -i background.mp3 -t 1800 -ac 1 -ar 16000 -sample_fmt s16 /tmp/background_30min.wav
-cd frontend && PORCUPINE_ACCESS_KEY=... PORCUPINE_KEYWORD_PPN=/path/hey-najma_en_wasm_v4_0_0.ppn \
+cd frontend && PORCUPINE_ACCESS_KEY=... PORCUPINE_KEYWORD_PPN=/path/hey-lodestar_en_wasm_v4_0_0.ppn \
   WAKE_BACKGROUND_WAV=/tmp/background_30min.wav npx vitest run src/voice/wake.test.ts
 ```
 

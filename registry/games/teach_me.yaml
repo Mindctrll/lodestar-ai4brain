@@ -10,7 +10,7 @@ origin: original
 reliability: 0.5
 paradigm: Explaining to a learner
 code_source: own
-does: Explain something to a confused Najma
+does: Explain something to a confused Lodestar
 scoring: rubric
 duration_s: 180
 metrics:

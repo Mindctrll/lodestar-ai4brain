@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 // The backend serves its routes at the root; the browser calls them under /api.
-const apiTarget = process.env.NAJMA_API_URL ?? 'http://localhost:8000'
+const apiTarget = process.env.LODESTAR_API_URL ?? 'http://localhost:8000'
 const proxy = {
   '/api': {
     target: apiTarget,

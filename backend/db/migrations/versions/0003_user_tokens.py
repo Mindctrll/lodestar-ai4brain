@@ -24,8 +24,8 @@ def upgrade() -> None:
             last_used   timestamptz
         );
         CREATE INDEX user_tokens_user_idx ON app.user_tokens (user_id);
-        GRANT SELECT, INSERT, UPDATE, DELETE ON app.user_tokens TO najma_app;
-        GRANT SELECT, DELETE ON app.user_tokens TO najma_jobs;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON app.user_tokens TO lodestar_app;
+        GRANT SELECT, DELETE ON app.user_tokens TO lodestar_jobs;
         """
     )
 

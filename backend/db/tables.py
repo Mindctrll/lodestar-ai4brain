@@ -45,7 +45,7 @@ users = Table(
     _uuid_pk("user_id"),
     Column("created_at", TZ, nullable=False, server_default=NOW),
     Column("display_name", Text),
-    Column("persona", Text, nullable=False, server_default="zitouna"),
+    Column("persona", Text, nullable=False, server_default="willow"),
     Column("success_mode", Text, nullable=False, server_default="balanced"),
     Column("locale", Text, nullable=False, server_default="en"),
     Column("age_confirmed", Boolean, nullable=False, server_default=text("false")),

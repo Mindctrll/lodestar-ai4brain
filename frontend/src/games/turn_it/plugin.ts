@@ -48,7 +48,7 @@ function draw(
 }
 
 const TurnPlugin = makePlugin<TurnItem>(
-  'najma-turn-it',
+  'lodestar-turn-it',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const cells = config.shapes[item.shape] ?? []
     const pair = el('div', 'ti-pair')

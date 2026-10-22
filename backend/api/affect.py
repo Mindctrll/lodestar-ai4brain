@@ -1,6 +1,6 @@
-"""One-tap labels from the user (docs/plan/12): a mood after a round, and "Was I right?" when Najma
-acted on a frustration guess. They are training labels for the affect model (WP3.3) and go to
-the event log only.
+"""One-tap labels from the user (docs/plan/12): a mood after a round, and "Was I right?" when
+Lodestar acted on a frustration guess. They are training labels for the affect model (WP3.3)
+and go to the event log only.
 
 Coarse camera and voice cues (WP3.5, WP3.9) arrive here too: one number each, worked out in the
 browser. They need their own consent switch and go to the event log only (AGENTS.md rule 3)."""

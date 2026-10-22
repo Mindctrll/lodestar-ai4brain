@@ -768,10 +768,10 @@
           },
           "persona": {
             "enum": [
-              "zitouna",
-              "barq",
-              "hikma",
-              "sahbi"
+              "willow",
+              "spark",
+              "sage",
+              "buddy"
             ],
             "title": "Persona",
             "type": "string"
@@ -4103,7 +4103,7 @@
         "additionalProperties": false,
         "properties": {
           "core": {
-            "description": "Lines of core.md, the short profile Najma keeps",
+            "description": "Lines of core.md, the short profile Lodestar keeps",
             "items": {
               "type": "string"
             },
@@ -4166,12 +4166,12 @@
             "type": "object"
           },
           "persona": {
-            "default": "zitouna",
+            "default": "willow",
             "enum": [
-              "zitouna",
-              "barq",
-              "hikma",
-              "sahbi"
+              "willow",
+              "spark",
+              "sage",
+              "buddy"
             ],
             "title": "Persona",
             "type": "string"
@@ -5170,10 +5170,10 @@
         "properties": {
           "persona": {
             "enum": [
-              "zitouna",
-              "barq",
-              "hikma",
-              "sahbi"
+              "willow",
+              "spark",
+              "sage",
+              "buddy"
             ],
             "title": "Persona",
             "type": "string"
@@ -5275,7 +5275,7 @@
               }
             ],
             "default": null,
-            "description": "A skill Najma stops suggesting until `paused_until`",
+            "description": "A skill Lodestar stops suggesting until `paused_until`",
             "title": "Paused Dim"
           },
           "paused_until": {
@@ -5295,10 +5295,10 @@
             "anyOf": [
               {
                 "enum": [
-                  "zitouna",
-                  "barq",
-                  "hikma",
-                  "sahbi"
+                  "willow",
+                  "spark",
+                  "sage",
+                  "buddy"
                 ],
                 "type": "string"
               },
@@ -6331,7 +6331,7 @@
     }
   },
   "info": {
-    "title": "Najma API",
+    "title": "Lodestar API",
     "version": "0.1.0"
   },
   "openapi": "3.1.0",

@@ -99,7 +99,7 @@ def test_redaction_masks_registered_and_known_shapes(caplog: pytest.LogCaptureFi
     install()
     secret = "custom-secret-value-123456"
     register_secret(secret)
-    log = logging.getLogger("najma.test")
+    log = logging.getLogger("lodestar.test")
     with caplog.at_level(logging.INFO):
         log.info("calling with %s and sk-abcdefghijklmnop and Bearer abc.def.ghi123", secret)
         try:

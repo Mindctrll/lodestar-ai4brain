@@ -71,11 +71,11 @@ def _plain(value: Any) -> Any:
 
 
 def user_hash(user_id: UUID) -> str:
-    return hashlib.sha256(f"najma-deleted:{user_id}".encode()).hexdigest()
+    return hashlib.sha256(f"lodestar-deleted:{user_id}".encode()).hexdigest()
 
 
 async def export_user(services: Services, user_id: UUID) -> dict[str, Any]:
-    """Everything Najma holds about one user, as plain JSON-ready data."""
+    """Everything Lodestar holds about one user, as plain JSON-ready data."""
     tables: dict[str, list[dict[str, Any]]] = {}
     async with services.engine.connect() as conn:
         for table in USER_TABLES:
@@ -114,7 +114,7 @@ async def export_user(services: Services, user_id: UUID) -> dict[str, Any]:
         )
     return {
         "exported_at": dt.datetime.now(dt.UTC).isoformat(),
-        "about": "Everything Najma holds about you. API keys are never included.",
+        "about": "Everything Lodestar holds about you. API keys are never included.",
         "tables": tables,
         "memories": memories,
         "notes": notes,

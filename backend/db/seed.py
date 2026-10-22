@@ -20,7 +20,7 @@ from backend.db.twin_store import hash_token
 from backend.registry.loader import load_registry
 from backend.registry.models import Registry
 
-DEMO_NAME = "Amira"
+DEMO_NAME = "Alex"
 DAYS = 21
 SEED = 7
 
@@ -44,7 +44,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
 
     user_id: UUID = conn.execute(
         insert(t.users)
-        .values(display_name=DEMO_NAME, persona="zitouna", age_confirmed=True)
+        .values(display_name=DEMO_NAME, persona="willow", age_confirmed=True)
         .returning(t.users.c.user_id)
     ).scalar_one()
     start = today - timedelta(days=DAYS)
@@ -108,7 +108,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 session_id=session_id,
                 ts=_ts(day, hour),
                 type="session.started",
-                payload={"trigger": "ui", "persona": "zitouna"},
+                payload={"trigger": "ui", "persona": "willow"},
             )
         )
         for r, game in enumerate(rng.sample(p1_games, 3)):
@@ -236,7 +236,7 @@ def main() -> None:
             token = issue_token(conn, user_id)
             print(f"TOKEN={token}")
             print(f"Sign in as {DEMO_NAME}: http://localhost:5173/?signin={token}")
-            print(f"Or in a terminal: bin/najma login --code {token}")
+            print(f"Or in a terminal: bin/lodestar login --code {token}")
 
 
 if __name__ == "__main__":

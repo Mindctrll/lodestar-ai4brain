@@ -1,9 +1,9 @@
 import paramsUrl from './porcupine_params.pv?url'
 
-/** "Hey Najma" (docs/plan/12, Summon): Porcupine Web listens on this device for the keyword
- * only and keeps nothing. It needs the person's own Picovoice AccessKey and their "Hey Najma"
+/** "Hey Lodestar" (docs/plan/12, Summon): Porcupine Web listens on this device for the keyword
+ * only and keeps nothing. It needs the person's own Picovoice AccessKey and their "Hey Lodestar"
  * keyword file (.ppn for Web, made in the Picovoice Console). Both stay in this browser; they
- * are never sent to Najma's server (AGENTS.md rule 9). Without them the wake word is off and
+ * are never sent to Lodestar's server (AGENTS.md rule 9). Without them the wake word is off and
  * tap-to-talk works as always. */
 export interface WakeSetup {
   accessKey: string
@@ -11,8 +11,8 @@ export interface WakeSetup {
   keyword: string
 }
 
-const WAKE_KEY = 'najma.voice.wake'
-export const WAKE_LABEL = 'Hey Najma'
+const WAKE_KEY = 'lodestar.voice.wake'
+export const WAKE_LABEL = 'Hey Lodestar'
 const SENSITIVITY = 0.5
 
 export function wakeSetup(): WakeSetup | null {
@@ -38,7 +38,7 @@ export function maskedKey(key: string): string {
   return `••••${key.slice(-4)}`
 }
 
-/** Start listening for "Hey Najma". Resolves with a function that stops it. */
+/** Start listening for "Hey Lodestar". Resolves with a function that stops it. */
 export async function startWake(setup: WakeSetup, onWake: () => void): Promise<() => void> {
   const [{ PorcupineWorker }, { WebVoiceProcessor }] = await Promise.all([
     import('@picovoice/porcupine-web'),

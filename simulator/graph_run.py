@@ -242,7 +242,7 @@ async def simulate_through_graph(
 
 
 def ease_rate(runs: list[GraphRun], kind: str) -> float:
-    """Share of rounds after which Najma eased off or suggested a break, for one user type."""
+    """Share of rounds after which Lodestar eased off or suggested a break, for one user type."""
     verdicts = [r.verdict for run in runs if run.user.kind == kind for r in run.rounds]
     return sum(v in ("ease", "break") for v in verdicts) / len(verdicts) if verdicts else 0.0
 

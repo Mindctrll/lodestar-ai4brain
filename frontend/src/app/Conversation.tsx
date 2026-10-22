@@ -49,8 +49,8 @@ function AfterGameLabels({
   const guessed = monitor && (monitor.chosen === 'ease' || monitor.chosen === 'break')
   return (
     <div className="labels">
-      <p className="eyebrow">How did that feel?</p>
       <div className="mood" role="group" aria-label="Mood">
+        <span className="labels__ask">How did that feel?</span>
         {(
           [
             ['good', '😀 Good'],
@@ -61,7 +61,7 @@ function AfterGameLabels({
           <button
             key={value}
             type="button"
-            className="chip"
+            className="chip chip--small"
             aria-pressed={mood === value}
             disabled={mood !== null}
             onClick={() => {
@@ -78,7 +78,7 @@ function AfterGameLabels({
           I thought that one was hard for you. Was I right?{' '}
           <button
             type="button"
-            className="chip"
+            className="chip chip--small"
             onClick={() => {
               setAnswered(true)
               send('was_i_right', 'yes', { decision_id: monitor.decisionId })
@@ -88,7 +88,7 @@ function AfterGameLabels({
           </button>{' '}
           <button
             type="button"
-            className="chip"
+            className="chip chip--small"
             onClick={() => {
               setAnswered(true)
               send('was_i_right', 'no', { decision_id: monitor.decisionId })
@@ -210,7 +210,7 @@ function SurfaceCard({
   )
 }
 
-/** The conversation with Najma, which is the whole app: Najma talks, and games, results and the
+/** The conversation with Lodestar, which is the whole app: Lodestar talks, and games, results and the
  * Twin open right here in the thread (docs/plan/03). Panels hold the long-form views. */
 export function Conversation({
   session,
@@ -252,7 +252,7 @@ export function Conversation({
   const liveResult = ['scoring', 'after', 'ended'].includes(state.phase)
     ? state.feed.findLastIndex((i) => i.kind === 'result')
     : -1
-  const lastNajma = state.feed.findLast((i) => i.kind === 'najma')
+  const lastLodestar = state.feed.findLast((i) => i.kind === 'lodestar')
   const heroShown =
     state.feed.length === 0 && (state.phase === 'home' || state.phase === 'resumable')
 
@@ -260,7 +260,7 @@ export function Conversation({
     switch (item.kind) {
       case 'you':
         return <p className="bubble">{item.text}</p>
-      case 'najma':
+      case 'lodestar':
         return (
           <div className="said">
             <Star />
@@ -276,10 +276,12 @@ export function Conversation({
           const played = state.feed.some(
             (x) => x.kind === 'result' && x.roundId === item.spec.round_id,
           )
+          // A played round shows as its result card; only skipped offers leave a line.
+          if (played) return null
           return (
-            <p className={`record${played ? ' record--played' : ''}`}>
+            <p className="record">
               <span className="record__mark" aria-hidden="true" />
-              {played ? 'Played' : 'Offered'} <strong>{name}</strong>
+              Offered <strong>{name}</strong>
             </p>
           )
         }
@@ -296,31 +298,28 @@ export function Conversation({
             />
           )
         return (
-          <article className="turn-card pick" data-testid="suggestion">
-            <span className="pick__glow" aria-hidden="true" />
-            <p className="eyebrow">{state.phase === 'after' ? 'Up next' : 'Najma picked'}</p>
-            <h2>{name}</h2>
-            <ul className="chips" aria-label="Skills">
-              {skillNames(item.spec.game_id).map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-            {item.reason && (
-              <p className="reason">
-                {item.reason}{' '}
-                {item.decision && (
-                  <button
-                    type="button"
-                    className="link"
-                    onClick={() => {
-                      if (item.decision) setWhy(item.decision)
-                    }}
-                  >
-                    Why?
-                  </button>
-                )}
-              </p>
-            )}
+          <article className="pick" data-testid="suggestion">
+            <div className="pick__body">
+              <p className="pick__meta">{state.phase === 'after' ? 'Up next' : 'Your game'}</p>
+              <h2>{name}</h2>
+              {game && <p className="pick__how">{game.instructions}</p>}
+              {item.reason && (
+                <p className="reason">
+                  <span className="reason__text">{item.reason}</span>
+                  {item.decision && (
+                    <button
+                      type="button"
+                      className="link"
+                      onClick={() => {
+                        if (item.decision) setWhy(item.decision)
+                      }}
+                    >
+                      Why?
+                    </button>
+                  )}
+                </p>
+              )}
+            </div>
             {game ? (
               <button type="button" className="primary pick__go" onClick={play}>
                 {state.phase === 'after' ? 'Next game' : "Let's go"}
@@ -336,29 +335,74 @@ export function Conversation({
       }
       case 'result': {
         const live = i === liveResult
-        const round = state.feed.findLast(
-          (x): x is Extract<FeedItem, { kind: 'pick' }> =>
-            x.kind === 'pick' && x.spec.round_id === item.roundId,
-        )
+        const gameId =
+          item.gameId ??
+          state.feed.findLast(
+            (x): x is Extract<FeedItem, { kind: 'pick' }> =>
+              x.kind === 'pick' && x.spec.round_id === item.roundId,
+          )?.spec.game_id
+        const gameName = gameId ? (GAMES[gameId]?.name ?? gameId) : 'Round'
+        const dims = gameId
+          ? Object.keys(registry?.games.find((g) => g.id === gameId)?.dims ?? {})
+          : []
+        const views = dims
+          .map((d) => twin?.dims.find((v) => v.dim === d && v.n > 0))
+          .filter((v) => v !== undefined)
+        // Fact lines (with citations) sit behind "How I worked this out"; story and encouragement
+        // lines stay in view.
+        const story = item.says.filter((l) => !/\[[FDKM]\d+\]/.test(l.text))
+        const facts = item.says.filter((l) => /\[[FDKM]\d+\]/.test(l.text))
         return (
           <article
-            className={`turn-card result${live ? '' : ' result--past'}`}
+            className={`result${live ? ' result--live' : ''}`}
             data-testid={live ? 'after-game' : undefined}
           >
-            <header className="turn-card__head">
-              <p className="eyebrow eyebrow--done">
-                {round ? `${GAMES[round.spec.game_id]?.name ?? round.spec.game_id} · ` : ''}round
-                done
-              </p>
-            </header>
-            {live && <h2>How that went</h2>}
-            {item.says.length === 0 && <p className="muted thinking">Looking at your round</p>}
+            <div className="result__head">
+              <span className="result__check" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              </span>
+              <p className="result__game">{gameName}</p>
+              {item.score && item.score.total > 0 && (
+                <p className="result__score">
+                  <strong>{item.score.right}</strong>
+                  <span>/ {item.score.total} right</span>
+                </p>
+              )}
+            </div>
+            {live && views.length > 0 && (
+              <ul className="result__skills">
+                {views.map((v) => (
+                  <li key={v.dim}>
+                    <span>{registry?.dimensions.find((d) => d.id === v.dim)?.name ?? v.dim}</span>
+                    <strong>{Math.round(v.percent)}%</strong>
+                    <span className="muted">
+                      likely {Math.round(v.percent_low)}–{Math.round(v.percent_high)}%
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className="coach" data-testid={live ? 'coach' : undefined}>
-              {item.says.map((line, j) => (
+              {item.says.length === 0 && live && (
+                <p className="muted thinking">Looking at your round</p>
+              )}
+              {story.map((line, j) => (
                 <p key={j}>
                   <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
                 </p>
               ))}
+              {facts.length > 0 && (
+                <details className="result__more">
+                  <summary>How I worked this out</summary>
+                  {facts.map((line, j) => (
+                    <p key={j}>
+                      <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
+                    </p>
+                  ))}
+                </details>
+              )}
             </div>
             {live && state.sessionId && item.says.length > 0 && (
               <AfterGameLabels
@@ -399,7 +443,7 @@ export function Conversation({
   }
 
   return (
-    <section className="thread" data-testid="chat" aria-label="Talk to Najma">
+    <section className="thread" data-testid="chat" aria-label="Talk to Lodestar">
       {heroShown ? (
         <header className="hero">
           <span className="hero__orb" aria-hidden="true" />
@@ -408,7 +452,7 @@ export function Conversation({
           </p>
           <h1>{greeting(now)}</h1>
           <p className="hero__lede">
-            I&apos;m Najma, a practice coach for how you focus, remember and reason. Tell me how
+            I&apos;m Lodestar, a practice coach for how you focus, remember and reason. Tell me how
             you&apos;re doing, ask me anything, or let me pick a game. I don&apos;t assess medical
             or psychological conditions.
           </p>
@@ -461,18 +505,22 @@ export function Conversation({
           )}
         </header>
       ) : (
-        <h1 className="sr-only">Najma</h1>
+        <h1 className="sr-only">Lodestar</h1>
       )}
 
       <ol className="feed">
-        {state.feed.map((item, i) => (
-          <li
-            key={i}
-            className={`feed__item feed__item--${item.kind}${item.kind === 'najma' && state.feed[i - 1]?.kind === 'najma' ? ' feed__item--cont' : ''}${i === livePick && state.phase === 'playing' ? ' feed__item--playing' : ''}`}
-          >
-            {render(item, i)}
-          </li>
-        ))}
+        {state.feed.map((item, i) => {
+          const node = render(item, i)
+          if (node === null) return null
+          return (
+            <li
+              key={i}
+              className={`feed__item feed__item--${item.kind}${item.kind === 'lodestar' && state.feed[i - 1]?.kind === 'lodestar' ? ' feed__item--cont' : ''}${i === livePick && state.phase === 'playing' ? ' feed__item--playing' : ''}`}
+            >
+              {node}
+            </li>
+          )
+        })}
       </ol>
 
       {state.phase === 'resumable' && state.spec && (
@@ -497,7 +545,7 @@ export function Conversation({
         <article
           className="turn-card confirm"
           role="dialog"
-          aria-label="Najma asks"
+          aria-label="Lodestar asks"
           data-testid="confirm"
         >
           <div className="said">
@@ -535,12 +583,12 @@ export function Conversation({
 
       {state.phase === 'error' && (
         <p role="alert" className="turn-card">
-          Couldn&apos;t reach Najma: {state.error}
+          Couldn&apos;t reach Lodestar: {state.error}
         </p>
       )}
 
       <p className="sr-only" aria-live="polite">
-        {lastNajma?.kind === 'najma' ? lastNajma.text : ''}
+        {lastLodestar?.kind === 'lodestar' ? lastLodestar.text : ''}
       </p>
       <div ref={end} className="thread__end" />
     </section>

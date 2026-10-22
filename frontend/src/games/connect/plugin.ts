@@ -16,7 +16,7 @@ export function makeItems(rng: Rng, count: number, circles: number, clutter: num
 }
 
 const ConnectPlugin = makePlugin<TrailBoard>(
-  'najma-connect',
+  'lodestar-connect',
   async ({ stage, item, practice, e2e }) => {
     const result = await runTrail(stage, e2e, item, config.deadline_ms)
     const score = trailScore(result, item.labels.length)

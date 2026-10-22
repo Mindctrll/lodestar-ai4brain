@@ -40,7 +40,7 @@ def _parse(namespace: tuple[str, ...]) -> tuple[UUID, Writable]:
 
 
 def point_id(namespace: tuple[str, ...], key: str) -> UUID:
-    return uuid.uuid5(uuid.NAMESPACE_URL, "najma-store/" + "/".join(namespace) + "/" + key)
+    return uuid.uuid5(uuid.NAMESPACE_URL, "lodestar-store/" + "/".join(namespace) + "/" + key)
 
 
 def _item(namespace: tuple[str, ...], key: str, payload: dict[str, Any]) -> Item:

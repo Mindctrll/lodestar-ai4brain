@@ -25,7 +25,7 @@
 - {text: "I'm feeling sick today", kind: life_context}
 - {text: "final exams start monday", kind: life_context}
 - {text: "long day at work, exhausted", kind: life_context}
-- {text: "use the Hikma coach", kind: settings}
+- {text: "use the Sage coach", kind: settings}
 - {text: "I prefer harder games", kind: settings}
 - {text: "make it more chill", kind: settings}
 - {text: "please stop suggesting reasoning", kind: settings, avoid: [reasoning]}

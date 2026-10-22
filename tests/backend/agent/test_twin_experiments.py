@@ -37,7 +37,7 @@ def test_comparison_and_its_facts() -> None:
     assert close.verdict == "inconclusive"
     for comparison in (clear, close):
         packet, text = result_facts(comparison)
-        assert verify(text, packet, NAMES, "zitouna").ok, text
+        assert verify(text, packet, NAMES, "willow").ok, text
 
 
 async def seed_trials(

@@ -31,7 +31,7 @@ export function makeItems(rng: Rng, count: number, length: number): ScrambleItem
 }
 
 const ScramblePlugin = makePlugin<ScrambleItem>(
-  'najma-scramble',
+  'lodestar-scramble',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     stage.append(
       el('div', 'big-symbol scramble-letters', item.letters.toUpperCase().split('').join(' ')),

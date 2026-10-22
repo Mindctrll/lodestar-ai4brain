@@ -29,7 +29,7 @@ export function makeItems(rng: Rng, count: number, validity: number, soa: number
 }
 
 const CuePlugin = makePlugin<CueItem>(
-  'najma-look-here',
+  'lodestar-look-here',
   async ({ jsPsych, stage, item, practice, e2e }) => {
     const field = el('div', 'lh-field')
     const boxes = { left: el('div', 'lh-box'), right: el('div', 'lh-box') }
