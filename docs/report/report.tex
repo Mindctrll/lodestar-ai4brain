@@ -71,6 +71,20 @@ Bonus & Voice in/out with wake word; on-device strain cues; predictive growth \\
 \caption{Brief requirements and where they are met.}\label{tab:map}
 \end{table}
 
+\section{Related work and positioning}
+Commercial brain-training apps (Lumosity, CogniFit, Elevate) report scores and streaks, but not how
+sure they are, why a game was chosen, or what the score means for the person. Adaptive practice
+systems in education solved the measurement half: Math Garden updated player and item ratings after
+every answer with an Elo system and a high-speed high-stakes scoring rule for over 150{,}000 children
+\cite{klinkenberg}, and recent dynamic-K Elo variants let uncertainty grow when practice stops. Item
+response theory and computerised adaptive testing give the statistical frame, but are built for
+one-off tests rather than a profile that keeps changing. On the coaching side, language models write
+fluent feedback but invent numbers, and AI assistance can make people over-rely on it
+\cite{bucinca}. Lodestar combines the three: a Kalman/Glicko-style Elo per skill with honest ranges,
+a graph agent whose decisions are code and are recorded, and a coach that may only say numbers it can
+cite. It also turns the over-reliance problem into something to train and measure, with the AI
+Collaboration Score.
+
 \section{Architecture}
 \begin{figure}[h]
 \centering
@@ -104,6 +118,45 @@ or none at all. Users bring their own key for eight hosted providers, or use a l
 are encrypted at rest and decrypted only inside the LLM factory. All storage is Postgres (structured
 data, append-only events), Qdrant (memory search, always filtered by user) and readable Markdown notes.
 
+\textbf{The graph.} Every turn enters at \texttt{ingest}, runs five perception nodes in parallel
+(load the twin, recall memories, read affect and context, forecast), then a \texttt{safety\_gate}
+that refuses diagnosis requests before anything else happens, and \texttt{route\_intent}, which
+reads the turn as play, conversation or a question to the Twin. The play path is
+\texttt{plan\_next} $\to$ \texttt{prepare\_exercise} $\to$ \texttt{play} (an interrupt: the graph
+waits for the browser to run the game) $\to$ \texttt{score\_update} $\to$ \texttt{monitor}
+(continue, ease off, break or stop) $\to$ \texttt{reflect} $\to$ \texttt{coach}. The conversation path
+can call tools (set a goal, start an experiment, change a setting); any write first goes through
+\texttt{confirm}, an interrupt that shows the change and waits for a yes. Every path ends in
+\texttt{remember} and, at the end of a session, \texttt{consolidate}. Each node streams its start,
+end and timing to the browser, which is what lights up the Agent page.
+
+\textbf{Memory.} Postgres holds the event log, trials, rounds, the twin's state and daily history,
+goals, experiments, decisions and traces. Qdrant holds three collections: \emph{episodic} moments,
+distilled \emph{facts} with a validity period, and a shared \emph{knowledge} collection of tips
+written by the team. Recall prefetches dense (bge-small) and sparse (BM25) candidates filtered by
+user, fuses them, rescores by relevance, importance and time decay, and diversifies with MMR.
+Consolidation merges near-duplicates, promotes repeated observations to facts, expires old moments
+and rewrites \texttt{core.md}, the short profile the person can read and edit.
+
+\textbf{Design decisions and their trade-offs.}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}p{3.6cm}p{3.6cm}p{9cm}@{}}
+\toprule
+Decision & Instead of & Why \\
+\midrule
+Graph agent, decisions in code & A free LLM tool loop & Decisions must be explainable, testable and resumable; the LLM only phrases them. \\
+Kalman-Elo per skill & Fixed tests, or IRT batch fits & Updates after every answer, carries its own uncertainty, grows uncertain with time away; cheap enough to run per trial. \\
+Facts packet + verifier & Prompting the LLM to be careful & Only checking can guarantee every number is real; a 4B local model passes after repair. \\
+Postgres + Qdrant + Markdown & One vector database, or files & An append-only event log makes the profile rebuildable and auditable; search stays per user; notes stay readable. \\
+Bring your own key, local fallback & One hosted provider & No cost to run, no data to a provider without consent, works offline. \\
+Behaviour first for affect & Camera-first emotion AI & Works for everyone, needs no biometrics; the camera only adds a weak cue and never touches the profile. \\
+Simulated norms, labelled & Borrowed norms on another scale & Showing a percentile we can't back would overstate accuracy; a linking study comes first. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Assessment and the Brain Twin}
 \textbf{Skills and tasks.} Sixteen skills are grouped into attention, self-control, memory, speed,
 reasoning and language, each tagged \emph{established}, \emph{moderate} or \emph{experimental} by the
@@ -112,6 +165,35 @@ switching, digit span, mental rotation, Tower of London, matrices) are rebuilt f
 descriptions, alongside original games and a Detective story whose chapters are games. A registry in
 YAML describes every game (skills and loadings, scoring, difficulty knobs, practice trials) and drives
 the UI, the scorer and the agent alike. A five-minute warm-up battery measures the core skills first.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Family & Skill & Evidence & Example games \\
+\midrule
+Attention & Selective attention & established & Arrow Storm (flanker), Look Here (Posner), Odd One Out \\
+ & Sustained attention & established & Night Guard (vigilance) \\
+ & Divided attention & moderate & Control Tower, Two Screens (dual task) \\
+Self-control & Inhibition & established & Ink Clash (Stroop), Hold It (go/no-go), Brake (stop-signal) \\
+ & Cognitive flexibility & established & Switch, Zigzag (trail switching), Secret Rules (card sort) \\
+Memory & Working memory & established & Echo (n-back), Digits Back, Market Rush \\
+ & Short-term memory & established & Seen It?, Market List, Name Tags, Callback (delayed) \\
+Speed & Processing speed & established & Quick Draw, Symbol Code, Twins, Connect \\
+ & Rhythm and timing & experimental & Off Beat \\
+Reasoning & Reasoning & established & Pattern Gap (matrices), Logic Lock, Spot the AI's Mistake \\
+ & Spatial thinking & established & Turn It (rotation), Fold \& Punch, Light Path (Corsi) \\
+ & Planning & moderate & Tower (Tower of London), Maze Escape, Guide the Robot \\
+Language & Numerical thinking & established & Number Line, Quick Maths, Which Jar? \\
+ & Verbal skill & moderate & Word Burst (fluency), Scramble, Teach Me \\
+Style & Decision style under risk & moderate & Balloon Pump (BART), Card Gamble (IGT) \\
+ & Self-awareness of accuracy & experimental & ``How sure?'' after about one answer in ten \\
+ & Creativity & experimental & Unusual Uses, rated against a rubric \\
+\bottomrule
+\end{tabular}
+\caption{The 16 skills and one thinking style, with the strength of their evidence and the games that
+measure them. Styles are shown as styles, never as ``better'' or ``worse''.}
+\end{table}
 
 \textbf{Scoring.} Each skill $d$ has a belief $\theta_d\sim\mathcal N(\mu,\sigma^2)$ on a logit scale,
 each level a difficulty $b$. For an answer with outcome $S$ (timed tasks use a high-speed high-stakes
@@ -173,6 +255,16 @@ life-context strips, heatmaps by week and time of day, and goal cards; every est
 \caption{Left: Insights, each reading with its range and the model behind it. Right: the Agent page, the five stages and the decisions with their reasons.}
 \end{figure}
 
+\textbf{Fresh content and games made to order.} Items that could be memorised are generated fresh
+and pass five validators (schema, content rules, the banned-word filter, a solver that checks there
+is exactly one right answer, and novelty against what the person has already seen), with one repair
+round and a pre-filled pool so play never waits on a model. Matrices are generated by a program from
+rules, not by the LLM; for planted mistakes the program writes a correct solution, the LLM introduces
+one subtle error in 70\% of items, and the solver re-runs the steps to confirm it. When a person asks for a new game (``remember a phone number while doing
+maths''), the LLM writes a recipe of known blocks (show items, distractor, recall, choice, rule,
+react); code validates it, a block engine runs it, and its scores count with reliability 0.4 until
+it has been tested more. The LLM never writes code that runs.
+
 \section{AI Collaboration Score}
 Each of five components is measured inside games: critical verification (finding planted mistakes
 in the AI's worked solutions, with consent), autonomy (solving before asking for a hint), iteration
@@ -209,6 +301,22 @@ combined with a Kaplan--Meier curve across sessions, gives the minute at which a
 \caption{Left: the growth forecast's 80\% ranges hold on held-out real players at every horizon. Right: true-skill gain with the bandit versus random games.}
 \end{figure}
 
+\section{A session, end to end}
+\begin{enumerate}
+\item The person says ``I slept badly, something short''. \texttt{route\_intent} reads a quick
+session and records the life note; the twin and memories are loaded.
+\item \texttt{plan\_next} scores every skill, prefers short games, and records the decision with
+its candidates; the reason appears on the pick card with ``Why?''.
+\item The game runs in the browser; each trial is sent as an event, so a crash resumes on the same
+trial.
+\item \texttt{score\_update} updates the skill in one transaction; \texttt{monitor} sees a slowdown
+past the person's fatigue point and offers a break instead of another round.
+\item \texttt{reflect} builds the facts packet; \texttt{coach} drafts, verifies and repairs; the
+result card shows the score, the skill with its range, and the coach's cited sentence.
+\item \texttt{remember} keeps the moment; at the end of the session \texttt{consolidate} updates the
+notes and facts the person can read on the Memory page.
+\end{enumerate}
+
 \section{Evaluation}
 A simulator draws 200 people with known true skills (correlated as in NCPT), plays ten sessions each
 through the scoring and selection code, and checks the profile against the truth.
@@ -244,6 +352,16 @@ Answers break the model: recovery after 3 / 10 sessions; ranges held & 0.771 / 0
 \caption{Left: recovery of true skill by session. Right: coverage of the 80\% ranges.}
 \end{figure}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.24\linewidth]{eval_04_warmup.png}\hfill
+\includegraphics[width=0.24\linewidth]{eval_05_bad_data.png}\hfill
+\includegraphics[width=0.24\linewidth]{eval_07_acs.png}\hfill
+\includegraphics[width=0.24\linewidth]{eval_08_coach.png}
+\caption{From left: uncertainty left after the five-minute warm-up; bad data caught; AI Collaboration
+Score rank stability under weight changes; coach faithfulness with a 4B local model.}
+\end{figure}
+
 \textbf{Generalisation and robustness.} Every model that touches people was trained on one set of real
 people and evaluated on others it never saw: 36{,}297 Lumosity players for the forecast (ranges held
 79.7\%), 25{,}273 OULAD students for engagement (AUC 0.857). To test the profile beyond its own
@@ -263,6 +381,23 @@ run in CI.
 \includegraphics[width=0.32\linewidth]{eval_11_degradation.png}
 \caption{Generalisation and robustness. Left: recovery and coverage when answers break the scoring model. Middle: error after long gaps and with device lag. Right: sessions completed through the real agent with models, memory, or both unavailable.}
 \end{figure}
+
+\section{Voice and emotion-aware coaching (bonus)}
+\textbf{Voice.} Tap to talk or say ``Hey Lodestar'' (Porcupine Web, with the person's own key and
+keyword file). Speech is transcribed by the browser, by Whisper on the server, or by Whisper running
+in the browser so audio never leaves the device; audio is discarded after transcription. Replies are
+spoken with one Kokoro voice per coach, citations are left out of speech, and every spoken line is on
+screen. Games can be voice-guided (``Ready. Go!'') and some accept spoken answers.
+
+\textbf{Frustration and fatigue without a camera.} The mandatory non-biometric path reads behaviour:
+error streaks, slowdowns against the person's own baseline, rising variability, rapid repeated taps,
+hint bursts, quitting and ``too hard?''. It can ease difficulty, switch to a lighter game, suggest a
+break or soften the coach's tone, and after it acts it asks ``Was I right?'' to collect labels.
+\textbf{Optional camera and voice tone.} With their own consent switches, MediaPipe face blendshapes
+(brow, eyes, mouth press) and speaking rate and pauses become one coarse ``strain'' number each,
+computed in the browser and sent alone; behaviour keeps at least 70\% of the weight. A browser test
+watches every network call while the camera runs and allows exactly one coarse number to leave.
+These cues are described as strain cues, never as reading emotions.
 
 \section{Ethics, safety and data}
 Seven consent switches (core data, cloud AI, microphone, camera, voice tone, planted-mistake games,
@@ -284,11 +419,22 @@ accuracy awareness) are labelled as such. Next: a consented pilot with 5--10 peo
 ``why'' cards are understood, labels for the frustration cues), a linking study for norms, and more
 languages.
 
-\section*{References}
-\small
-Klinkenberg, Straatemeier \& van der Maas (2011), Computer adaptive practice of Maths ability using a
-new item response model for on the fly ability and difficulty estimation. \emph{Computers \& Education}.
-Jaffe et al. (2022), NCPT, \emph{Scientific Data}. Steyvers \& Schafer (2020), \emph{Nature Human
-Behaviour}. Kuzilek, Hlosta \& Zdrahal (2017), OULAD, \emph{Scientific Data}. Bu\c{c}inca, Malaya \&
-Gajos (2021), To trust or to think, \emph{CSCW}. Vovk et al. (2015), Venn--Abers predictors.
+\begin{thebibliography}{9}\small
+\bibitem{klinkenberg} S.~Klinkenberg, M.~Straatemeier, H.~van der Maas. Computer adaptive practice of
+maths ability using a new item response model for on the fly ability and difficulty estimation.
+\emph{Computers \& Education}, 2011.
+\bibitem{bucinca} Z.~Bu\c{c}inca, M.~Malaya, K.~Gajos. To trust or to think: cognitive forcing functions
+can reduce overreliance on AI in AI-assisted decision-making. \emph{CSCW}, 2021.
+\bibitem{ncpt} D.~Jaffe et al. A large-scale normative dataset of cognitive performance (NCPT).
+\emph{Scientific Data}, 2022.
+\bibitem{steyvers} M.~Steyvers, R.~Schafer. Inferring latent learning factors in large-scale
+cognitive training data. \emph{Nature Human Behaviour}, 2020.
+\bibitem{oulad} J.~Kuzilek, M.~Hlosta, Z.~Zdrahal. Open University Learning Analytics dataset.
+\emph{Scientific Data}, 2017.
+\bibitem{vovk} V.~Vovk, I.~Petej, V.~Fedorova. Large-scale probabilistic predictors with and without
+guarantees of validity (Venn--Abers). \emph{NeurIPS}, 2015.
+\bibitem{baker} R.~Baker et al. Towards sensor-free affect detection in cognitive tutor algebra.
+\emph{EDM}, 2012.
+\bibitem{mediapipe} Google. MediaPipe Face Landmarker, 2023.
+\end{thebibliography}
 \end{document}
