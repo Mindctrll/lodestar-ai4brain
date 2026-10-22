@@ -659,6 +659,43 @@
         "title": "BiometricCues",
         "type": "object"
       },
+      "Calibration": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "description": "80% range of `right`, Wilson interval",
+            "title": "Low",
+            "type": "number"
+          },
+          "right": {
+            "description": "Share of those answers that were right",
+            "title": "Right",
+            "type": "number"
+          },
+          "said": {
+            "description": "Mean confidence given, 0.5 to 1",
+            "title": "Said",
+            "type": "number"
+          }
+        },
+        "required": [
+          "said",
+          "right",
+          "low",
+          "high",
+          "answers"
+        ],
+        "title": "Calibration",
+        "type": "object"
+      },
       "Candidate": {
         "additionalProperties": false,
         "properties": {
@@ -2481,6 +2518,43 @@
         "title": "FactsPacket",
         "type": "object"
       },
+      "FatiguePoint": {
+        "additionalProperties": false,
+        "description": "Minutes into a session when this person's answers usually start to slow down\n(docs/plan/10, section 3): a median with its middle half, from past sessions.",
+        "properties": {
+          "high": {
+            "description": "75th percentile, minutes",
+            "exclusiveMinimum": 0.0,
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "description": "25th percentile, minutes",
+            "exclusiveMinimum": 0.0,
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "exclusiveMinimum": 0.0,
+            "title": "Median",
+            "type": "number"
+          },
+          "sessions": {
+            "description": "Sessions it rests on",
+            "minimum": 1.0,
+            "title": "Sessions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "low",
+          "median",
+          "high",
+          "sessions"
+        ],
+        "title": "FatiguePoint",
+        "type": "object"
+      },
       "Feedback": {
         "additionalProperties": false,
         "description": "Show how the round is going so far (not scored).",
@@ -3190,6 +3264,41 @@
           "duplicates"
         ],
         "title": "IngestResult",
+        "type": "object"
+      },
+      "InsightsView": {
+        "additionalProperties": false,
+        "properties": {
+          "calibration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Calibration"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fatigue": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FatiguePoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rhythm": {
+            "$ref": "#/components/schemas/Rhythm"
+          }
+        },
+        "required": [
+          "fatigue",
+          "calibration",
+          "rhythm"
+        ],
+        "title": "InsightsView",
         "type": "object"
       },
       "Intent": {
@@ -4117,6 +4226,68 @@
         "title": "MessageInput",
         "type": "object"
       },
+      "ModelCard": {
+        "additionalProperties": false,
+        "properties": {
+          "does": {
+            "title": "Does",
+            "type": "string"
+          },
+          "headline": {
+            "items": {
+              "$ref": "#/components/schemas/ModelHeadline"
+            },
+            "title": "Headline",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "trained_at": {
+            "format": "date-time",
+            "title": "Trained At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "does",
+          "version",
+          "trained_at",
+          "headline"
+        ],
+        "title": "ModelCard",
+        "type": "object"
+      },
+      "ModelHeadline": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "ModelHeadline",
+        "type": "object"
+      },
       "MyData": {
         "additionalProperties": false,
         "properties": {
@@ -4233,6 +4404,26 @@
           "b"
         ],
         "title": "PerRoundGain",
+        "type": "object"
+      },
+      "PersonaInput": {
+        "additionalProperties": false,
+        "properties": {
+          "persona": {
+            "enum": [
+              "willow",
+              "spark",
+              "sage",
+              "buddy"
+            ],
+            "title": "Persona",
+            "type": "string"
+          }
+        },
+        "required": [
+          "persona"
+        ],
+        "title": "PersonaInput",
         "type": "object"
       },
       "PracticeGain": {
@@ -4586,6 +4777,39 @@
           "value"
         ],
         "title": "ResumeInput",
+        "type": "object"
+      },
+      "Rhythm": {
+        "additionalProperties": false,
+        "properties": {
+          "active_7": {
+            "description": "Days played in the last 7 days",
+            "title": "Active 7",
+            "type": "integer"
+          },
+          "active_prev_7": {
+            "description": "Days played in the 7 days before",
+            "title": "Active Prev 7",
+            "type": "integer"
+          },
+          "rounds": {
+            "description": "Rounds in all",
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "sessions": {
+            "description": "Sessions in all",
+            "title": "Sessions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active_7",
+          "active_prev_7",
+          "sessions",
+          "rounds"
+        ],
+        "title": "Rhythm",
         "type": "object"
       },
       "RoundCompleted": {
@@ -6354,6 +6578,59 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/about/models": {
+      "get": {
+        "operationId": "get_models_about_models_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelCard"
+                  },
+                  "title": "Response Get Models About Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Models",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
     "/acs": {
       "get": {
         "operationId": "get_acs_acs_get",
@@ -7565,6 +7842,55 @@
         ]
       }
     },
+    "/me/insights": {
+      "get": {
+        "operationId": "get_insights_me_insights_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Insights",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
     "/me/life-context/{context_id}": {
       "delete": {
         "description": "Removes the window from now on; rounds already scored keep the weight they had.",
@@ -7680,6 +8006,59 @@
         "summary": "Forget Memory",
         "tags": [
           "data rights"
+        ]
+      }
+    },
+    "/me/persona": {
+      "put": {
+        "description": "Switch coach from the Coach page; the same change as asking in the chat (UW20). Every\nturn reads the coach from the user row, so the next reply uses it.",
+        "operationId": "set_persona_me_persona_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Persona",
+        "tags": [
+          "insights"
         ]
       }
     },

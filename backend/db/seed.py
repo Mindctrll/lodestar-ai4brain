@@ -1,5 +1,6 @@
 """`make seed`: a demo user with eight weeks of practice, goals, life notes, experiments and
-the agent's decisions, for building and showing the dashboard.
+the agent's decisions, for building and showing the dashboard. Their memory notes are written by
+`backend.db.seed_memory`, which runs inside the backend container.
 
 Projection rows (dimension_state, history) are written directly with a simple random walk. They are
 demo data only: once the scoring engine exists, `make rebuild-twin` recomputes them from the
@@ -122,7 +123,10 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 payload={"trigger": "ui", "persona": "willow"},
             )
         )
-        played = rng.sample(p1_games, rng.choice([3, 3, 4, 5]))
+        # The last two weeks have long sessions that slow down after about 13 minutes, so the
+        # fatigue point (docs/plan/10) has something to find.
+        recent = offset >= DAYS - 14
+        played = rng.sample(p1_games, 5 if recent else rng.choice([3, 3, 4]))
         for r, game in enumerate(played):
             round_id = uuid4()
             level = round(rng.uniform(0.2, 0.7), 2)
@@ -140,14 +144,18 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                     ended_at=started + timedelta(minutes=2),
                 )
             )
+            tired = recent and r >= 3
             for i in range(10):
-                correct = rng.random() < 0.78
+                correct = rng.random() < (0.7 if tired else 0.78)
                 correct_count += correct
+                slow = 1.45 if tired else 1.0
+                # About one answer in seven gets a "How sure?" reading, a little over-confident.
+                sure = rng.choice([0.7, 0.8, 0.8, 0.9, 0.9, 1.0]) if i % 7 == 3 else None
                 trial = {
                     "trial_id": uuid4(), "user_id": user_id, "session_id": session_id,
                     "round_id": round_id, "game_id": game.id, "level": level, "trial_index": i,
-                    "correct": correct, "rt_ms": round(rng.lognormvariate(6.4, 0.25), 1),
-                    "stimulus": {"i": i}, "response": {"ok": correct},
+                    "correct": correct, "rt_ms": round(rng.lognormvariate(6.4, 0.25) * slow, 1),
+                    "confidence": sure, "stimulus": {"i": i}, "response": {"ok": correct},
                     "ts": started + timedelta(seconds=6 * i),
                 }  # fmt: skip
                 conn.execute(insert(t.trials).values(**trial))

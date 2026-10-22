@@ -15,6 +15,7 @@ from backend.api import (
     affect,
     experiments,
     goals,
+    insights,
     llm,
     me,
     progress,
@@ -98,6 +99,7 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
     app.include_router(progress.router)
     app.include_router(voice.router)
     app.include_router(experiments.router)
+    app.include_router(insights.router)
     app.dependency_overrides[llm_factory_dep] = lambda: app.state.services.llm
     # The MCP tool server for the CLI (UW19), on the same runner as the web app's sessions.
     app.state.mcp = build_server(lambda: app.state.runner)

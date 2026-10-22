@@ -9,7 +9,18 @@ import { GameFrame } from '../taskhost/GameFrame'
 import { Cited } from './Cited'
 import type { FeedItem, Surface, useSession } from './useSession'
 
-export type Panel = 'twin' | 'progress' | 'experiments' | 'agent' | 'acs' | 'settings'
+export type Panel =
+  | 'games'
+  | 'coach'
+  | 'twin'
+  | 'progress'
+  | 'insights'
+  | 'experiments'
+  | 'agent'
+  | 'memory'
+  | 'acs'
+  | 'about'
+  | 'settings'
 
 /** `?ask=...` starts the session with that request, as if the user had said it. */
 function askFromUrl(): string | undefined {

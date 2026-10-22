@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+  '/about/models': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Models */
+    get: operations['get_models_about_models_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/acs': {
     parameters: {
       query?: never
@@ -372,6 +389,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/insights': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Insights */
+    get: operations['get_insights_me_insights_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/life-context/{context_id}': {
     parameters: {
       query?: never
@@ -404,6 +438,27 @@ export interface paths {
     post?: never
     /** Forget Memory */
     delete: operations['forget_memory_me_memories__collection___point_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/persona': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Set Persona
+     * @description Switch coach from the Coach page; the same change as asking in the chat (UW20). Every
+     *     turn reads the coach from the user row, so the next reply uses it.
+     */
+    put: operations['set_persona_me_persona_put']
+    post?: never
+    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -912,6 +967,28 @@ export interface components {
        * @default null
        */
       voice_strain_cue: number | null
+    }
+    /** Calibration */
+    Calibration: {
+      /** Answers */
+      answers: number
+      /** High */
+      high: number
+      /**
+       * Low
+       * @description 80% range of `right`, Wilson interval
+       */
+      low: number
+      /**
+       * Right
+       * @description Share of those answers that were right
+       */
+      right: number
+      /**
+       * Said
+       * @description Mean confidence given, 0.5 to 1
+       */
+      said: number
     }
     /** Candidate */
     Candidate: {
@@ -1758,6 +1835,30 @@ export interface components {
       memories?: components['schemas']['MemoryItem'][]
     }
     /**
+     * FatiguePoint
+     * @description Minutes into a session when this person's answers usually start to slow down
+     *     (docs/plan/10, section 3): a median with its middle half, from past sessions.
+     */
+    FatiguePoint: {
+      /**
+       * High
+       * @description 75th percentile, minutes
+       */
+      high: number
+      /**
+       * Low
+       * @description 25th percentile, minutes
+       */
+      low: number
+      /** Median */
+      median: number
+      /**
+       * Sessions
+       * @description Sessions it rests on
+       */
+      sessions: number
+    }
+    /**
      * Feedback
      * @description Show how the round is going so far (not scored).
      */
@@ -2072,6 +2173,12 @@ export interface components {
       accepted: number
       /** Duplicates */
       duplicates: number
+    }
+    /** InsightsView */
+    InsightsView: {
+      calibration: components['schemas']['Calibration'] | null
+      fatigue: components['schemas']['FatiguePoint'] | null
+      rhythm: components['schemas']['Rhythm']
     }
     /** Intent */
     Intent: {
@@ -2503,6 +2610,31 @@ export interface components {
       /** Text */
       text: string
     }
+    /** ModelCard */
+    ModelCard: {
+      /** Does */
+      does: string
+      /** Headline */
+      headline: components['schemas']['ModelHeadline'][]
+      /** Name */
+      name: string
+      /** Title */
+      title: string
+      /**
+       * Trained At
+       * Format: date-time
+       */
+      trained_at: string
+      /** Version */
+      version: string
+    }
+    /** ModelHeadline */
+    ModelHeadline: {
+      /** Label */
+      label: string
+      /** Value */
+      value: string
+    }
     /** MyData */
     MyData: {
       /**
@@ -2550,6 +2682,14 @@ export interface components {
       a: number
       /** B */
       b: number
+    }
+    /** PersonaInput */
+    PersonaInput: {
+      /**
+       * Persona
+       * @enum {string}
+       */
+      persona: 'willow' | 'spark' | 'sage' | 'buddy'
     }
     /**
      * PracticeGain
@@ -2706,6 +2846,29 @@ export interface components {
       value: {
         [key: string]: unknown
       }
+    }
+    /** Rhythm */
+    Rhythm: {
+      /**
+       * Active 7
+       * @description Days played in the last 7 days
+       */
+      active_7: number
+      /**
+       * Active Prev 7
+       * @description Days played in the 7 days before
+       */
+      active_prev_7: number
+      /**
+       * Rounds
+       * @description Rounds in all
+       */
+      rounds: number
+      /**
+       * Sessions
+       * @description Sessions in all
+       */
+      sessions: number
     }
     /** RoundCompleted */
     RoundCompleted: {
@@ -3558,6 +3721,37 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  get_models_about_models_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ModelCard'][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   get_acs_acs_get: {
     parameters: {
       query?: never
@@ -4290,6 +4484,37 @@ export interface operations {
       }
     }
   }
+  get_insights_me_insights_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['InsightsView']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   forget_life_context_me_life_context__context_id__delete: {
     parameters: {
       query?: never
@@ -4334,6 +4559,39 @@ export interface operations {
       cookie?: never
     }
     requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  set_persona_me_persona_put: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PersonaInput']
+      }
+    }
     responses: {
       /** @description Successful Response */
       204: {

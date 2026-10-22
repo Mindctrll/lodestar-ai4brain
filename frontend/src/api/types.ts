@@ -26,6 +26,8 @@ export type DimensionView = Schemas['DimensionView']
 export type Dimension = Schemas['Dimension']
 export type MeView = Schemas['MeView']
 export type ExperimentView = Schemas['ExperimentView']
+export type InsightsView = Schemas['InsightsView']
+export type ModelCard = Schemas['ModelCard']
 
 /** A write Lodestar wants to make, waiting for the user's yes (docs/plan/03, converse tools). */
 export interface ConfirmRequest {

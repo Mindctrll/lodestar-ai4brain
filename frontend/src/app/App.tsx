@@ -3,11 +3,16 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { SignalIndicator } from '../affect/SignalIndicator'
 import { adoptSignIn, api, forgetUser, hasUser } from '../api/client'
 import type { Persona, Receipt } from '../api/types'
+import { About } from '../dashboard/About'
 import { AcsPanel } from '../dashboard/AcsPanel'
 import { Agent } from '../dashboard/Agent'
 import { HourHeatmap, Radar, SkillCurve, WeekHeatmap } from '../dashboard/charts'
+import { Coach } from '../dashboard/Coach'
 import { Experiments } from '../dashboard/Experiments'
+import { Games } from '../dashboard/Games'
 import { Goals } from '../dashboard/Goals'
+import { Insights } from '../dashboard/Insights'
+import { Memory } from '../dashboard/Memory'
 import { NightSky } from '../dashboard/NightSky'
 import { SkillPage } from '../dashboard/SkillPage'
 import { useDashboard } from '../dashboard/useDashboard'
@@ -25,6 +30,22 @@ import { useSession } from './useSession'
 type NavItem = { id: Panel; label: string; icon: ReactNode }
 
 /** Line icons on a 24px grid, drawn with `currentColor`. */
+const PLAY: NavItem[] = [
+  {
+    id: 'games',
+    label: 'Games',
+    icon: (
+      <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15.4A3 3 0 0 0 7.3 17.6L9 16h6l1.7 1.6a3 3 0 0 0 5.3-2.2l-.7-6.8A4 4 0 0 0 17.3 5z" />
+    ),
+  },
+  {
+    id: 'coach',
+    label: 'Coach',
+    icon: (
+      <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+    ),
+  },
+]
 const NAV: NavItem[] = [
   {
     id: 'twin',
@@ -37,6 +58,13 @@ const NAV: NavItem[] = [
     id: 'progress',
     label: 'Progress',
     icon: <path d="M3 3v16a2 2 0 0 0 2 2h16M7 15l4-4 3 3 6-6M16 8h4v4" />,
+  },
+  {
+    id: 'insights',
+    label: 'Insights',
+    icon: (
+      <path d="M9 18h6M10 22h4M15.1 14c.2-1 .7-1.7 1.4-2.5A6 6 0 1 0 6 8c0 1.4.5 2.5 1.5 3.5.7.7 1.2 1.5 1.4 2.5" />
+    ),
   },
   {
     id: 'experiments',
@@ -53,9 +81,19 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    id: 'memory',
+    label: 'Memory',
+    icon: <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20M9 7h6M9 11h4" />,
+  },
+  {
     id: 'acs',
     label: 'AI collaboration',
     icon: <path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4" />,
+  },
+  {
+    id: 'about',
+    label: 'Under the hood',
+    icon: <path d="M12 2l10 5-10 5L2 7zM2 17l10 5 10-5M2 12l10 5 10-5" />,
   },
 ]
 const SETTINGS: NavItem = {
@@ -65,8 +103,13 @@ const SETTINGS: NavItem = {
     <path d="M20 7h-9M14 17H5M17 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
   ),
 }
-const ALL = [...NAV, SETTINGS]
+const ALL = [...PLAY, ...NAV, SETTINGS]
 const SUBTITLE: Record<Panel, string> = {
+  games: 'Every game, the Detective story, and games made to order.',
+  coach: 'Four coaches, one set of facts. Pick the voice you like.',
+  insights: 'What Lodestar has learned about how you work, each with its range.',
+  memory: 'What Lodestar remembers about you. Forget anything, any time.',
+  about: 'The architecture, the models, how they were tested, and the rules.',
   twin: 'Every skill, with how sure Lodestar is about it.',
   progress: 'Your goals and how each skill has moved.',
   experiments: 'Try one change and see if it helps you.',
@@ -317,6 +360,24 @@ export function App() {
         </section>
       </>
     )
+  } else if (panel === 'games' && registry) {
+    body = (
+      <Games
+        registry={registry}
+        onPlay={(ask) => {
+          setPanel(null)
+          void session.send(ask)
+        }}
+      />
+    )
+  } else if (panel === 'coach') {
+    body = <Coach onChange={setPersona} />
+  } else if (panel === 'insights') {
+    body = <Insights progress={progress} forecast={forecast} twin={twin} />
+  } else if (panel === 'memory') {
+    body = <Memory />
+  } else if (panel === 'about') {
+    body = <About />
   } else if (panel === 'experiments') {
     body = (
       <Experiments
@@ -405,10 +466,12 @@ export function App() {
             </Icon>
             <span className="rail__label">Conversation</span>
           </button>
+          <p className="rail__group">Play</p>
+          {PLAY.map(navButton)}
           <p className="rail__group">Your mind</p>
-          {NAV.slice(0, 3).map(navButton)}
+          {NAV.slice(0, 4).map(navButton)}
           <p className="rail__group">Behind the scenes</p>
-          {NAV.slice(3).map(navButton)}
+          {NAV.slice(4).map(navButton)}
           <span className="rail__spacer" />
           {localMode && (
             <p className="rail__note" title="Lodestar uses the model on this server">

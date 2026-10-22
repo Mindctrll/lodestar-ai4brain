@@ -60,8 +60,9 @@ format: ## auto-format backend and frontend
 migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postgres)
 	uv run alembic upgrade head
 
-seed: ## add the demo user (Alex) with three weeks of practice; prints a sign-in link
+seed: ## add the demo user (Alex) with eight weeks of practice and memory notes; prints a sign-in link
 	uv run python -m backend.db.seed --token
+	docker compose exec -T backend python -m backend.db.seed_memory || echo "Memory notes skipped: start the backend (make up) and run make seed again."
 
 cli: ## the lodestar CLI against the running app, e.g. make cli ARGS="chat" (or use bin/lodestar)
 	uv run python -m cli $(ARGS)
