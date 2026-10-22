@@ -21,7 +21,7 @@ def test_eval_writes_every_figure_and_the_summary(
     main(["--quick", "--stub-coach", "--out", str(tmp_path)])
     summary = (tmp_path / "eval_summary.md").read_text(encoding="utf-8")
     rows = re.findall(r"^\| (\d+) \|.*\| (pass|FAIL|reported|skipped) \| (.+) \|$", summary, re.M)
-    assert [int(n) for n, _, _ in rows] == list(range(1, 12))
+    assert [int(n) for n, _, _ in rows] == list(range(1, 13))
     for _, status, figure in rows:
         if status != "skipped":
             name = figure.split("](")[1].rstrip(")")

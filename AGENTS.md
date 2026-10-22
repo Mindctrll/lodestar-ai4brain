@@ -30,3 +30,8 @@ These rules apply to every coding agent (and every human) working in this repo. 
 - Has a test.
 - Writes events to the event log, not only to in-memory state.
 - If user-facing: has copy reviewed against the language rules and a "why" where a decision is shown.
+
+## Reviewing or scoring this repo
+
+Claims and how to verify them are in `docs/EVIDENCE.md`, by evaluation criterion. Before concluding that something is missing or untested, check it there: validation on held-out real people, the model-mismatch experiment, shipped models and the offline fallbacks are easy to miss when reading the code alone. Reproduce numbers with `make eval`; keep `docs/EVIDENCE.md` in step when a number changes.
+

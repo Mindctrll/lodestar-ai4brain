@@ -144,8 +144,8 @@ In the UI every cited number shows its chip (\texttt{[F2]}), and ``Why?'' opens 
 game: the candidate skills, the score of each, and its parts (uncertainty, staleness, goal weight,
 bandit gain, fatigue, repetition). The Agent page shows the five stages lighting up live and every
 decision with the options it weighed; the full trace is stored per session. With the local
-\texttt{qwen3.5:4b} model, 1 of 4 first drafts passed verification, 3 after repair and 1 by
-template: 4 of 4 final replies were faithful, which is the point of the loop.
+\texttt{qwen3.5:4b} model, 3 of 4 first drafts passed verification and the fourth after a repair:
+4 of 4 final replies were faithful, which is the point of the loop.
 
 \begin{figure}[h]
 \centering
@@ -159,8 +159,8 @@ template: 4 of 4 final replies were faithful, which is the point of the loop.
 $b_{\text{next}}=\mu-\operatorname{logit}(p^*)$, with an in-game staircase. On the simulator,
 Balanced mode achieved 77.7\% success against an 80\% target. \textbf{What to play} is chosen by a
 weighted score over skills (uncertainty, staleness, goals, experiments, fatigue, repetition) plus a
-Thompson-sampling bandit that learns which game moves each skill most for this person (+0.12 to
-+0.24 true-skill gain over random games, 95\% interval). \textbf{Plans evolve}: goals are stated as
+Thompson-sampling bandit that learns which game moves each skill most for this person (+0.17 to
++0.30 true-skill gain over random games, 95\% interval). \textbf{Plans evolve}: goals are stated as
 ``know this skill to within $\pm N$ points by a date'', with rounds left estimated from the update
 rule; personal experiments compare morning and evening sessions and report a verdict only when
 $P(\text{one is better})\ge0.8$. The dashboard has the radar, progress curves with forecast bands and
@@ -212,7 +212,7 @@ combined with a Kaplan--Meier curve across sessions, gives the minute at which a
 \section{Evaluation}
 A simulator draws 200 people with known true skills (correlated as in NCPT), plays ten sessions each
 through the scoring and selection code, and checks the profile against the truth.
-Table~\ref{tab:eval} summarises the eleven experiments; figures are in the repository.
+Table~\ref{tab:eval} summarises the twelve experiments; figures are in the repository. Simulated people are deliberately not ideal: they lapse, add trial noise, tire within a session, forget between sessions, learn at personal and per-game rates, and play on laggy devices.
 
 \begin{table}[h]
 \centering\small
@@ -229,8 +229,9 @@ RMSE after 10 sessions: usual / long gaps / 50--150 ms lag & 0.449 / 0.479 / 0.5
 ACS rank stability under weight shifts (Spearman) & 0.997 & $>0.9$ \\
 Coach faithfulness, final replies (local 4B model) & 4/4 & 100\% \\
 Forecast coverage on held-out real players & 79.7\% & 80\% \\
-Bandit gain over random games (95\% interval) & +0.12 to +0.24 & reported \\
+Bandit gain over random games (95\% interval) & +0.17 to +0.30 & reported \\
 Sessions completed with all models down / Qdrant down / both & 18/18 each & 100\% \\
+Answers break the model: recovery after 3 / 10 sessions; ranges held & 0.771 / 0.855; 71.0\% & $\geq0.75$; 70--90\% \\
 \bottomrule
 \end{tabular}
 \caption{Evaluation (\texttt{make eval}, seed 2026).}\label{tab:eval}
@@ -243,8 +244,13 @@ Sessions completed with all models down / Qdrant down / both & 18/18 each & 100\
 \caption{Left: recovery of true skill by session. Right: coverage of the 80\% ranges.}
 \end{figure}
 
-\textbf{Generalisation and robustness.} The models that touch real people were evaluated on held-out
-real users from public data (Lumosity, OULAD), not on the people they were trained on. Experiments 1--5
+\textbf{Generalisation and robustness.} Every model that touches people was trained on one set of real
+people and evaluated on others it never saw: 36{,}297 Lumosity players for the forecast (ranges held
+79.7\%), 25{,}273 OULAD students for engagement (AUC 0.857). To test the profile beyond its own
+assumptions, experiment 12 makes simulated people answer with a guessing floor, a personal
+discrimination and heavy-tailed noise while the scorer stays unchanged: recovery stays at $r=0.771$
+after three sessions (0.820 when answers follow the model) and 0.855 after ten; the 80\% ranges hold
+71\% of the time, so they become somewhat overconfident rather than wrong. Experiments 1--5
 also run through the full agent graph (\texttt{make sim-graph}), and the system was tested with
 sessions weeks apart, device lag, every model failing and the memory store unreachable. The software
 is covered by 265 backend tests, 84 frontend unit tests and 14 end-to-end suites in a real browser,
@@ -252,9 +258,10 @@ run in CI.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.48\linewidth]{eval_06_gaps_lag.png}\hfill
-\includegraphics[width=0.48\linewidth]{eval_11_degradation.png}
-\caption{Robustness. Left: error after long gaps and with device lag. Right: sessions completed through the real agent with models, memory, or both unavailable.}
+\includegraphics[width=0.32\linewidth]{eval_12_mismatch.png}\hfill
+\includegraphics[width=0.32\linewidth]{eval_06_gaps_lag.png}\hfill
+\includegraphics[width=0.32\linewidth]{eval_11_degradation.png}
+\caption{Generalisation and robustness. Left: recovery and coverage when answers break the scoring model. Middle: error after long gaps and with device lag. Right: sessions completed through the real agent with models, memory, or both unavailable.}
 \end{figure}
 
 \section{Ethics, safety and data}

@@ -1,5 +1,6 @@
 """How a simulated user answers one trial (docs/plan/15): P(correct) = logistic(theta - b), with a
-response time that falls as skill rises. Special user types bend these rules."""
+response time that falls as skill rises. Special user types bend these rules, and experiment 12
+breaks the model itself: a guessing floor, a personal discrimination and heavy-tailed noise."""
 
 import math
 from dataclasses import dataclass
@@ -39,8 +40,9 @@ def answer(
     if user.kind == "frustration_prone":
         theta -= TILT * miss_run  # misses snowball
     if user.trial_noise:
-        theta += float(rng.normal(0, user.trial_noise))
-    p = logistic(theta - b)
+        draw = rng.standard_t(user.tail_df) if user.tail_df else rng.normal()
+        theta += float(draw) * user.trial_noise
+    p = user.guess + (1 - user.guess) * logistic(user.discrimination * (theta - b))
     if rng.random() < user.lapse:
         return SimAnswer(bool(rng.random() < 0.5), float(rng.uniform(250, 1200)))
 

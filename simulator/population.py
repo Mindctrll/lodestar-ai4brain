@@ -43,6 +43,11 @@ class SimUser:
     practice: dict[str, float] = field(default_factory=dict)
     rate: tuple[float, float] | None = None  # (a, b) of the Lumosity per-round gain
     game_gain: dict[str, float] = field(default_factory=dict)  # hidden per-game learning rates
+    # Ways real people break the scoring model's assumptions (experiment 12). Defaults keep the
+    # usual logistic response.
+    guess: float = 0.0  # chance of a right answer by luck, as on a multiple-choice item
+    discrimination: float = 1.0  # how sharply this person's answers follow difficulty
+    tail_df: float = 0.0  # trial noise from a Student t with these degrees of freedom; 0 = normal
 
     def theta(self, dim: str) -> float:
         return self.theta0[dim] + self.learned.get(dim, 0.0)

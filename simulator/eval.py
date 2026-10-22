@@ -1,4 +1,4 @@
-"""`make eval`: the 11 evaluation experiments of docs/plan/15, one figure each in docs/figures/ and
+"""`make eval`: the 12 evaluation experiments of docs/plan/15, one figure each in docs/figures/ and
 one summary table, docs/figures/eval_summary.md (WP4.2).
 
 Each experiment calls the code that already checks it elsewhere:
@@ -13,6 +13,8 @@ Each experiment calls the code that already checks it elsewhere:
 - 10: the bandit against random game choice (simulator/bandit.py), as in its test.
 - 11: simulated people through the real graph with every model failing, Qdrant unreachable, and
   both, in a throwaway database (EVAL_DATABASE_URL); skipped if Postgres is down.
+- 12: the simulator with people who break the scoring model (guessing, mixed discrimination,
+  heavy-tailed noise), against the same population answering as the model assumes.
 
 `--graph` also runs experiments 1-5 through the real graph (`make sim-graph`, about 15 minutes)
 in the same throwaway database. `--quick` uses tiny sizes (the smoke test).
@@ -483,6 +485,57 @@ def exp10_bandit(registry: Registry, sizes: tuple[int, int, int], out: Path) -> 
 # 11 --------------------------------------------------------------------------------------------
 
 
+# 12 --------------------------------------------------------------------------------------------
+
+
+def exp12_model_mismatch(registry: Registry, n: int, out: Path) -> Row:
+    """People who don't answer the way the scorer assumes: a guessing floor (0-25%), a personal
+    discrimination (0.6-1.6 instead of 1) and heavy-tailed trial noise (Student t, 3 degrees of
+    freedom). The scorer is unchanged. Targets were set before the first run."""
+    rng = np.random.default_rng(SEED + 12)
+    people = make_population(registry, n, rng)
+    for u in people:
+        u.guess = float(rng.uniform(0.0, 0.25))
+        u.discrimination = float(rng.uniform(0.6, 1.6))
+        u.trial_noise, u.tail_df = 0.4, 3.0
+    runs = [simulate_user(u, registry, SESSIONS, rng) for u in people]
+    baseline, _ = simulate(registry, n, SEED)
+    dims = established_tracked(registry, runs)
+
+    def numbers(rs: list[UserRun]) -> tuple[float, float, float]:
+        return (
+            recovery(rs, dims, 3).mean_r,
+            recovery(rs, dims, 10).mean_r,
+            coverage(rs, dims, [3, 10]),
+        )
+
+    matched, broken = numbers(baseline), numbers(runs)
+    plt = _plt()
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    labels = ["Recovery r\nafter 3", "Recovery r\nafter 10", "80% ranges\nthat hold"]
+    x = np.arange(len(labels))
+    a = ax.bar(x - 0.18, matched, 0.36, color=GREY, label="Answers follow the model")
+    b = ax.bar(x + 0.18, broken, 0.36, color=BLUE, label="Guessing, mixed slopes, heavy tails")
+    ax.bar_label(a, [f"{v:.2f}" for v in matched], padding=2)
+    ax.bar_label(b, [f"{v:.2f}" for v in broken], padding=2)
+    ax.set_xticks(x, labels)
+    ax.set_ylim(0, 1.1)
+    ax.set_title("12. Does the profile hold when people break the model?")
+    ax.legend(loc="lower right", frameon=False)
+    fig_name = _save(fig, out, "eval_12_mismatch.png")
+    ok = broken[0] >= 0.75 and 0.70 <= broken[2] <= 0.90
+    return Row(
+        "12",
+        "Does the profile hold when answers break the scoring model? (guessing, mixed "
+        "discrimination, heavy-tailed noise)",
+        f"r after 3: {broken[0]:.3f} (model-following people: {matched[0]:.3f}), after 10: "
+        f"{broken[1]:.3f}; 80% ranges hold {broken[2]:.3f}",
+        "r after 3 >= 0.75; ranges hold 70-90%",
+        "pass" if ok else "FAIL",
+        fig_name,
+    )
+
+
 def fresh_database(url: str) -> bool:
     """Drop and recreate the eval database and migrate it; False if Postgres is down."""
     import psycopg
@@ -633,8 +686,8 @@ def summary(rows: list[Row], sizes: Sizes, minutes: float, graph: str | None) ->
     lines = [
         "# Evaluation results (`make eval`)",
         "",
-        f"The 11 experiments of docs/plan/15, seed {SEED}, in {minutes:.1f} minutes. Simulated "
-        f"people: {sizes.users} for 1-6 (CI also uses 200), {sizes.acs_users} for 7, "
+        f"The 12 experiments of docs/plan/15, seed {SEED}, in {minutes:.1f} minutes. Simulated "
+        f"people: {sizes.users} for 1-6 and 12 (CI also uses 200), {sizes.acs_users} for 7, "
         f"{sizes.bandit[1]} paired for 10; experiment 11 plays {sizes.graph_users} x "
         f"{sizes.graph_sessions} sessions per condition through the real graph. "
         "Status: pass or FAIL against the target; reported where the target is to report a "
@@ -717,6 +770,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             ),
         ),
+        ("12", lambda: exp12_model_mismatch(registry, sizes.users, args.out)),
     ]
     rows: list[Row] = []
     for label, step in steps:

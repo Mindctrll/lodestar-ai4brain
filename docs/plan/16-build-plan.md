@@ -104,7 +104,7 @@ Everything else builds on these, so they go first and stay stable.
 | ID | Depends | Read | Build | Done when |
 |---|---|---|---|---|
 | **WP4.1 Robustness** | all | `15`, `03` | Degradation ladder tests (LLM down, Qdrant down, Postgres reconnect, refresh mid-game); cheat and noise detection; device-latency calibration; row-level security | Every item in the robustness checklist in `15` passes in CI |
-| **WP4.2 Evaluation suite** | all | `15`, `10`, `11` | All 11 experiments in `15` as `make eval`, plots to `docs/figures/` | `make eval` produces every figure and a summary table |
+| **WP4.2 Evaluation suite** | all | `15`, `10`, `11` | All 12 experiments in `15` as `make eval`, plots to `docs/figures/` | `make eval` produces every figure and a summary table |
 | **WP4.3 Docs from code** | all | `05`, `11`, `14` | Generate the 16 dimension pages from the registry, ACS formula page, data policy page, model cards index | Docs build with no missing fields |
 | **WP4.4 Extensibility drill** | all | `05`, `06` | An agent adds a brand-new dimension and game from scratch using only YAML + one plugin | New dimension appears in the Twin, gets scored and picked by the policy; simulator passes |
 

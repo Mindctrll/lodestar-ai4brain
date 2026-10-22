@@ -6,6 +6,16 @@ Lodestar is a practice coach. It doesn't assess medical or psychological conditi
 
 ![Home: talk to Lodestar or start a session](docs/screens/home.png)
 
+## For reviewers
+
+Every claim here is backed by a number and a way to check it: **[docs/EVIDENCE.md](docs/EVIDENCE.md)** maps each CISTAC criterion to evidence, files, tests and commands. The short version:
+
+- **Generalisation:** the models were trained and tested on different real people (36,297 Lumosity players: forecast ranges held 79.7%; 25,273 OULAD students: AUC 0.857). When simulated people break the scoring model on purpose (guessing, mixed discrimination, heavy-tailed noise), the profile still recovers true skill with r = 0.77 after 3 sessions and 0.86 after 10.
+- **Profile quality:** r = 0.82 after 3 sessions and 0.91 after 10; 80% ranges contain the truth 79.9% of the time.
+- **Robustness:** every session completes with every model down, the memory store down, or both; a crash mid-game resumes on the same trial.
+- **Runs out of the box:** the trained models ship in `models/`; no AI key is needed (local model, then templates).
+- **Not done yet:** a pilot with real Lodestar users.
+
 | | |
 |---|---|
 | ![Brain Twin: skill cards with ranges, wired by family and correlation](docs/screens/twin.png) | ![After a game: score, skill with its range, and the coach](docs/screens/result.png) |
@@ -88,6 +98,7 @@ Design documents: [docs/plan](docs/plan/README.md). Technical report: [docs/repo
 | 80% ranges containing the true skill | 79.9% | 75–85% |
 | Success rate in Balanced mode | 77.7% | 80 ± 5% |
 | Bad data caught (precision / recall) | 1.00 / 1.00 | > 0.9 / > 0.8 |
+| Answers that break the scoring model (guessing, mixed discrimination, heavy tails): recovery after 3 / 10 sessions | 0.77 / 0.86 | ≥ 0.75 after 3 |
 | Forecast ranges holding on held-out real players | 79.7% | 80% |
 | Engagement model AUC on held-out students | 0.857 (simple rule: 0.828) | report |
 | Sessions completed with every model down, Qdrant down, or both | 18/18 each | 100% |
