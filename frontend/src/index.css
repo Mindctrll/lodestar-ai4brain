@@ -1,41 +1,46 @@
 @import 'tailwindcss';
 
-/* Design tokens. Lodestar is a guiding star: the app is a night sky. Near-black surfaces, warm off-white
- * text, gold for the star and every primary action, starlight blue for data. Games play on a
- * light "paper" stage (see .lodestar-taskhost) so their colours keep their meaning. Every text colour
- * clears WCAG AA on the surface it sits on. */
+/* Design tokens. Daylight: white surfaces, slate ink, a serif for headings and Inter for the rest.
+ * Primary actions are near-black pills; sky blue marks links, focus and data. Cards sit on hairline
+ * rings and soft shadows rather than borders. Every text colour clears WCAG AA on the surface it
+ * sits on. */
 @theme {
-  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque Variable', 'Geist Variable', ui-sans-serif, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-  --color-bg: #09090d;
-  --color-card: #121219;
-  --color-surface: #1a1a23;
-  --color-raised: #22222d;
-  --color-ink: #f5f3ee;
-  --color-ink-2: #d2d0c9;
-  --color-muted: #9a99a6;
-  --color-line: #24242f;
-  --color-line-strong: #363642;
-  --color-accent: #ffc94d;
-  --color-accent-ink: #ffd877;
-  --color-accent-soft: rgb(255 201 77 / 0.12);
-  --color-on-accent: #17130a;
-  --color-star: #a5b4ff;
-  --color-gold: #ffc94d;
+  --color-bg: #ffffff;
+  --color-card: #ffffff;
+  --color-surface: #f8fafc;
+  --color-raised: #f1f5f9;
+  --color-ink: #020618;
+  --color-ink-2: #314158;
+  --color-muted: #62748e;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cad5e2;
+  --color-accent: #0069a8;
+  --color-accent-ink: #00598a;
+  --color-accent-soft: #e6f4fe;
+  --color-on-accent: #ffffff;
+  --color-cta: #020618;
+  --color-heading: #052f4a;
+  --color-star: #0084d1;
+  --color-gold: #f0b100;
   --color-sky: #070a1c;
-  --color-right: #4ade80;
-  --color-wrong: #ff6b5e;
+  --color-right: #008236;
+  --color-wrong: #e7000b;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --rail: 15.5rem;
-  --radius: 1.25rem;
+  --radius: 1.5rem;
   --gutter: 2.875rem;
-  --shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 18px 40px -24px rgb(0 0 0 / 0.9);
-  --shadow-lg: 0 40px 100px -30px rgb(0 0 0 / 0.95);
+  --ring: 0 0 0 1px rgb(2 6 24 / 0.08);
+  --shadow: var(--ring), 0 1px 3px rgb(2 6 24 / 0.06), 0 1px 2px -1px rgb(2 6 24 / 0.06);
+  --shadow-lg:
+    0 0 0 1px rgb(2 6 24 / 0.12), 0 0 0 6px rgb(255 255 255 / 0.55),
+    0 24px 60px -24px rgb(2 6 24 / 0.25);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   scrollbar-color: var(--color-line-strong) transparent;
 }
@@ -45,11 +50,7 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 body {
-  background:
-    radial-gradient(70rem 40rem at 75% -15%, rgb(165 180 255 / 0.08), transparent 60%),
-    radial-gradient(50rem 30rem at 0% 110%, rgb(255 201 77 / 0.05), transparent 60%),
-    var(--color-bg);
-  background-attachment: fixed;
+  background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 1rem;
@@ -67,11 +68,11 @@ h4 {
 h1,
 h2 {
   font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 h2 {
   font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.025em;
   line-height: 1.15;
 }
 h3 {
@@ -101,11 +102,8 @@ strong {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--color-muted);
   margin: 0;
 }
@@ -118,7 +116,7 @@ strong {
   white-space: nowrap;
 }
 ::selection {
-  background: rgb(255 201 77 / 0.3);
+  background: rgb(0 132 209 / 0.18);
 }
 
 /* Controls */
@@ -128,9 +126,9 @@ button {
   font-weight: 550;
   min-height: 2.5rem;
   padding: 0 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-line-strong);
-  background: var(--color-surface);
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
   color: var(--color-ink);
   cursor: pointer;
   transition:
@@ -141,8 +139,8 @@ button {
     transform 0.1s var(--ease);
 }
 button:hover:not(:disabled) {
-  background: var(--color-raised);
-  border-color: color-mix(in srgb, var(--color-ink) 28%, transparent);
+  background: var(--color-surface);
+  border-color: var(--color-line-strong);
 }
 button:active:not(:disabled) {
   transform: translateY(1px);
@@ -161,21 +159,28 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 button.primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-on-accent);
-  font-weight: 600;
+  background: linear-gradient(rgb(255 255 255 / 0.1), transparent 60%), var(--color-cta);
+  border-color: var(--color-cta);
+  color: #ffffff;
+  font-weight: 500;
   margin-top: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35),
+    0 1px 2px rgb(0 0 0 / 0.2);
 }
 button.primary:hover:not(:disabled) {
-  background: var(--color-accent-ink);
-  border-color: var(--color-accent-ink);
-  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--color-accent) 70%, transparent);
+  background: linear-gradient(rgb(255 255 255 / 0.16), transparent 60%), var(--color-cta);
+  border-color: var(--color-cta);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35),
+    0 10px 28px -10px rgb(2 6 24 / 0.6);
 }
 button.danger {
   background: var(--color-wrong);
   border-color: var(--color-wrong);
-  color: #1d0806;
+  color: #ffffff;
 }
 button.ghost {
   border-color: transparent;
@@ -210,11 +215,12 @@ button.link:hover:not(:disabled) {
   min-height: 2.25rem;
   padding: 0 0.95rem;
   border-radius: 999px;
-  border: 1px solid var(--color-line-strong);
-  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
   color: var(--color-ink-2);
   font-size: 0.875rem;
   font-weight: 500;
+  box-shadow: 0 1px 2px rgb(2 6 24 / 0.04);
 }
 .chip:hover:not(:disabled) {
   color: var(--color-ink);
@@ -226,15 +232,14 @@ button.link:hover:not(:disabled) {
   opacity: 1;
 }
 .chip--strong {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-on-accent);
-  font-weight: 600;
+  background: var(--color-cta);
+  border-color: var(--color-cta);
+  color: #ffffff;
 }
 .chip--strong:hover:not(:disabled) {
-  background: var(--color-accent-ink);
-  border-color: var(--color-accent-ink);
-  color: var(--color-on-accent);
+  background: var(--color-ink-2);
+  border-color: var(--color-ink-2);
+  color: #ffffff;
 }
 .icon-button {
   width: 2.25rem;
@@ -269,9 +274,9 @@ textarea {
   font: inherit;
   min-height: 2.75rem;
   padding: 0 0.875rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 0.75rem;
-  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.875rem;
+  background: var(--color-card);
   color: var(--color-ink);
   transition:
     border-color 0.15s var(--ease),
@@ -324,9 +329,9 @@ input[type='radio'] {
   color: var(--color-ink-2);
 }
 .badge--established {
-  border-color: rgb(74 222 128 / 0.4);
-  background: rgb(74 222 128 / 0.1);
-  color: #a7f3c4;
+  border-color: #b9f8cf;
+  background: #f0fdf4;
+  color: var(--color-right);
 }
 .badge--experimental {
   border-style: dashed;
@@ -343,8 +348,8 @@ input[type='radio'] {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-ink-2);
-  background: rgb(255 255 255 / 0.05);
-  border: 1px solid rgb(255 255 255 / 0.1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: 999px;
   padding: 0.15rem 0.625rem;
 }
@@ -367,18 +372,18 @@ input[type='radio'] {
 .cite--why {
   cursor: pointer;
   color: var(--color-accent);
-  border-color: rgb(255 201 77 / 0.35);
+  border-color: #b8e6fe;
   background: var(--color-accent-soft);
 }
 .cite--why:hover:not(:disabled) {
   border-color: var(--color-accent);
-  background: rgb(255 201 77 / 0.2);
+  background: #dff2fe;
 }
 
 /* Cards (onboarding, settings, panels' inner sections) */
 .card {
   background: var(--color-card);
-  border: 1px solid var(--color-line);
+  border: none;
   border-radius: var(--radius);
   padding: 1.75rem;
   margin-top: 1rem;
@@ -388,40 +393,36 @@ input[type='radio'] {
   margin-bottom: 0.5rem;
 }
 .notice {
-  border: 1px solid rgb(255 107 94 / 0.5);
-  background: rgb(255 107 94 / 0.08);
+  border: 1px solid #ffc9c9;
+  background: #fef2f2;
   border-radius: 0.875rem;
   padding: 0.75rem 1rem;
   margin-top: 1rem;
 }
 
-/* Brand: a gold four-point star on a dark tile */
+/* Brand: a dark four-point star and a sans wordmark */
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  font-family: var(--font-display);
+  gap: 0.5rem;
+  font-family: var(--font-sans);
   font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: var(--color-heading);
   margin: 0;
 }
 .brand__mark {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.625rem;
-  background: linear-gradient(145deg, #2c2410, #121009);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 201 77 / 0.3),
-    0 0 24px -4px rgb(255 201 77 / 0.35);
+  width: 1.5rem;
+  height: 1.5rem;
   position: relative;
   flex: none;
 }
 .brand__mark::after {
   content: '';
   position: absolute;
-  inset: 0.4rem;
-  background: linear-gradient(160deg, #fff1c4, var(--color-gold) 55%, #e09a22);
+  inset: 0;
+  background: var(--color-heading);
   clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
 }
 
@@ -441,10 +442,7 @@ input[type='radio'] {
   margin-bottom: 2rem;
 }
 .solo .card {
-  padding: 2.25rem;
-  border-color: var(--color-line-strong);
-  background:
-    radial-gradient(90% 70% at 100% 0%, rgb(255 201 77 / 0.1), transparent 60%), var(--color-card);
+  padding: 2.5rem;
   box-shadow: var(--shadow-lg);
 }
 .solo .card p {
@@ -473,7 +471,7 @@ input[type='radio'] {
   flex-direction: column;
   padding: 1.25rem 0.875rem 1rem;
   border-right: 1px solid var(--color-line);
-  background: rgb(255 255 255 / 0.012);
+  background: var(--color-surface);
 }
 .rail .brand {
   padding: 0 0.5rem;
@@ -487,14 +485,12 @@ input[type='radio'] {
   min-height: 0;
 }
 .rail__group {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-muted) 80%, transparent);
-  margin: 1.5rem 0 0.5rem;
-  padding: 0 0.75rem;
+  color: var(--color-muted);
+  margin: 1.25rem 0 0.375rem;
+  padding: 1rem 0.75rem 0;
+  border-top: 1px solid var(--color-line);
 }
 .rail__item {
   display: flex;
@@ -505,23 +501,25 @@ input[type='radio'] {
   padding: 0 0.75rem;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--color-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: var(--color-ink-2);
+  font-size: 0.9375rem;
+  font-weight: 450;
   text-align: left;
-  border-radius: 0.7rem;
+  border-radius: 0.75rem;
   white-space: nowrap;
 }
 .rail__item:hover:not(:disabled) {
-  background: var(--color-surface);
+  background: var(--color-raised);
   border-color: transparent;
   color: var(--color-ink);
 }
 .rail__item[aria-current='page'],
 .rail__item[aria-current='page']:hover:not(:disabled) {
-  background: var(--color-raised);
-  border-color: var(--color-line-strong);
+  background: var(--color-card);
+  border-color: transparent;
   color: var(--color-ink);
+  font-weight: 500;
+  box-shadow: var(--shadow);
 }
 .rail__item svg {
   width: 1.15rem;
@@ -534,7 +532,7 @@ input[type='radio'] {
   stroke-linejoin: round;
 }
 .rail__item[aria-current='page'] svg {
-  color: var(--color-accent);
+  color: var(--color-ink);
 }
 .rail__spacer {
   flex: 1;
@@ -545,11 +543,10 @@ input[type='radio'] {
   gap: 0.625rem;
   margin: 0 0 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.7rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--color-line);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  background: var(--color-card);
+  font-size: 0.75rem;
   color: var(--color-ink-2);
 }
 .rail__dot {
@@ -558,7 +555,7 @@ input[type='radio'] {
   margin-inline: 0.3rem;
   border-radius: 50%;
   background: var(--color-right);
-  box-shadow: 0 0 0 3px rgb(74 222 128 / 0.18);
+  box-shadow: 0 0 0 3px #dcfce7;
   flex: none;
 }
 .workspace {
@@ -584,6 +581,13 @@ input[type='radio'] {
 .stage--home {
   justify-content: center;
   padding-block: 3rem;
+  background:
+    radial-gradient(28rem 9rem at 8% 62%, rgb(255 255 255 / 0.95), transparent 70%),
+    radial-gradient(22rem 8rem at 22% 54%, rgb(255 255 255 / 0.8), transparent 70%),
+    radial-gradient(30rem 10rem at 94% 58%, rgb(255 255 255 / 0.95), transparent 70%),
+    radial-gradient(20rem 7rem at 78% 50%, rgb(255 255 255 / 0.75), transparent 70%),
+    radial-gradient(60rem 16rem at 50% 100%, #ffffff, transparent 75%),
+    linear-gradient(180deg, #7cc4ef 0%, #a8d8f5 22%, #d3ecfb 45%, #f2f9fe 68%, #ffffff 88%);
 }
 .stage--home .thread {
   flex: none;
@@ -599,22 +603,16 @@ input[type='radio'] {
   position: relative;
   width: 4.5rem;
   height: 4.5rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgb(255 201 77 / 0.35),
-    rgb(255 201 77 / 0.06) 45%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0) 70%);
 }
 .hero__orb::after {
   content: '';
   position: absolute;
   inset: 1.1rem;
-  background: linear-gradient(160deg, #fff4cf, var(--color-gold) 50%, #e3961c);
+  background: var(--color-heading);
   clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
-  filter: drop-shadow(0 0 12px rgb(255 201 77 / 0.8));
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero__orb {
@@ -627,24 +625,22 @@ input[type='radio'] {
     }
   }
 }
+.hero .eyebrow {
+  color: var(--color-ink-2);
+}
 .hero h1 {
   font-size: clamp(2.75rem, 8cqw, 4.5rem);
-  font-weight: 650;
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  margin: 0.875rem 0 0;
-  background: linear-gradient(180deg, #fffdf7 30%, #c9c6bd);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.1em;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  margin: 0.75rem 0 0;
+  color: var(--color-heading);
 }
 .hero__lede {
   max-width: 34rem;
   margin: 1rem 0 0;
-  color: var(--color-muted);
-  font-size: 1.0625rem;
-  line-height: 1.6;
+  color: var(--color-ink-2);
+  font-size: 1.1875rem;
+  line-height: 1.5;
 }
 .pills {
   list-style: none;
@@ -660,10 +656,12 @@ input[type='radio'] {
   align-items: baseline;
   gap: 0.4rem;
   padding: 0.35rem 0.85rem;
-  border: 1px solid var(--color-line);
+  border: none;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.02);
-  color: var(--color-muted);
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--ring);
+  backdrop-filter: blur(8px);
+  color: var(--color-ink-2);
   font-size: 0.8125rem;
 }
 .pills strong,
@@ -689,15 +687,18 @@ input[type='radio'] {
   align-items: flex-start;
   gap: 0.2rem;
   min-height: 0;
-  padding: 1.125rem 1.25rem 1.25rem;
-  border-radius: 1.125rem;
-  border: 1px solid var(--color-line);
+  padding: 1.25rem 1.375rem 1.375rem;
+  border-radius: var(--radius);
+  border: none;
   background: var(--color-card);
+  box-shadow: var(--shadow);
   text-align: left;
 }
 .action:hover:not(:disabled) {
-  background: var(--color-surface);
-  border-color: var(--color-line-strong);
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 1px rgb(2 6 24 / 0.12),
+    0 20px 40px -24px rgb(2 6 24 / 0.3);
   transform: translateY(-2px);
 }
 .action__icon {
@@ -706,7 +707,7 @@ input[type='radio'] {
   width: 2.25rem;
   height: 2.25rem;
   margin-bottom: 0.875rem;
-  border-radius: 0.7rem;
+  border-radius: 0.75rem;
   background: var(--color-raised);
   color: var(--color-ink);
 }
@@ -720,32 +721,18 @@ input[type='radio'] {
   stroke-linejoin: round;
 }
 .action__title {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .action__text {
   color: var(--color-muted);
   font-size: 0.875rem;
   font-weight: 400;
 }
-.action--primary {
-  border-color: rgb(255 201 77 / 0.35);
-  background:
-    radial-gradient(120% 120% at 100% 0%, rgb(255 201 77 / 0.16), transparent 60%),
-    var(--color-card);
-}
-.action--primary:hover:not(:disabled) {
-  border-color: rgb(255 201 77 / 0.7);
-  background:
-    radial-gradient(120% 120% at 100% 0%, rgb(255 201 77 / 0.22), transparent 60%),
-    var(--color-card);
-  box-shadow: 0 20px 50px -24px rgb(255 201 77 / 0.5);
-}
 .action--primary .action__icon {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-cta);
+  color: #ffffff;
 }
 .action--primary .action__icon svg {
   fill: currentColor;
@@ -803,13 +790,11 @@ input[type='radio'] {
   display: grid;
   place-items: center;
   border-radius: 0.625rem;
-  background: linear-gradient(145deg, #2c2410, #121009);
-  box-shadow: inset 0 0 0 1px rgb(255 201 77 / 0.28);
+  background: var(--color-cta);
   flex: none;
 }
 .avatar svg {
-  fill: var(--color-gold);
-  filter: drop-shadow(0 0 4px rgb(255 201 77 / 0.6));
+  fill: #ffffff;
 }
 .bubble {
   max-width: min(80%, 34rem);
@@ -817,7 +802,7 @@ input[type='radio'] {
   padding: 0.7rem 1.1rem;
   border-radius: 999px;
   background: var(--color-raised);
-  border: 1px solid var(--color-line-strong);
+  border: none;
   color: var(--color-ink);
   font-size: 1rem;
   overflow-wrap: anywhere;
@@ -883,7 +868,7 @@ input[type='radio'] {
 .turn-card {
   margin-left: var(--gutter);
   background: var(--color-card);
-  border: 1px solid var(--color-line);
+  border: none;
   border-radius: var(--radius);
   padding: 1.375rem 1.5rem;
   box-shadow: var(--shadow);
@@ -919,36 +904,42 @@ input[type='radio'] {
   display: flex;
   align-items: flex-end;
   gap: 1.5rem;
-  padding: 1.25rem 1.25rem 1.25rem 1.5rem;
-  border-radius: 1.25rem;
-  border: 1px solid rgb(255 201 77 / 0.3);
-  background: linear-gradient(120deg, rgb(255 201 77 / 0.08), transparent 50%), var(--color-card);
+  padding: 1.375rem 1.375rem 1.375rem 1.625rem;
+  border-radius: var(--radius);
+  background: var(--color-card);
+  box-shadow: var(--shadow-lg);
 }
 .pick__body {
   flex: 1;
   min-width: 0;
 }
 .pick__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-gold);
+  color: var(--color-muted);
+}
+.pick__meta::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #00bc7d;
 }
 .pick h2 {
-  font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  margin: 0.3rem 0 0;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  color: var(--color-heading);
+  margin: 0.375rem 0 0;
 }
 .pick__how {
   margin: 0.4rem 0 0;
   font-size: 1rem;
   line-height: 1.5;
-  color: var(--color-ink);
+  color: var(--color-ink-2);
   max-width: 34rem;
 }
 .pick .reason {
@@ -999,15 +990,16 @@ button.primary.pick__go {
 /* After a round: the score first, then the skill it moved, then a mood tap. */
 .result {
   margin-left: var(--gutter);
-  padding: 1.125rem 1.25rem;
-  border-radius: 1.25rem;
-  border: 1px solid var(--color-line);
+  padding: 1.25rem 1.375rem;
+  border-radius: var(--radius);
   background: var(--color-card);
+  box-shadow: var(--shadow);
 }
 .result:not(.result--live) {
   padding: 0.625rem 1rem;
-  background: transparent;
-  border-style: dashed;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: none;
 }
 .result__head {
   display: flex;
@@ -1021,7 +1013,7 @@ button.primary.pick__go {
   height: 2rem;
   flex: none;
   border-radius: 50%;
-  background: rgb(74 222 128 / 0.14);
+  background: #dcfce7;
   color: var(--color-right);
 }
 .result__check svg {
@@ -1049,8 +1041,8 @@ button.primary.pick__go {
 .result__score strong {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
@@ -1155,7 +1147,7 @@ button.primary.pick__go {
   color: var(--color-ink-2);
 }
 .confirm {
-  border: 1px solid rgb(255 201 77 / 0.45);
+  border: 1px solid #b8e6fe;
   border-radius: var(--radius);
   padding: 1rem 1.25rem;
   margin: 0.75rem 0;
@@ -1163,8 +1155,7 @@ button.primary.pick__go {
 }
 .thread > .confirm {
   margin: 1.5rem 0 0 var(--gutter);
-  background:
-    radial-gradient(100% 140% at 0% 0%, rgb(255 201 77 / 0.08), transparent 60%), var(--color-card);
+  background: var(--color-card);
   box-shadow: 0 0 0 4px var(--color-accent-soft);
 }
 .thread > .turn-card {
@@ -1188,13 +1179,13 @@ button.primary.pick__go {
   padding: 0.875rem 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
-  border-radius: 0.875rem;
+  border-radius: 1rem;
 }
 .stats strong {
   font-family: var(--font-display);
   font-size: 1.75rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.1;
 }
 .stats span {
@@ -1231,20 +1222,18 @@ button.primary.pick__go {
   gap: 0.5rem;
   padding: 0.5rem 0.5rem 0.5rem 1.25rem;
   background: var(--color-card);
-  border: 1px solid var(--color-line-strong);
-  border-radius: 1.5rem;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
-    0 24px 60px -28px rgb(0 0 0 / 0.95);
+  border: none;
+  border-radius: 1.75rem;
+  box-shadow: var(--shadow-lg);
   transition:
     border-color 0.15s var(--ease),
     box-shadow 0.2s var(--ease);
 }
 .composer__box:focus-within {
-  border-color: rgb(255 201 77 / 0.5);
   box-shadow:
-    0 0 0 4px rgb(255 201 77 / 0.08),
-    0 24px 60px -28px rgb(0 0 0 / 0.95);
+    0 0 0 1px rgb(0 105 168 / 0.45),
+    0 0 0 6px rgb(0 132 209 / 0.12),
+    0 24px 60px -24px rgb(2 6 24 / 0.25);
 }
 .composer__box input,
 .composer__box input:focus-visible {
@@ -1278,11 +1267,11 @@ button.primary.pick__go {
   place-items: center;
   border-radius: 999px;
   border: none;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-cta);
+  color: #ffffff;
 }
 .composer__box .send:hover:not(:disabled) {
-  background: var(--color-accent-ink);
+  background: var(--color-ink-2);
 }
 .composer__box .send:disabled {
   background: var(--color-raised);
@@ -1332,8 +1321,8 @@ button.primary.pick__go {
 .orb--listening,
 .orb--listening:hover:not(:disabled) {
   background: var(--color-wrong);
-  color: #1d0806;
-  box-shadow: 0 0 0 4px rgb(255 107 94 / 0.2);
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgb(231 0 11 / 0.15);
 }
 .orb--transcribing {
   opacity: 0.6;
@@ -1344,7 +1333,7 @@ button.primary.pick__go {
   }
   @keyframes orb-pulse {
     50% {
-      box-shadow: 0 0 0 10px rgb(255 107 94 / 0.1);
+      box-shadow: 0 0 0 10px rgb(231 0 11 / 0.08);
     }
   }
 }
@@ -1354,8 +1343,8 @@ button.primary.pick__go {
   bottom: calc(100% + 1.25rem);
   width: min(26rem, calc(100vw - 2.5rem));
   padding: 0.875rem 1rem;
-  background: var(--color-raised);
-  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+  border: none;
   border-radius: 1rem;
   box-shadow: var(--shadow-lg);
 }
@@ -1387,10 +1376,10 @@ button.primary.pick__go {
   margin-bottom: 2rem;
 }
 .page__head h1 {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 650;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
   line-height: 1.05;
+  color: var(--color-heading);
   margin: 0;
 }
 .page__head p {
@@ -1404,9 +1393,9 @@ button.primary.pick__go {
 }
 .panel-block {
   background: var(--color-card);
-  border: 1px solid var(--color-line);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  padding: 1.75rem;
 }
 .panel-block--sky {
   padding: 0.75rem;
@@ -1445,7 +1434,7 @@ button.primary.pick__go {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgb(4 4 8 / 0.65);
+  background: rgb(2 6 24 / 0.35);
   backdrop-filter: blur(6px);
 }
 .modal {
@@ -1453,9 +1442,9 @@ button.primary.pick__go {
   max-height: 85dvh;
   overflow-y: auto;
   background: var(--color-card);
-  border: 1px solid var(--color-line-strong);
-  border-radius: 1.5rem;
-  padding: 1.75rem;
+  border: none;
+  border-radius: var(--radius);
+  padding: 2rem;
   box-shadow: var(--shadow-lg);
 }
 .modal h2 {
@@ -1528,8 +1517,8 @@ button.primary.pick__go {
   gap: 0.5rem;
   padding: 0.25rem 0.375rem 0.25rem 0.875rem;
   border-radius: 999px;
-  background: var(--color-raised);
-  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+  border: none;
   color: var(--color-ink);
   font-size: 0.8125rem;
   font-weight: 550;
@@ -1540,7 +1529,7 @@ button.primary.pick__go {
   padding: 0 0.75rem;
   border-radius: 999px;
   border: none;
-  background: rgb(255 255 255 / 0.1);
+  background: var(--color-raised);
   color: var(--color-ink);
   font-size: 0.8125rem;
 }
@@ -1549,21 +1538,20 @@ button.primary.pick__go {
   height: 0.5rem;
   border-radius: 50%;
   background: var(--color-wrong);
-  box-shadow: 0 0 0 3px rgb(255 107 94 / 0.3);
+  box-shadow: 0 0 0 3px rgb(231 0 11 / 0.2);
 }
 
 /* Game frame (docs/plan/06): the game opens wide inside the thread, and the rest of the thread
  * fades back while it runs. */
 .shell--playing .feed__item:not(.feed__item--playing) {
-  opacity: 0.15;
+  opacity: 0.2;
   transition: opacity 0.5s var(--ease);
 }
 .game-frame {
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(80% 60% at 50% 0%, rgb(165 180 255 / 0.06), transparent 70%), var(--color-card);
-  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+  border: none;
   border-radius: 1.75rem;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
@@ -1580,9 +1568,8 @@ button.primary.pick__go {
   padding: 1.125rem 1.5rem;
 }
 .game-frame__header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 1.625rem;
+  color: var(--color-heading);
   margin-top: 0.2rem;
 }
 .game-frame__header .chips {
@@ -1594,7 +1581,7 @@ button.primary.pick__go {
   height: 0.5rem;
   border-radius: 50%;
   background: var(--color-right);
-  box-shadow: 0 0 0 3px rgb(74 222 128 / 0.2);
+  box-shadow: 0 0 0 3px #dcfce7;
 }
 @media (prefers-reduced-motion: no-preference) {
   .live-dot {
@@ -1602,7 +1589,7 @@ button.primary.pick__go {
   }
   @keyframes live {
     50% {
-      box-shadow: 0 0 0 6px rgb(74 222 128 / 0.05);
+      box-shadow: 0 0 0 6px rgb(0 188 125 / 0.08);
     }
   }
 }
@@ -1624,8 +1611,7 @@ button.primary.pick__go {
 .game-frame__bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, #e3961c, var(--color-gold), #fff1c4);
-  box-shadow: 0 0 12px rgb(255 201 77 / 0.7);
+  background: linear-gradient(90deg, #0069a8, #00a6f4);
   transition: width 0.5s var(--ease);
 }
 .game-frame__intro {
@@ -1646,9 +1632,10 @@ button.primary.pick__go {
 }
 .game-frame__how {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 3cqw, 1.625rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.375rem, 3cqw, 1.75rem);
+  font-weight: 600;
+  color: var(--color-heading);
+  letter-spacing: -0.01em;
   line-height: 1.3;
   text-wrap: balance;
 }
@@ -1677,7 +1664,7 @@ button.primary.pick__go {
 .game-frame__offer {
   margin: 0 1.5rem 1rem;
   padding: 0.875rem 1rem;
-  border: 1px solid rgb(255 201 77 / 0.45);
+  border: 1px solid #b8e6fe;
   background: var(--color-accent-soft);
   border-radius: 1rem;
   display: flex;
@@ -1692,24 +1679,9 @@ button.primary.pick__go {
 .game-frame__offer button.primary {
   margin-top: 0;
 }
-/* The paper stage: light tokens, so every game's own colours read as designed. */
+/* The game stage: a dotted slate panel inside the frame. */
 .lodestar-taskhost {
-  --color-bg: #f4f2ec;
-  --color-card: #ffffff;
-  --color-surface: #f7f6f2;
-  --color-raised: #efede6;
-  --color-ink: #0d0d12;
-  --color-ink-2: #2b2b33;
-  --color-muted: #5c5c66;
-  --color-line: #e4e1da;
-  --color-line-strong: #cfcbc2;
-  --color-accent: #3d2bff;
-  --color-accent-ink: #2a19e0;
-  --color-accent-soft: #ecebff;
-  --color-on-accent: #ffffff;
-  --color-right: #12733b;
-  --color-wrong: #c0261a;
-  color-scheme: light;
+  --color-bg: #f8fafc;
   color: var(--color-ink);
   flex: 1;
   min-height: 26rem;
@@ -1718,9 +1690,9 @@ button.primary.pick__go {
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at 1px 1px, rgb(13 13 18 / 0.07) 1px, transparent 0) 0 0 / 22px 22px,
+    radial-gradient(circle at 1px 1px, rgb(2 6 24 / 0.08) 1px, transparent 0) 0 0 / 22px 22px,
     var(--color-bg);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6);
+  box-shadow: inset 0 0 0 1px var(--color-line);
 }
 .lodestar-taskhost button:hover:not(:disabled) {
   border-color: var(--color-ink);
@@ -1764,9 +1736,9 @@ button.primary.pick__go {
 /* Onboarding, settings and data rights (docs/plan/14; UW1, UW14, UW22) */
 .onboarding h2 {
   font-size: 2.25rem;
-  font-weight: 650;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1.05;
+  color: var(--color-heading);
 }
 .switches,
 .providers,
@@ -1796,10 +1768,10 @@ button.primary.pick__go {
   margin: 1rem 0;
 }
 .coach-option {
-  border: 1px solid var(--color-line-strong);
+  border: 1px solid var(--color-line);
   border-radius: 1rem;
   padding: 0.875rem 1rem;
-  background: var(--color-surface);
+  background: var(--color-card);
   transition:
     border-color 0.15s var(--ease),
     box-shadow 0.15s var(--ease);
@@ -1814,9 +1786,9 @@ button.primary.pick__go {
   margin: 0 0 1.5rem;
   padding: 0.25rem;
   flex-wrap: wrap;
-  background: var(--color-bg);
-  border: 1px solid var(--color-line);
-  border-radius: 0.875rem;
+  background: var(--color-raised);
+  border: none;
+  border-radius: 999px;
 }
 .tabs button {
   min-height: 2.125rem;
@@ -1824,7 +1796,7 @@ button.primary.pick__go {
   background: transparent;
   color: var(--color-muted);
   font-size: 0.875rem;
-  border-radius: 0.625rem;
+  border-radius: 999px;
 }
 .tabs button:hover:not(:disabled) {
   background: transparent;
@@ -1833,9 +1805,10 @@ button.primary.pick__go {
 }
 .tabs button[aria-selected='true'],
 .tabs button[aria-selected='true']:hover:not(:disabled) {
-  background: var(--color-raised);
-  border-color: var(--color-line-strong);
+  background: var(--color-card);
+  border-color: transparent;
   color: var(--color-ink);
+  box-shadow: var(--shadow);
 }
 .providers li {
   border-bottom: 1px solid var(--color-line);
@@ -1870,7 +1843,7 @@ button.primary.pick__go {
   height: auto;
   display: block;
   border-radius: 1.125rem;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  box-shadow: var(--ring);
 }
 .sky--compact .sky__caption {
   display: none;
@@ -1911,8 +1884,8 @@ button.primary.pick__go {
 }
 .skill > h2 {
   font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.035em;
+  color: var(--color-heading);
+  letter-spacing: -0.02em;
   margin: 1rem 0 0.5rem;
 }
 .skill h3 {
@@ -1958,7 +1931,7 @@ button.primary.pick__go {
 .goal__bar span {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, #e3961c, var(--color-gold));
+  background: linear-gradient(90deg, #0069a8, #00a6f4);
   border-radius: 999px;
 }
 .range-bar {
@@ -1968,7 +1941,7 @@ button.primary.pick__go {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: rgb(165 180 255 / 0.45);
+  background: rgb(0 132 209 / 0.25);
   border-radius: 999px;
 }
 .range-bar__dot {
@@ -1980,7 +1953,7 @@ button.primary.pick__go {
   border-radius: 50%;
   background: var(--color-star);
   border: 2px solid var(--color-card);
-  box-shadow: 0 0 10px rgb(165 180 255 / 0.6);
+  box-shadow: 0 1px 3px rgb(2 6 24 / 0.25);
 }
 .acs__parts {
   list-style: none;
@@ -2028,15 +2001,15 @@ button.primary.pick__go {
     border-color 0.2s;
 }
 .graph__node--running {
-  background: rgb(255 201 77 / 0.12);
+  background: #fefce8;
   border-color: var(--color-gold);
 }
 .graph__node--done {
-  background: rgb(165 180 255 / 0.1);
-  border-color: rgb(165 180 255 / 0.45);
+  background: var(--color-accent-soft);
+  border-color: #b8e6fe;
 }
 .graph__node--error {
-  background: rgb(255 107 94 / 0.1);
+  background: #fef2f2;
   border-color: var(--color-wrong);
 }
 .decisions {
@@ -2102,7 +2075,7 @@ button.primary.pick__go {
   padding: 0.875rem 1rem;
   border-radius: 0.875rem;
   background: var(--color-accent-soft);
-  border: 1px solid rgb(255 201 77 / 0.3);
+  border: 1px solid #b8e6fe;
 }
 
 /* Narrower screens: the sidebar folds to icons */

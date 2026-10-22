@@ -30,3 +30,4 @@ test-results/
 .vscode/
 .DS_Store
 *.tsbuildinfo
+.playwright-mcp/

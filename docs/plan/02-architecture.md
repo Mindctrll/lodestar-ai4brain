@@ -124,7 +124,7 @@ Pin these exactly (`==` in Python, exact versions in `package.json`, image tags 
 | vitest | 5.0.5 | | @mediapipe/tasks-vision | 1.1.1 |
 | @playwright/test | 1.64.1 | | @picovoice/porcupine-web | 4.0.1 |
 | @huggingface/transformers | 4.3.1 | | kokoro-js | 1.2.1 |
-| @fontsource-variable/bricolage-grotesque | 5.3.0 (display type, self-hosted) | | @fontsource-variable/geist | 5.3.0 (UI type) | | @fontsource-variable/geist-mono | 5.3.0 (labels, numbers) |
+| @fontsource-variable/source-serif-4 | 5.3.1 (display type, self-hosted) | | @fontsource-variable/inter | 5.3.0 (UI type) | | @fontsource-variable/geist-mono | 5.3.0 (labels, numbers) |
 
 **Supporting packages and images (added in WP0.1, same pinning rule)**
 

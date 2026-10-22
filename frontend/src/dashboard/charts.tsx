@@ -27,13 +27,13 @@ echarts.use([
   SVGRenderer,
 ])
 
-// Starlight on the night panel; PANEL must match the side panel's background (it masks bands).
-const ACCENT = '#a5b4ff'
-const BAND = 'rgba(165, 180, 255, 0.18)'
-const MUTED = '#9a99a6'
-const PANEL = '#121219'
-const INK = '#f5f3ee'
-const FONT = "'Geist Variable', system-ui, sans-serif"
+// Sky blue on white; PANEL must match the page card's background (it masks bands).
+const ACCENT = '#0084d1'
+const BAND = 'rgba(0, 132, 209, 0.14)'
+const MUTED = '#62748e'
+const PANEL = '#ffffff'
+const INK = '#020618'
+const FONT = "'Inter Variable', system-ui, sans-serif"
 const reducedMotion =
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
@@ -65,10 +65,10 @@ function Chart({
         option={{
           animation: !reducedMotion,
           backgroundColor: 'transparent',
+          color: ['#74d4ff', ACCENT, MUTED],
           textStyle: { fontFamily: FONT },
           ...option,
         }}
-        theme="dark"
         style={{ height }}
         opts={{ renderer: 'svg' }}
         notMerge
@@ -280,7 +280,7 @@ export function WeekHeatmap({
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#ff8a6b', '#22222c', '#a5b4ff'] },
+      inRange: { color: ['#f54900', '#f1f5f9', '#0084d1'] },
       text: ['up 10 points', 'down 10'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -332,7 +332,7 @@ export function HourHeatmap({ progress }: { progress: ProgressView }) {
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#ff8a6b', '#22222c', '#a5b4ff'] },
+      inRange: { color: ['#f54900', '#f1f5f9', '#0084d1'] },
       text: ['100% right', '50%'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -374,16 +374,16 @@ export function AcsGauge({ acs }: { acs: AcsView }) {
           lineStyle: {
             width: 16,
             color: [
-              [acs.low / 100, '#2a2a35'],
+              [acs.low / 100, '#e2e8f0'],
               [acs.high / 100, ACCENT],
-              [1, '#2a2a35'],
+              [1, '#e2e8f0'],
             ],
           },
         },
         pointer: { itemStyle: { color: ACCENT }, width: 5 },
         splitNumber: 5,
         axisTick: { show: false },
-        splitLine: { length: 10, lineStyle: { color: '#3a3a46' } },
+        splitLine: { length: 10, lineStyle: { color: '#cad5e2' } },
         axisLabel: { distance: 22, color: MUTED, fontSize: 11 },
         detail: {
           formatter: () =>
