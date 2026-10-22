@@ -3363,6 +3363,10 @@ button.primary.pick__go {
 .coach-card__top p {
   margin: 0;
 }
+.coach-card__face .glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+}
 .coach-card__face {
   display: grid;
   place-items: center;

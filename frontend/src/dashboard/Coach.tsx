@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
 import type { Persona } from '../api/types'
+import { Glyph, type GlyphName } from '../app/icons'
 import { PERSONAS } from '../app/personas'
 
-const LOOK: Record<Persona, { soft: string; strong: string }> = {
-  willow: { soft: '#dcfce7', strong: '#15803d' },
-  spark: { soft: '#fef3c7', strong: '#a16207' },
-  sage: { soft: '#e0f2fe', strong: '#0069a8' },
-  buddy: { soft: '#fce7f3', strong: '#be185d' },
+const LOOK: Record<Persona, { soft: string; strong: string; icon: GlyphName }> = {
+  willow: { soft: '#dcfce7', strong: '#15803d', icon: 'leaf' },
+  spark: { soft: '#fef3c7', strong: '#a16207', icon: 'zap' },
+  sage: { soft: '#e0f2fe', strong: '#0069a8', icon: 'book' },
+  buddy: { soft: '#fce7f3', strong: '#be185d', icon: 'thumb' },
 }
 
 /** The four coaches (docs/plan/09, personas; UW20). They say the same facts in their own voice;
@@ -53,7 +54,7 @@ export function Coach({ onChange }: { onChange?: (persona: Persona) => void }) {
                   style={{ background: look.soft, color: look.strong }}
                   aria-hidden="true"
                 >
-                  {p.name.slice(0, 1)}
+                  <Glyph name={look.icon} />
                 </span>
                 <div>
                   <h2>{p.name}</h2>

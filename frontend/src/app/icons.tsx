@@ -76,6 +76,16 @@ const GLYPHS = {
   moon: <path d="M20.5 14.1A8.5 8.5 0 1 1 9.9 3.5a6.6 6.6 0 0 0 10.6 10.6z" />,
   check: <path d="M20 6L9 17l-5-5" />,
   flag: <path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5" />,
+  leaf: (
+    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10zM2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12" />
+  ),
+  zap: <path d="M13 2L3 14h9l-1 8 10-12h-9z" />,
+  book: (
+    <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+  ),
+  thumb: (
+    <path d="M7 10v12M15 5.9L14 10h5.8a2 2 0 0 1 1.9 2.6l-2.3 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.8a2 2 0 0 0 1.8-1.1L12 2a3.1 3.1 0 0 1 3 3.9z" />
+  ),
 } satisfies Record<string, ReactNode>
 
 export type GlyphName = keyof typeof GLYPHS
