@@ -2340,6 +2340,17 @@
             "title": "Progress",
             "type": "object"
           },
+          "scores": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "Each finished session's mean round score, per condition",
+            "title": "Scores",
+            "type": "object"
+          },
           "sessions_per_condition": {
             "title": "Sessions Per Condition",
             "type": "integer"

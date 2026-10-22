@@ -272,7 +272,6 @@ export function App() {
               Ask
             </button>
           </form>
-          <p className="muted small">Your Twin answers here, from what Lodestar has measured.</p>
         </section>
         <section className="panel-block">
           <Heading icon="radar">All skills at a glance</Heading>
@@ -333,6 +332,7 @@ export function App() {
         timeline={session.state.timeline}
         sessionId={session.state.sessionId}
         decisions={decisions}
+        name={optionName}
         onWhy={setWhy}
       />
     )

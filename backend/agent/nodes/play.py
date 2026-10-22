@@ -423,10 +423,7 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
         game = registry.game(state.onboarding[0])
         dim = game.primary_dims[0]
         total = len(state.onboarding) + len(state.rounds)
-        reason = (
-            f"Warm-up game {len(state.rounds) + 1} of {total}: {game.name}. "
-            "Nothing here is a test you can fail."
-        )
+        reason = f"Warm-up game {len(state.rounds) + 1} of {total}: {game.name}."
         update["onboarding"] = state.onboarding[1:]
         force_assess = True
     elif _callback_due(registry, state, ctx.consent, avoid):

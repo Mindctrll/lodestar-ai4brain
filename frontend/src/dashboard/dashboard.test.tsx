@@ -70,9 +70,10 @@ test('goals show the range against the target, never a bare score', () => {
     status: 'active', range_now: 24.6, low: 30, high: 79, rounds_left: 4, met: false,
   } as GoalView // prettier-ignore
   render(<Goals goals={[goal]} />)
-  expect(
-    screen.getByText(/Range now ±25 points \(30-79%\), aim ±15, about 4 more rounds/),
-  ).toBeInTheDocument()
+  expect(screen.getByText('±25')).toBeInTheDocument() // the range now, next to the aim
+  expect(screen.getByText('±15')).toBeInTheDocument()
+  expect(screen.getByText(/Likely 30-79% now/)).toBeInTheDocument()
+  expect(screen.getByText('about 4 more rounds')).toBeInTheDocument()
   expect(
     screen.getByRole('progressbar', { name: 'Working memory goal progress' }),
   ).toBeInTheDocument()

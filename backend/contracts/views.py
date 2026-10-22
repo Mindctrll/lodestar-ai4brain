@@ -160,6 +160,9 @@ class ExperimentView(Contract):
     games: list[str] = Field(description="Game names, the same in every session")
     sessions_per_condition: int
     progress: dict[str, int] = Field(description="Sessions done per condition")
+    scores: dict[str, list[float]] = Field(
+        default_factory=dict, description="Each finished session's mean round score, per condition"
+    )
     verdict: str | None = None
     p_evening_better: float | None = None
     interval: list[float] | None = Field(

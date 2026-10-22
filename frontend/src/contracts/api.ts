@@ -1707,6 +1707,13 @@ export interface components {
       progress: {
         [key: string]: number
       }
+      /**
+       * Scores
+       * @description Each finished session's mean round score, per condition
+       */
+      scores?: {
+        [key: string]: number[]
+      }
       /** Sessions Per Condition */
       sessions_per_condition: number
       /** Status */

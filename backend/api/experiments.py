@@ -47,6 +47,14 @@ async def list_experiments(
                 games=[registry.game(g).name for g in row.design["games"]],
                 sessions_per_condition=row.design["sessions_per_condition"],
                 progress=progress(row),
+                scores={
+                    c: [
+                        round(x["score"], 3)
+                        for x in result.get("sessions", [])
+                        if x["condition"] == c
+                    ]
+                    for c in row.design["conditions"]
+                },
                 verdict=result.get("verdict"),
                 p_evening_better=result.get("p_evening_better"),
                 interval=result.get("interval"),
