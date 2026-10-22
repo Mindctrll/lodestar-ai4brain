@@ -2,15 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
 import type { Persona } from '../api/types'
-import { Glyph, type GlyphName } from '../app/icons'
+import { Glyph } from '../app/icons'
 import { PERSONAS } from '../app/personas'
-
-const LOOK: Record<Persona, { soft: string; strong: string; icon: GlyphName }> = {
-  willow: { soft: '#dcfce7', strong: '#15803d', icon: 'leaf' },
-  spark: { soft: '#fef3c7', strong: '#a16207', icon: 'zap' },
-  sage: { soft: '#e0f2fe', strong: '#0069a8', icon: 'book' },
-  buddy: { soft: '#fce7f3', strong: '#be185d', icon: 'thumb' },
-}
 
 /** The four coaches (docs/plan/09, personas; UW20). They say the same facts in their own voice;
  * switching takes effect from the next reply. */
@@ -44,7 +37,7 @@ export function Coach({ onChange }: { onChange?: (persona: Persona) => void }) {
     <div className="stack" data-testid="coach-page">
       <ul className="coaches-grid">
         {PERSONAS.map((p) => {
-          const look = LOOK[p.id]
+          const look = p
           const mine = current === p.id
           return (
             <li key={p.id} className={`coach-card${mine ? ' coach-card--mine' : ''}`}>

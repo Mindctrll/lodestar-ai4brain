@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { api } from '../api/client'
-import type { GoalView, ProgressView, Registry, TwinView } from '../api/types'
+import type { GoalView, Persona, ProgressView, Registry, TwinView } from '../api/types'
 import { Goals } from '../dashboard/Goals'
 import { NightSky } from '../dashboard/NightSky'
 import { GAMES } from '../games'
 import { GameFrame } from '../taskhost/GameFrame'
 import { Cited } from './Cited'
+import { Glyph } from './icons'
+import { PERSONAS } from './personas'
 import type { FeedItem, Surface, useSession } from './useSession'
 
 export type Panel =
@@ -231,7 +233,9 @@ export function Conversation({
   progress,
   setWhy,
   onOpen,
+  persona = 'willow',
 }: {
+  persona?: Persona
   session: ReturnType<typeof useSession>
   registry: Registry | null
   twin: TwinView | null
@@ -241,6 +245,12 @@ export function Conversation({
   onOpen: (panel: Panel, dim?: string) => void
 }) {
   const { state, start, answer, play, finish, resumeSaved, skipSaved } = session
+  const coach = PERSONAS.find((p) => p.id === persona) ?? {
+    name: 'Lodestar',
+    icon: 'star' as const,
+    soft: '#f1f5f9',
+    strong: '#020618',
+  }
   const end = useRef<HTMLDivElement>(null)
   const now = new Date()
 
@@ -396,18 +406,36 @@ export function Conversation({
               </ul>
             )}
             <div className="coach" data-testid={live ? 'coach' : undefined}>
+              {live && (
+                <p className="coach__who">
+                  <span
+                    className="coach__face"
+                    style={{ background: coach.soft, color: coach.strong }}
+                    aria-hidden="true"
+                  >
+                    <Glyph name={coach.icon} />
+                  </span>
+                  <strong>{coach.name}</strong>
+                  <span className="muted">your coach</span>
+                </p>
+              )}
               {item.says.length === 0 && live && (
                 <p className="muted thinking">Looking at your round</p>
+              )}
+              {facts[0] && (
+                <p className="coach__main">
+                  <Cited text={facts[0].text} refs={facts[0].refs} onWhy={setWhy} />
+                </p>
               )}
               {story.map((line, j) => (
                 <p key={j}>
                   <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
                 </p>
               ))}
-              {facts.length > 0 && (
+              {facts.length > 1 && (
                 <details className="result__more">
                   <summary>How I worked this out</summary>
-                  {facts.map((line, j) => (
+                  {facts.slice(1).map((line, j) => (
                     <p key={j}>
                       <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
                     </p>

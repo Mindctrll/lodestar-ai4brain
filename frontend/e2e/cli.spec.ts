@@ -26,7 +26,6 @@ test('uw19 terminal: the sign-in code, and a game handed over from the CLI', asy
   expect(page.url()).not.toContain('session=')
   await page.getByRole('button', { name: 'Resume' }).click()
   await playCurrentGame(page)
-  // Fact lines sit behind \"How I worked this out\".
-  await page.getByTestId('coach').getByText('How I worked this out').click({ timeout: 60_000 })
+
   await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({ timeout: 60_000 })
 })

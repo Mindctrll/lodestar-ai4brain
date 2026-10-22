@@ -2,7 +2,7 @@
 
 Plan for our CISTAC 1.0 entry. Read this file and [AGENTS.md](../../AGENTS.md) first, then whichever plan file you're working on.
 
-**Lodestar** (نجمة, "star") is an AI agent that measures how you think, explains what it sees, and coaches you to improve. You can summon it by voice ("Hey Lodestar"), talk to it in the web app, or use it from a terminal. It gives you short games, builds a profile of you that changes over time (the Brain Twin), and is always honest about how sure it is.
+**Lodestar** ("the guiding star") is an AI agent that measures how you think, explains what it sees, and coaches you to improve. You can summon it by voice ("Hey Lodestar"), talk to it in the web app, or use it from a terminal. It gives you short games, builds a profile of you that changes over time (the Brain Twin), and is always honest about how sure it is.
 
 ## Deadlines
 

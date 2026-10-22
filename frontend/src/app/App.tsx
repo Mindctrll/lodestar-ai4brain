@@ -499,6 +499,7 @@ export function App() {
             progress={progress}
             setWhy={setWhy}
             onOpen={open}
+            persona={persona}
           />
           {!playing && session.state.phase !== 'resumable' && (
             <Composer

@@ -33,8 +33,7 @@ test('wave 2 gate: a whole first week in one go', async ({ page }) => {
     }
     await playCurrentGame(page)
     // The coach answers from facts; every fact is a chip next to the sentence that uses it.
-    // Fact lines sit behind \"How I worked this out\".
-    await page.getByTestId('coach').getByText('How I worked this out').click({ timeout: 60_000 })
+
     await expect(page.getByTestId('coach').locator('.cite').first()).toBeVisible({
       timeout: 60_000,
     })
