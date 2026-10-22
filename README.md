@@ -1,6 +1,6 @@
 # Lodestar: a cognitive growth agent
 
-**AI4Brain · CISTAC 1.0.** Lodestar measures how you think with short games, keeps an honest, changing profile of you (the **Brain Twin**), explains every choice it makes, and coaches you at the right level. Every estimate comes with a range, and every number the coach says is cited.
+**AI4Brain · CISTAC 1.0 · team We are soo back.** Lodestar measures how you think with short games, keeps an honest, changing profile of you (the **Brain Twin**), explains every choice it makes, and coaches you at the right level. Every estimate comes with a range, and every number the coach says is cited.
 
 Lodestar is a practice coach. It doesn't assess medical or psychological conditions.
 

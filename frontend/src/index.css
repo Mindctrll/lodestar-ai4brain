@@ -242,28 +242,6 @@ button.link:hover:not(:disabled) {
   border-color: var(--color-ink-2);
   color: #ffffff;
 }
-.icon-button {
-  width: 2.25rem;
-  min-height: 2.25rem;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-color: transparent;
-  background: transparent;
-  color: var(--color-muted);
-}
-.icon-button:hover:not(:disabled) {
-  color: var(--color-ink);
-  border-color: transparent;
-}
-.icon-button svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-  stroke-linecap: round;
-}
 input[type='text'],
 input[type='password'],
 input[type='email'],
@@ -928,10 +906,6 @@ h3 {
   height: 0.5rem;
   border-radius: 50%;
   border: 1.5px solid var(--color-line-strong);
-}
-.record--played .record__mark {
-  background: var(--color-right);
-  border-color: transparent;
 }
 
 /* Cards the agent puts in the thread */
@@ -3349,11 +3323,6 @@ button.primary.pick__go {
 }
 
 /* Coach (docs/plan/09, personas) */
-.coach-page__lede {
-  margin: 0;
-  font-size: 1.0625rem;
-  color: var(--color-ink-2);
-}
 .coaches-grid {
   list-style: none;
   padding: 0;
