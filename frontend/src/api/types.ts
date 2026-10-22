@@ -50,6 +50,8 @@ export type AgentEvent =
       refs?: Record<string, string> | undefined
     }
   | { kind: 'memory'; text: string }
+  /** What route_intent understood; the UI opens the matching surface beside the reply. */
+  | { kind: 'intent'; intent: string; dim: string | null; tool: string | null }
   | { kind: 'session'; status: string; rounds: number }
   | {
       kind: 'interrupt'

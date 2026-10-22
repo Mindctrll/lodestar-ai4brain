@@ -34,7 +34,14 @@ export function DecisionCard({
   }, [decisionId])
 
   return (
-    <section className="card why" role="dialog" aria-label="Why this choice" data-testid="why-card">
+    <section
+      className="modal why"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Why this choice"
+      data-testid="why-card"
+    >
+      <p className="eyebrow">Decision</p>
       <h2>Why this choice</h2>
       {failed && <p role="alert">I couldn&apos;t load that choice.</p>}
       {decision && (
@@ -63,7 +70,7 @@ export function DecisionCard({
           )}
         </>
       )}
-      <button type="button" onClick={onClose}>
+      <button type="button" onClick={onClose} autoFocus>
         Close
       </button>
     </section>

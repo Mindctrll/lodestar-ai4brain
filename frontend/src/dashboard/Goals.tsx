@@ -2,7 +2,7 @@ import type { GoalView } from '../api/types'
 
 /** Goal tracking (docs/plan/13, chart 4): how far the range has narrowed toward the target,
  * not only the score. */
-export function Goals({ goals }: { goals: GoalView[] }) {
+export function Goals({ goals, testId = 'goals' }: { goals: GoalView[]; testId?: string }) {
   if (goals.length === 0)
     return (
       <p className="muted">
@@ -10,7 +10,7 @@ export function Goals({ goals }: { goals: GoalView[] }) {
       </p>
     )
   return (
-    <ul className="goals" data-testid="goals">
+    <ul className="goals" data-testid={testId}>
       {goals.map((g) => {
         const now = g.range_now
         // Progress from a wide start (±50) toward the target width.

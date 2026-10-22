@@ -17,12 +17,15 @@ function seededToken(): string {
 test('ask the Twin when I am sharpest, then start an experiment', async ({ page }) => {
   await page.goto(`/?signin=${seededToken()}`)
   await page.getByRole('button', { name: 'Brain Twin' }).click()
-  const twin = page.getByRole('region', { name: 'Ask your Twin' })
-  await twin.getByRole('textbox').fill('when am I sharpest?')
-  await twin.getByRole('button', { name: 'Send' }).click()
-  // First person, from facts (the chips), and honest about how sure it is.
-  await expect(twin).toContainText(/My games go best in the (morning|evening)/, { timeout: 60_000 })
-  await expect(twin.locator('.cite').first()).toBeVisible()
+  const ask = page.getByRole('region', { name: 'Ask your Twin' })
+  await ask.getByRole('textbox').fill('when am I sharpest?')
+  await ask.getByRole('button', { name: 'Ask' }).click()
+  // The Twin answers in the conversation: first person, from facts (the chips), and honest about
+  // how sure it is. The agent opens the Twin beside its answer.
+  const chat = page.getByTestId('chat')
+  await expect(chat).toContainText(/My games go best in the (morning|evening)/, { timeout: 60_000 })
+  await expect(chat.locator('.cite').first()).toBeVisible()
+  await expect(page.getByTestId('night-sky-inline')).toBeVisible()
 
   await page.getByRole('button', { name: 'Experiments' }).click()
   await page.getByRole('button', { name: 'Start one' }).click()

@@ -88,6 +88,17 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
 
   useEffect(() => () => turn.current?.cancel(), [])
 
+  // What was heard stays up for a moment after it is sent; the reply carries on in the thread.
+  useEffect(() => {
+    if (state !== 'idle' || !caption) return
+    const t = setTimeout(() => {
+      setCaption('')
+    }, 6000)
+    return () => {
+      clearTimeout(t)
+    }
+  }, [state, caption])
+
   // The wake word only runs when it is set up and the microphone switch is on.
   const stateRef = useRef(state)
   useEffect(() => {
@@ -130,19 +141,28 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
           : 'Tap to talk (Alt+V)'
 
   return (
-    <section className="card orb-card" data-testid="voice">
+    <div className="mic" data-testid="voice">
       <button
         type="button"
         className={`orb orb--${state}`}
         aria-label={label}
+        title={label}
         aria-pressed={state === 'listening'}
         disabled={state === 'transcribing' || state === 'consent'}
         onClick={toggle}
       >
-        <span aria-hidden="true" />
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="12" rx="3" />
+          <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" />
+        </svg>
       </button>
-      <div className="orb__text">
-        <p className="muted small">{label}</p>
+      <div
+        className="mic__pop"
+        hidden={
+          !caption && !error && state !== 'consent' && wake !== 'failed' && state !== 'listening'
+        }
+      >
+        {state === 'listening' && <p className="eyebrow">Listening</p>}
         <p className="orb__caption" aria-live="polite" data-testid="voice-caption">
           {caption}
         </p>
@@ -156,7 +176,7 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
                   ? 'Speech is turned into text on this device; the audio never leaves it.'
                   : 'Speech is turned into text on this server, and the audio is not kept.'}
             </p>
-            <div className="flex gap-2">
+            <div className="actions">
               <button
                 type="button"
                 className="primary"
@@ -187,6 +207,6 @@ export function Orb({ onTranscript }: { onTranscript: (text: string) => void }) 
         )}
         {error && <p role="alert">{error}</p>}
       </div>
-    </section>
+    </div>
   )
 }

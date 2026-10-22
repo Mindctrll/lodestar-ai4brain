@@ -22,7 +22,13 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
   const [struggling, setStruggling] = useState(false)
   const [progress, setProgress] = useState<[number, number]>([0, 0])
   const controls = useRef<TaskControls | null>(null)
+  const frame = useRef<HTMLElement>(null)
   useCameraCues(started) // only with the camera switch on; frames never leave the browser
+
+  // The game opens inside the conversation: bring it into view.
+  useEffect(() => {
+    frame.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   // Voice coaching (docs/plan/12): when Najma speaks, she reads the instructions out loud.
   useEffect(() => {
@@ -31,9 +37,10 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
   }, [game])
 
   return (
-    <section className="game-frame" aria-label={game.name}>
+    <section className="game-frame" aria-label={game.name} ref={frame}>
       <header className="game-frame__header">
         <div>
+          <p className="eyebrow">Now playing</p>
           <h2>{game.name}</h2>
           <ul className="chips" aria-label="Skills">
             {skills.map((s) => (

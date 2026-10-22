@@ -167,6 +167,8 @@ async def route_intent(state: NajmaState, runtime: Runtime[NajmaContext]) -> dic
         nudged = await _last_nudge(ctx)
         if nudged is not None:
             intent = intent.model_copy(update={"avoid_dims": [nudged]})
+    # The UI opens the matching surface (the Twin, goals, experiments) beside the reply.
+    emit({"kind": "intent", "intent": intent.kind, "dim": intent.dim, "tool": intent.tool})
     update: dict[str, Any] = {"intent": intent, "verdict": None}
     if degraded:
         update["degraded"] = degraded

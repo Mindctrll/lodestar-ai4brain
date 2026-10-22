@@ -79,12 +79,14 @@ export function NightSky({
   onSelect,
   compact = false,
   pulse = 0,
+  testId = 'night-sky',
 }: {
   registry: Registry
   dims: DimensionView[]
   onSelect?: ((dim: string) => void) | undefined
   compact?: boolean
   pulse?: number
+  testId?: string
 }) {
   const placed = place(registry, dims)
   const at = new Map(placed.map((p) => [p.id, p]))
@@ -95,7 +97,7 @@ export function NightSky({
   })
 
   return (
-    <figure className={`sky${compact ? ' sky--compact' : ''}`} data-testid="night-sky">
+    <figure className={`sky${compact ? ' sky--compact' : ''}`} data-testid={testId}>
       <svg
         viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
         role="group"
@@ -103,20 +105,27 @@ export function NightSky({
         key={pulse}
       >
         <defs>
-          <radialGradient id="sky-bg" cx="50%" cy="40%" r="80%">
+          <radialGradient id={`${testId}-bg`} cx="50%" cy="40%" r="80%">
             <stop offset="0%" stopColor="#1b2350" />
             <stop offset="100%" stopColor="#070a1c" />
           </radialGradient>
           {placed.map((p) => {
             const blur = p.view ? Math.max(0.3, p.view.sigma * 4) : 7
             return (
-              <filter key={p.id} id={`blur-${p.id}`} x="-200%" y="-200%" width="500%" height="500%">
+              <filter
+                key={p.id}
+                id={`${testId}-blur-${p.id}`}
+                x="-200%"
+                y="-200%"
+                width="500%"
+                height="500%"
+              >
                 <feGaussianBlur stdDeviation={blur.toFixed(2)} />
               </filter>
             )
           })}
         </defs>
-        <rect width={WIDTH} height={HEIGHT} fill="url(#sky-bg)" rx="18" />
+        <rect width={WIDTH} height={HEIGHT} fill={`url(#${testId}-bg)`} rx="18" />
         {background.map((b, i) => (
           <circle key={i} cx={b.x} cy={b.y} r={b.s} fill="#fff" opacity={b.o} />
         ))}
@@ -182,7 +191,7 @@ export function NightSky({
                 r={radius * 2.4}
                 fill="#fff6d8"
                 opacity={brightness * 0.55}
-                filter={`url(#blur-${p.id})`}
+                filter={`url(#${testId}-blur-${p.id})`}
               />
               <circle cx={p.x} cy={p.y} r={radius} fill="#fffaf0" opacity={brightness} />
               {!compact && (

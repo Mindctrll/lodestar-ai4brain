@@ -27,9 +27,10 @@ echarts.use([
   SVGRenderer,
 ])
 
-const ACCENT = '#2f6fed'
-const BAND = 'rgba(47, 111, 237, 0.16)'
-const MUTED = '#6b6b76'
+const ACCENT = '#3d2bff'
+const BAND = 'rgba(61, 43, 255, 0.14)'
+const MUTED = '#5c5c66'
+const FONT = "'Schibsted Grotesk Variable', system-ui, sans-serif"
 const reducedMotion =
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
@@ -58,7 +59,7 @@ function Chart({
     >
       <ReactEChartsCore
         echarts={echarts}
-        option={{ animation: !reducedMotion, ...option }}
+        option={{ animation: !reducedMotion, textStyle: { fontFamily: FONT }, ...option }}
         style={{ height }}
         opts={{ renderer: 'svg' }}
         notMerge
@@ -206,7 +207,7 @@ export function SkillCurve({
         data: [...base.slice(0, -1), 0, round(forecast.high - forecast.low)],
         stack: 'forecast',
         lineStyle: { color: ACCENT, type: 'dashed', opacity: 0.5 },
-        areaStyle: { color: 'rgba(47, 111, 237, 0.08)', decal: { symbol: 'line', dashArrayX: 4 } },
+        areaStyle: { color: 'rgba(61, 43, 255, 0.07)', decal: { symbol: 'line', dashArrayX: 4 } },
         symbol: 'none',
       },
       {
@@ -270,7 +271,7 @@ export function WeekHeatmap({
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#f2b8a2', '#f7f7f8', '#9cb8f5'] },
+      inRange: { color: ['#f4b49c', '#f6f5f1', '#9a90ff'] },
       text: ['up 10 points', 'down 10'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -322,7 +323,7 @@ export function HourHeatmap({ progress }: { progress: ProgressView }) {
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#fbe3d6', '#eef2fd', '#7fa2f0'] },
+      inRange: { color: ['#fbe3d6', '#efedff', '#7d70ff'] },
       text: ['100% right', '50%'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -333,7 +334,7 @@ export function HourHeatmap({ progress }: { progress: ProgressView }) {
         data,
         label: {
           show: true,
-          color: '#16161a',
+          color: '#0d0d12',
           formatter: (p: { value: (number | null)[] }) =>
             p.value[2] === null || p.value[2] === undefined
               ? ''
@@ -364,22 +365,22 @@ export function AcsGauge({ acs }: { acs: AcsView }) {
           lineStyle: {
             width: 16,
             color: [
-              [acs.low / 100, '#e6e6ea'],
-              [acs.high / 100, '#9cb8f5'],
-              [1, '#e6e6ea'],
+              [acs.low / 100, '#e4e1da'],
+              [acs.high / 100, '#a79fff'],
+              [1, '#e4e1da'],
             ],
           },
         },
         pointer: { itemStyle: { color: ACCENT }, width: 5 },
         splitNumber: 5,
         axisTick: { show: false },
-        splitLine: { length: 10, lineStyle: { color: '#c9ccd6' } },
+        splitLine: { length: 10, lineStyle: { color: '#cfcbc2' } },
         axisLabel: { distance: 22, color: MUTED, fontSize: 11 },
         detail: {
           formatter: () =>
             `${String(round(acs.score ?? 0))}\n${String(round(acs.low ?? 0))}-${String(round(acs.high ?? 0))}`,
           fontSize: 18,
-          color: '#16161a',
+          color: '#0d0d12',
           offsetCenter: [0, '55%'],
         },
         data: [{ value: round(acs.score) }],

@@ -1,0 +1,637 @@
+/* Game stages. Each game's own pieces; the shared frame and stage live in index.css. */
+
+/* Quick Draw */
+.qd-row {
+  display: flex;
+  gap: 1rem;
+}
+.qd-box {
+  width: 5.5rem;
+  height: 5.5rem;
+  position: relative;
+  font-size: 2.5rem;
+}
+.qd-key {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+/* Ink Clash */
+.ic-word {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.ic-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ic-button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: capitalize;
+}
+.ic-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+/* Echo */
+.echo-letter {
+  font-size: 4rem;
+  font-weight: 700;
+  min-height: 5rem;
+}
+
+/* Arrow Storm */
+.as-row {
+  font-size: 3rem;
+  letter-spacing: 0.3rem;
+}
+.as-buttons,
+.ti-buttons,
+.sw-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Odd One Out */
+.oo-grid {
+  display: grid;
+  gap: 0.4rem;
+}
+.oo-item {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.4rem;
+  padding: 0;
+}
+
+/* Hold It */
+.hi-shape {
+  width: 7rem;
+  height: 7rem;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: white;
+}
+.hi-go {
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.hi-hold {
+  background: var(--color-ink);
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+}
+
+/* Light Path */
+.lp-board {
+  position: relative;
+  width: min(22rem, 85vw);
+  height: 16rem;
+  background: var(--color-surface);
+  border-radius: 1rem;
+}
+.lp-block {
+  position: absolute;
+  width: 3rem;
+  height: 3rem;
+  background: var(--color-sky);
+  border-radius: 0.5rem;
+}
+.lp-block.is-lit,
+.lp-block.is-tapped {
+  background: #f5c542;
+}
+
+/* Market List */
+.ml-word {
+  font-size: 2.5rem;
+  font-weight: 600;
+  min-height: 3.5rem;
+}
+.ml-input {
+  width: min(28rem, 85vw);
+  min-height: 6rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.6rem;
+  padding: 0.6rem;
+}
+
+/* Souk Rush */
+.sr-talk {
+  max-width: 28rem;
+  text-align: center;
+  font-size: 1.15rem;
+}
+.sr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(7rem, 1fr));
+  gap: 0.5rem;
+}
+.sr-choice[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* Symbol Code */
+.sc-key {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.sc-pair {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 3rem;
+}
+.sc-symbol {
+  font-size: 1.5rem;
+}
+.sc-target {
+  font-size: 4rem;
+}
+
+/* Switch */
+.sw-cue {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.sw-shape {
+  width: 6rem;
+  height: 6rem;
+}
+.sw-circle {
+  border-radius: 50%;
+}
+.pattern-orange {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* Pattern Gap */
+.pg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 6rem);
+  gap: 0.4rem;
+  color: var(--color-ink);
+}
+.pg-cell {
+  width: 6rem;
+  height: 6rem;
+  border: 1px solid var(--color-line);
+  display: grid;
+  place-items: center;
+}
+.pg-missing {
+  font-size: 2rem;
+  color: var(--color-muted);
+}
+.pg-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pg-option {
+  display: grid;
+  place-items: center;
+  padding: 0.3rem;
+}
+.pg-hint {
+  min-height: 1.5rem;
+  color: var(--color-muted);
+}
+
+/* Spot the AI's Mistake */
+.sm-question {
+  max-width: 34rem;
+  font-weight: 600;
+}
+.sm-steps {
+  display: grid;
+  gap: 0.4rem;
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.sm-step {
+  text-align: left;
+}
+
+/* Turn It */
+.ti-pair {
+  display: flex;
+  gap: 2rem;
+  color: var(--color-ink);
+}
+.ti-pair svg {
+  width: 9rem;
+  height: 9rem;
+}
+
+/* Number Line */
+.nl-target {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+.nl-line {
+  position: relative;
+  width: min(36rem, 85vw);
+  height: 3rem;
+  cursor: crosshair;
+  background: linear-gradient(var(--color-ink), var(--color-ink)) center / 100% 3px no-repeat;
+}
+.nl-end {
+  position: absolute;
+  top: 2.2rem;
+  font-size: 0.85rem;
+}
+.nl-start {
+  left: 0;
+}
+.nl-stop {
+  right: 0;
+}
+
+/* Shared by the P2 games (WP3.1) */
+.choice-row,
+.type-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.type-input {
+  width: min(18rem, 70vw);
+  border: 1px solid var(--color-line);
+  border-radius: 0.6rem;
+  padding: 0.6rem;
+  font-size: 1.2rem;
+}
+.big-symbol {
+  font-size: 3rem;
+  font-weight: 700;
+  min-height: 4rem;
+  text-align: center;
+}
+.game-prompt {
+  max-width: 30rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Brake */
+.brake-arrow {
+  font-size: 4rem;
+  font-weight: 700;
+  width: 6rem;
+  height: 6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 0.4rem solid transparent;
+}
+.brake-arrow.is-stop {
+  color: var(--color-wrong);
+  border-color: var(--color-wrong);
+}
+
+/* Look Here */
+.lh-field {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.lh-box {
+  width: 5rem;
+  height: 5rem;
+  border: 2px solid var(--color-line);
+  border-radius: 0.6rem;
+  display: grid;
+  place-items: center;
+  font-size: 2.5rem;
+}
+.lh-centre {
+  font-size: 2.5rem;
+  width: 3rem;
+  text-align: center;
+}
+
+/* Night Guard */
+.ng-light {
+  width: 7rem;
+  height: 7rem;
+  color: var(--color-ink);
+}
+
+/* Control Tower */
+.ct-rule.is-new {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.ct-planes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ct-radar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+.ct-radar.is-red {
+  background: #d64545;
+}
+.ct-radar.is-green {
+  background: #2f9e44;
+}
+
+/* Twins */
+.twins-pair {
+  display: grid;
+  gap: 0.5rem;
+  font-family: ui-monospace, monospace;
+  font-size: 2rem;
+  letter-spacing: 0.3rem;
+  text-align: center;
+}
+
+/* Which Jar? */
+.wj-jars {
+  display: flex;
+  gap: 1.5rem;
+}
+.wj-jars svg {
+  width: min(9rem, 38vw);
+}
+
+/* Connect and Zigzag */
+.trail-board {
+  position: relative;
+  width: min(26rem, 90vw);
+  height: min(22rem, 70vh);
+  background: var(--color-surface);
+  border-radius: 1rem;
+}
+.trail-dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  padding: 0;
+}
+.trail-dot.is-done {
+  background: var(--color-accent);
+  color: white;
+}
+.trail-dot.is-wrong {
+  background: var(--color-wrong);
+  color: white;
+}
+
+/* Secret Rules */
+.rules-refs {
+  display: flex;
+  gap: 0.5rem;
+}
+.rules-card {
+  min-width: 5rem;
+  min-height: 4rem;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--color-ink);
+  border-radius: 0.5rem;
+  background: var(--color-card);
+  font-size: 1.2rem;
+}
+.rules-card.frame-dashed {
+  border-style: dashed;
+}
+.rules-card.frame-dotted {
+  border-style: dotted;
+}
+.rules-card.frame-double {
+  border-style: double;
+  border-width: 6px;
+}
+
+/* Tower */
+.tw-tower {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+.tw-peg {
+  width: 3.4rem;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  padding: 0.3rem 0;
+  border-radius: 0.5rem;
+}
+.tw-peg.is-held {
+  outline: 3px solid var(--color-accent);
+}
+.tw-ball {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+.tw-ball.is-red {
+  background: #d64545;
+}
+.tw-ball.is-green {
+  background: #2f9e44;
+}
+.tw-ball.is-blue {
+  background: #3b6fd8;
+}
+.tw-goal {
+  display: grid;
+  justify-items: center;
+  opacity: 0.85;
+}
+
+/* Guide the Robot and Teach Me */
+.gr-grid {
+  display: grid;
+  gap: 2px;
+}
+.gr-cell {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface);
+}
+.gr-cell.is-wall {
+  background: var(--color-ink);
+}
+.gr-cell.is-gold {
+  color: #c99700;
+}
+.gr-cell.is-blue {
+  color: #3b6fd8;
+}
+.gr-reply {
+  min-height: 1.5rem;
+  color: var(--color-muted);
+}
+
+/* Logic Lock */
+.ll-premises {
+  max-width: 30rem;
+  line-height: 1.6;
+}
+
+/* Balloon Pump */
+.bp-balloon {
+  width: 5rem;
+  height: 6rem;
+  border-radius: 50% 50% 45% 45%;
+  background: #d64545;
+  transition: transform 0.1s;
+}
+.bp-balloon.is-popped {
+  opacity: 0.2;
+}
+
+/* Two Screens */
+.ts-track {
+  position: relative;
+  width: min(24rem, 85vw);
+  height: 2.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1.25rem;
+  background: var(--color-card);
+}
+.ts-band {
+  position: absolute;
+  inset: 0;
+  margin: 0 auto;
+  background: color-mix(in srgb, var(--color-right) 18%, transparent);
+}
+.ts-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  transform: translate(-50%, -50%);
+}
+
+/* Name Tags */
+.nt-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  max-width: 34rem;
+}
+.nt-card {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+}
+.nt-card svg {
+  width: 4.5rem;
+}
+
+/* Maze Escape */
+.me-board {
+  width: min(22rem, 85vw);
+  color: var(--color-ink);
+}
+.me-exit {
+  fill: var(--color-right);
+}
+.me-player {
+  fill: var(--color-accent);
+}
+.me-pad {
+  display: grid;
+  grid-template-areas: '. up .' 'left . right' '. down .';
+  gap: 0.3rem;
+}
+.me-up {
+  grid-area: up;
+}
+.me-down {
+  grid-area: down;
+}
+.me-left {
+  grid-area: left;
+}
+.me-right {
+  grid-area: right;
+}
+
+/* Fold & Punch */
+.fp-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.fp-steps svg,
+.fp-option svg {
+  width: 5rem;
+}
+.fp-paper {
+  fill: var(--color-card);
+  stroke: var(--color-ink);
+  stroke-width: 0.05;
+}
+.fp-fold {
+  fill: color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+.fp-hole {
+  fill: var(--color-ink);
+}
+.fp-option {
+  padding: 0.4rem;
+}
+
+/* Card Gamble */
+.cg-deck {
+  width: 4rem;
+  height: 5.5rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+}
+.cg-last {
+  min-height: 1.5rem;
+  color: var(--color-muted);
+}
+
+/* Off Beat */
+.ob-dot {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 0.25rem solid var(--color-ink);
+  transition: transform 0.05s;
+}
+.ob-dot.is-on {
+  background: var(--color-accent);
+  transform: scale(1.25);
+}
