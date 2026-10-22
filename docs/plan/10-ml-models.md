@@ -61,6 +61,8 @@ Two models trained on real public data, plus two light models that need no exter
 
 **As built (WP3.3).** `backend/ml/bandit.py`. The reward is the change in the Brain Twin estimate of the game's main skill, credited to the game played before it on that skill, since a round measures what was learned earlier. Per-person data alone was too noisy: on the simulator it did not beat random. A population prior fixes this. It is a least-squares fit across people of each skill's total change against rounds of each game, and the person's own rounds update it. With that prior, on the simulator (600 people for the prior, 200 paired), the bandit gains +0.095 to +0.210 more true skill than random game choice (95%), and an oracle gains about +0.21. Card: `backend/ml/model_cards/best_next_game.md`.
 
+**Shipped with the repo.** The active models' files (`models/growth_forecast/<version>/`) and their registry rows (`models/registry.yaml`, written by `make models-export`) are committed. At start-up the backend loads any bundled model whose name has no active model yet (`backend/ml/bundle.py`), so a fresh clone forecasts without the training data, and a model trained locally always wins.
+
 ## NCPT dataset (not a predictor, but important)
 
 NCPT (Jaffe et al. 2022, *Scientific Data*): 757,427 adults, 5.45 million subtest scores, CC BY 4.0, about 329 MB on Zenodo (https://zenodo.org/records/7249732). We use it for:

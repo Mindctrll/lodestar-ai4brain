@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 FRONTEND := npm --prefix frontend
 
-.PHONY: env cli docs ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
+.PHONY: env cli docs models-export ml-engagement practice-prior sim-graph ml-data ml-train ncpt-priors retention help up up-ollama down logs ps test test-backend test-frontend lint lint-backend \
 	lint-frontend lint-language format contracts migrate seed pool rebuild-twin db-shell sim eval e2e
 
 help: ## list targets
@@ -78,6 +78,9 @@ ml-data: ## download the public datasets the models train on into data/ (about 3
 
 ml-train: ## train the growth forecast, write its model card and make it the active model
 	uv run python -m backend.ml.train_growth --register
+
+models-export: ## write the active models to models/registry.yaml so a fresh clone ships them (commit it with models/)
+	uv run python -m backend.ml.bundle export
 
 ml-engagement: ## train the engagement-risk model on OULAD, write its model card and make it active
 	uv run python -m backend.ml.train_engagement --register

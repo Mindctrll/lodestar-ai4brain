@@ -5,7 +5,9 @@
 
 # per-user data and large artefacts (see docs/plan/04 and 10)
 /memory/
-/models/
+/models/*
+!/models/registry.yaml
+!/models/growth_forecast/
 /data/
 
 # python

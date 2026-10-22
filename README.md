@@ -37,7 +37,7 @@ make seed    # a demo user (Alex) with eight weeks of practice; prints a sign-in
 Open the link (http://localhost:5173/?signin=…). To start fresh as a new user, open http://localhost:5173.
 
 - **AI model.** Lodestar runs without any key, using a local [Ollama](https://ollama.com) model if one is running (`make up-ollama` starts one in Docker) and fixed templates otherwise. To use a hosted model, add your own key in **Settings → AI provider** (Anthropic, OpenAI, Gemini, DeepSeek, Grok, Mistral, Groq or OpenRouter). Keys are encrypted at rest and shown only as their last 4 characters.
-- **The two trained models** (growth forecast, engagement risk) need their public datasets: `make ml-data` (about 3.1 GB), then `make ml-train ml-engagement`. Without them the app works and says forecasts aren't available yet.
+- **The trained models ship with the repo** (`models/`): the growth forecast and the engagement model load into a fresh database at start-up. To retrain from the public datasets: `make ml-data` (about 3.1 GB), `make ml-train ml-engagement`, then `make models-export` to ship the new versions.
 - **Terminal.** `bin/lodestar login --code <token>`, then `bin/lodestar chat` or `bin/lodestar play`.
 
 ## A tour

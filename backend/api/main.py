@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from qdrant_client import AsyncQdrantClient
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from backend.agent.context import Services
 from backend.agent.graph import checkpoint_pool, checkpointer, compile_graph
@@ -35,6 +36,7 @@ from backend.memory.embeddings import Embedder
 from backend.memory.langgraph_store import QdrantStore
 from backend.memory.notes import Notes
 from backend.memory.store import MemoryStore
+from backend.ml import bundle
 from backend.ml.serve import GrowthForecaster, load_engagement
 from backend.registry.loader import load_knowledge_items, load_registry
 
@@ -53,6 +55,14 @@ async def _memory(settings: Settings) -> tuple[MemoryStore | None, QdrantStore |
     return memory, QdrantStore(memory)
 
 
+async def _bundled_models(engine: AsyncEngine) -> None:
+    """A fresh database gets the models that ship in models/registry.yaml (docs/plan/10)."""
+    try:
+        await bundle.load(engine)
+    except Exception:
+        log.warning("bundled models not loaded; forecasts stay off", exc_info=True)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redaction.install()
@@ -62,6 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     pool = checkpoint_pool(libpq_url())
     await pool.open()
     memory, store = await _memory(settings)
+    await _bundled_models(engine)
     llm = LlmFactory(reg, settings, engine)
     services = Services(
         engine=engine,
