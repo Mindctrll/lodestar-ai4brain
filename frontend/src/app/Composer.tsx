@@ -25,30 +25,31 @@ export function Composer({
   const waiting = state.busy || state.phase === 'starting'
   const canPlay = state.phase === 'chatting' && !state.confirm && !state.busy
   const quiet = state.feed.length === 0 && state.phase === 'home'
-  return (
-    <div className="composer">
-      {(canPlay || quiet) && (
-        <div className="composer__chips">
-          {canPlay && (
-            <button type="button" className="chip chip--strong" onClick={() => void nextGame()}>
-              Play a game
-            </button>
-          )}
-          {quiet &&
-            STARTERS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="chip"
-                onClick={() => {
-                  void send(s)
-                }}
-              >
-                {s.length > 34 ? 'Make me a game' : s}
-              </button>
-            ))}
-        </div>
+  const chips = (canPlay || quiet) && (
+    <div className="composer__chips">
+      {canPlay && (
+        <button type="button" className="chip chip--strong" onClick={() => void nextGame()}>
+          Play a game
+        </button>
       )}
+      {quiet &&
+        STARTERS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            className="chip"
+            onClick={() => {
+              void send(s)
+            }}
+          >
+            {s.length > 34 ? 'Make me a game' : s}
+          </button>
+        ))}
+    </div>
+  )
+  return (
+    <div className={`composer${quiet ? ' composer--home' : ''}`}>
+      {!quiet && chips}
       <form
         className="composer__box"
         onSubmit={(e) => {
@@ -58,7 +59,6 @@ export function Composer({
           if (said.trim()) void send(said)
         }}
       >
-        <Orb onTranscript={onVoice} />
         <label className="sr-only" htmlFor="say">
           Say something to Najma
         </label>
@@ -68,15 +68,27 @@ export function Composer({
           value={text}
           maxLength={2000}
           autoComplete="off"
-          placeholder="Ask why, set a goal, or tell me how your day is going"
+          placeholder={quiet ? 'Tell Najma how your day is going' : 'Reply to Najma'}
           onChange={(e) => {
             setText(e.target.value)
           }}
         />
-        <button type="submit" className="send" disabled={!text.trim() || waiting}>
-          Send
-        </button>
+        <div className="composer__tools">
+          <Orb onTranscript={onVoice} />
+          <button
+            type="submit"
+            className="send"
+            aria-label="Send"
+            title="Send"
+            disabled={!text.trim() || waiting}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 19V5M5 12l7-7 7 7" />
+            </svg>
+          </button>
+        </div>
       </form>
+      {quiet && chips}
     </div>
   )
 }

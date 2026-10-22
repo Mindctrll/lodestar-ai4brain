@@ -20,32 +20,58 @@ import { Onboarding } from './Onboarding'
 import { Settings } from './Settings'
 import { useSession } from './useSession'
 
-const NAV: { id: Panel; label: string; icon: ReactNode }[] = [
-  { id: 'twin', label: 'Brain Twin', icon: <path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" /> },
-  { id: 'progress', label: 'Progress', icon: <path d="M4 18l5-6 4 3 7-9M15 6h5v5" /> },
+type NavItem = { id: Panel; label: string; icon: ReactNode }
+
+/** Line icons on a 24px grid, drawn with `currentColor`. */
+const NAV: NavItem[] = [
+  {
+    id: 'twin',
+    label: 'Brain Twin',
+    icon: (
+      <path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3zM19 3v4M21 5h-4" />
+    ),
+  },
+  {
+    id: 'progress',
+    label: 'Progress',
+    icon: <path d="M3 3v16a2 2 0 0 0 2 2h16M7 15l4-4 3 3 6-6M16 8h4v4" />,
+  },
   {
     id: 'experiments',
     label: 'Experiments',
-    icon: <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />,
+    icon: (
+      <path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.6a1 1 0 0 0 .9 1.4h12.8a1 1 0 0 0 .9-1.4l-5.1-10.2a2 2 0 0 1-.2-.9V2M8.5 2h7M7 16h10" />
+    ),
   },
   {
     id: 'agent',
     label: 'Agent',
-    icon: <path d="M5 6h4v4H5zM15 6h4v4h-4zM10 16h4v4h-4zM7 10v3h10v-3M12 13v3" />,
+    icon: (
+      <path d="M12 8V4H8M6 8h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM2 14h2M20 14h2M15 13v2M9 13v2" />
+    ),
   },
   {
     id: 'acs',
     label: 'AI collaboration',
-    icon: <path d="M4 8h12l-3-3M20 16H8l3 3" />,
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: (
-      <path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4" />
-    ),
+    icon: <path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4" />,
   },
 ]
+const SETTINGS: NavItem = {
+  id: 'settings',
+  label: 'Settings',
+  icon: (
+    <path d="M20 7h-9M14 17H5M17 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+  ),
+}
+const ALL = [...NAV, SETTINGS]
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {children}
+    </svg>
+  )
+}
 
 export function App() {
   const session = useSession()
@@ -150,7 +176,7 @@ export function App() {
   }
 
   const measured = twin?.dims.filter((d) => d.n > 0) ?? []
-  const title = NAV.find((n) => n.id === panel)?.label ?? ''
+  const title = ALL.find((n) => n.id === panel)?.label ?? ''
 
   let body: ReactNode = null
   if (panel === 'twin' && registry && twin && progress) {
@@ -288,43 +314,67 @@ export function App() {
     )
   }
 
+  const navButton = (item: NavItem) => (
+    <button
+      key={item.id}
+      type="button"
+      className="rail__item"
+      aria-current={panel === item.id ? 'page' : undefined}
+      aria-label={item.label}
+      title={item.label}
+      onClick={() => {
+        open(item.id)
+      }}
+    >
+      <Icon>{item.icon}</Icon>
+      <span className="rail__label">{item.label}</span>
+    </button>
+  )
+  const home =
+    session.state.feed.length === 0 &&
+    (session.state.phase === 'home' || session.state.phase === 'resumable')
+
   return (
     <div className={`shell${playing ? ' shell--playing' : ''}${panel ? ' shell--panel' : ''}`}>
-      <header className="topbar">
+      <aside className="rail">
         <p className="brand">
           <span className="brand__mark" aria-hidden="true" />
-          Najma
-          {localMode && (
-            <span className="badge" title="Najma uses the model on this server">
-              Local mode
-            </span>
-          )}
+          <span className="brand__name">Najma</span>
         </p>
-        <nav aria-label="Main" className="topnav">
-          {NAV.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="topnav__item"
-              aria-current={panel === item.id ? 'page' : undefined}
-              aria-label={item.label}
-              title={item.label}
-              onClick={() => {
-                open(item.id)
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {item.icon}
-              </svg>
-              <span className="topnav__label">{item.label}</span>
-            </button>
-          ))}
+        <nav aria-label="Main" className="rail__nav">
+          <button
+            type="button"
+            className="rail__item"
+            aria-current={panel === null ? 'page' : undefined}
+            aria-label="Conversation"
+            title="Conversation"
+            onClick={() => {
+              setPanel(null)
+            }}
+          >
+            <Icon>
+              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
+            </Icon>
+            <span className="rail__label">Conversation</span>
+          </button>
+          <p className="rail__group">Your mind</p>
+          {NAV.slice(0, 3).map(navButton)}
+          <p className="rail__group">Behind the scenes</p>
+          {NAV.slice(3).map(navButton)}
+          <span className="rail__spacer" />
+          {localMode && (
+            <p className="rail__note" title="Najma uses the model on this server">
+              <span className="rail__dot" aria-hidden="true" />
+              <span className="rail__label">Local mode</span>
+            </p>
+          )}
+          {navButton(SETTINGS)}
         </nav>
-      </header>
+      </aside>
       <SignalIndicator />
 
       <div className="workspace">
-        <main className="stage">
+        <main className={`stage${home ? ' stage--home' : ''}`}>
           {dash.error && (
             <p role="alert" className="notice">
               Couldn&apos;t load your Twin: {dash.error}

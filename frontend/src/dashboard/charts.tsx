@@ -27,10 +27,13 @@ echarts.use([
   SVGRenderer,
 ])
 
-const ACCENT = '#3d2bff'
-const BAND = 'rgba(61, 43, 255, 0.14)'
-const MUTED = '#5c5c66'
-const FONT = "'Schibsted Grotesk Variable', system-ui, sans-serif"
+// Starlight on the night panel; PANEL must match the side panel's background (it masks bands).
+const ACCENT = '#a5b4ff'
+const BAND = 'rgba(165, 180, 255, 0.18)'
+const MUTED = '#9a99a6'
+const PANEL = '#121219'
+const INK = '#f5f3ee'
+const FONT = "'Geist Variable', system-ui, sans-serif"
 const reducedMotion =
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
@@ -59,7 +62,13 @@ function Chart({
     >
       <ReactEChartsCore
         echarts={echarts}
-        option={{ animation: !reducedMotion, textStyle: { fontFamily: FONT }, ...option }}
+        option={{
+          animation: !reducedMotion,
+          backgroundColor: 'transparent',
+          textStyle: { fontFamily: FONT },
+          ...option,
+        }}
+        theme="dark"
         style={{ height }}
         opts={{ renderer: 'svg' }}
         notMerge
@@ -105,7 +114,7 @@ export function Radar({ twin, registry }: { twin: TwinView; registry: Registry }
             value: dims.map((d) => round(d.percent_low)),
             name: '80% range (low)',
             lineStyle: { color: ACCENT, opacity: 0.35 },
-            areaStyle: { color: '#ffffff', opacity: 1 },
+            areaStyle: { color: PANEL, opacity: 1 },
           },
         ],
       },
@@ -207,7 +216,7 @@ export function SkillCurve({
         data: [...base.slice(0, -1), 0, round(forecast.high - forecast.low)],
         stack: 'forecast',
         lineStyle: { color: ACCENT, type: 'dashed', opacity: 0.5 },
-        areaStyle: { color: 'rgba(61, 43, 255, 0.07)', decal: { symbol: 'line', dashArrayX: 4 } },
+        areaStyle: { color: 'rgba(165, 180, 255, 0.08)', decal: { symbol: 'line', dashArrayX: 4 } },
         symbol: 'none',
       },
       {
@@ -215,7 +224,7 @@ export function SkillCurve({
         type: 'line',
         data: [...base.slice(0, -1), round(last.percent), round(forecast.median)],
         lineStyle: { color: ACCENT, type: 'dashed' },
-        itemStyle: { color: '#ffffff', borderColor: ACCENT },
+        itemStyle: { color: PANEL, borderColor: ACCENT },
         symbol: 'emptyCircle',
       },
     )
@@ -271,7 +280,7 @@ export function WeekHeatmap({
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#f4b49c', '#f6f5f1', '#9a90ff'] },
+      inRange: { color: ['#ff8a6b', '#22222c', '#a5b4ff'] },
       text: ['up 10 points', 'down 10'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -323,7 +332,7 @@ export function HourHeatmap({ progress }: { progress: ProgressView }) {
       bottom: 0,
       itemWidth: 10,
       itemHeight: 140,
-      inRange: { color: ['#fbe3d6', '#efedff', '#7d70ff'] },
+      inRange: { color: ['#ff8a6b', '#22222c', '#a5b4ff'] },
       text: ['100% right', '50%'],
       textStyle: { color: MUTED, fontSize: 11 },
     },
@@ -334,7 +343,7 @@ export function HourHeatmap({ progress }: { progress: ProgressView }) {
         data,
         label: {
           show: true,
-          color: '#0d0d12',
+          color: INK,
           formatter: (p: { value: (number | null)[] }) =>
             p.value[2] === null || p.value[2] === undefined
               ? ''
@@ -365,22 +374,22 @@ export function AcsGauge({ acs }: { acs: AcsView }) {
           lineStyle: {
             width: 16,
             color: [
-              [acs.low / 100, '#e4e1da'],
-              [acs.high / 100, '#a79fff'],
-              [1, '#e4e1da'],
+              [acs.low / 100, '#2a2a35'],
+              [acs.high / 100, ACCENT],
+              [1, '#2a2a35'],
             ],
           },
         },
         pointer: { itemStyle: { color: ACCENT }, width: 5 },
         splitNumber: 5,
         axisTick: { show: false },
-        splitLine: { length: 10, lineStyle: { color: '#cfcbc2' } },
+        splitLine: { length: 10, lineStyle: { color: '#3a3a46' } },
         axisLabel: { distance: 22, color: MUTED, fontSize: 11 },
         detail: {
           formatter: () =>
             `${String(round(acs.score ?? 0))}\n${String(round(acs.low ?? 0))}-${String(round(acs.high ?? 0))}`,
           fontSize: 18,
-          color: '#0d0d12',
+          color: INK,
           offsetCenter: [0, '55%'],
         },
         data: [{ value: round(acs.score) }],

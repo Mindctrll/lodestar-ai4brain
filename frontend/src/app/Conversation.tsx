@@ -22,7 +22,7 @@ function greeting(now: Date): string {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-function Star({ size = 28 }: { size?: number }) {
+function Star({ size = 32 }: { size?: number }) {
   return (
     <span className="avatar" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" width={size * 0.55} height={size * 0.55}>
@@ -253,6 +253,8 @@ export function Conversation({
     ? state.feed.findLastIndex((i) => i.kind === 'result')
     : -1
   const lastNajma = state.feed.findLast((i) => i.kind === 'najma')
+  const heroShown =
+    state.feed.length === 0 && (state.phase === 'home' || state.phase === 'resumable')
 
   const render = (item: FeedItem, i: number): ReactNode => {
     switch (item.kind) {
@@ -275,9 +277,9 @@ export function Conversation({
             (x) => x.kind === 'result' && x.roundId === item.spec.round_id,
           )
           return (
-            <p className="record">
-              <span aria-hidden="true">{played ? '✓' : '·'}</span> {played ? 'Played' : 'Offered'}{' '}
-              <strong>{name}</strong>
+            <p className={`record${played ? ' record--played' : ''}`}>
+              <span className="record__mark" aria-hidden="true" />
+              {played ? 'Played' : 'Offered'} <strong>{name}</strong>
             </p>
           )
         }
@@ -295,6 +297,7 @@ export function Conversation({
           )
         return (
           <article className="turn-card pick" data-testid="suggestion">
+            <span className="pick__glow" aria-hidden="true" />
             <p className="eyebrow">{state.phase === 'after' ? 'Up next' : 'Najma picked'}</p>
             <h2>{name}</h2>
             <ul className="chips" aria-label="Skills">
@@ -319,8 +322,11 @@ export function Conversation({
               </p>
             )}
             {game ? (
-              <button type="button" className="primary" onClick={play}>
+              <button type="button" className="primary pick__go" onClick={play}>
                 {state.phase === 'after' ? 'Next game' : "Let's go"}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
               </button>
             ) : (
               <p role="alert">This game isn&apos;t ready in the browser yet.</p>
@@ -340,8 +346,7 @@ export function Conversation({
             data-testid={live ? 'after-game' : undefined}
           >
             <header className="turn-card__head">
-              <Star size={24} />
-              <p className="eyebrow">
+              <p className="eyebrow eyebrow--done">
                 {round ? `${GAMES[round.spec.game_id]?.name ?? round.spec.game_id} · ` : ''}round
                 done
               </p>
@@ -395,52 +400,69 @@ export function Conversation({
 
   return (
     <section className="thread" data-testid="chat" aria-label="Talk to Najma">
-      <header className="hero">
-        <p className="eyebrow">
-          {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
-        <h1>{greeting(now)}</h1>
-        {progress && (
-          <ul className="pills" aria-label="Your week">
-            <li>
-              <strong>{progress.stats.streak_days}</strong> day streak
-            </li>
-            <li>
-              <strong>{progress.stats.rounds_this_week}</strong> rounds this week
-            </li>
-            <li>
-              <strong>
-                {progress.stats.skills_measured}/{progress.stats.skills_total}
-              </strong>{' '}
-              skills measured
-            </li>
-          </ul>
-        )}
-        {state.phase === 'home' && (
-          <div className="hero__start" data-testid="start">
-            <div className="said">
-              <Star />
-              <p>
-                I&apos;m Najma, a practice coach for how you focus, remember and reason. Tell me how
-                you&apos;re doing, ask me anything, or let me pick a game. I don&apos;t assess
-                medical or psychological conditions.
-              </p>
-            </div>
-            <div className="actions">
-              <button type="button" className="primary" onClick={() => void start(askFromUrl())}>
-                Start a session
+      {heroShown ? (
+        <header className="hero">
+          <span className="hero__orb" aria-hidden="true" />
+          <p className="eyebrow">
+            {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+          <h1>{greeting(now)}</h1>
+          <p className="hero__lede">
+            I&apos;m Najma, a practice coach for how you focus, remember and reason. Tell me how
+            you&apos;re doing, ask me anything, or let me pick a game. I don&apos;t assess medical
+            or psychological conditions.
+          </p>
+          {progress && (
+            <ul className="pills" aria-label="Your week">
+              <li>
+                <strong>{progress.stats.streak_days}</strong> day streak
+              </li>
+              <li>
+                <strong>{progress.stats.rounds_this_week}</strong> rounds this week
+              </li>
+              <li>
+                <strong>
+                  {progress.stats.skills_measured}/{progress.stats.skills_total}
+                </strong>{' '}
+                skills measured
+              </li>
+            </ul>
+          )}
+          {state.phase === 'home' && (
+            <div className="hero__actions" data-testid="start">
+              <button
+                type="button"
+                className="action action--primary"
+                onClick={() => void start(askFromUrl())}
+              >
+                <span className="action__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M7 4.5v15l12-7.5z" />
+                  </svg>
+                </span>
+                <span className="action__title">Start a session</span>
+                <span className="action__text">Short games, picked for how you are today</span>
               </button>
               <button
                 type="button"
+                className="action"
                 title="A short mystery where each chapter is one of the games"
                 onClick={() => void start('play the Detective story')}
               >
-                Detective story
+                <span className="action__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5" />
+                  </svg>
+                </span>
+                <span className="action__title">Detective story</span>
+                <span className="action__text">A mystery where every chapter is a game</span>
               </button>
             </div>
-          </div>
-        )}
-      </header>
+          )}
+        </header>
+      ) : (
+        <h1 className="sr-only">Najma</h1>
+      )}
 
       <ol className="feed">
         {state.feed.map((item, i) => (
@@ -499,6 +521,11 @@ export function Conversation({
         <div className="said said--busy">
           <Star />
           <p className="thinking">
+            <span className="thinking__dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
             {state.phase === 'starting' && state.feed.length <= 1
               ? 'Choosing your first game'
               : 'Thinking'}
