@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { App } from './app/App'
-import '@fontsource-variable/source-serif-4/opsz.css'
+import '@fontsource-variable/bricolage-grotesque/opsz.css'
 import '@fontsource-variable/inter/opsz.css'
 import '@fontsource-variable/geist-mono'
 import './index.css'

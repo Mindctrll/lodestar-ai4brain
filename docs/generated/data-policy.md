@@ -2,7 +2,7 @@
 
 # Data policy
 
-Consent notice version 2026-10-21 (`registry/consent.yaml`). Lodestar is for people aged 18 or over. Every change of a switch is logged as a `consent.changed` event with the notice version, and turning a switch off stops that processing at once.
+Consent notice version 2026-10-22 (`registry/consent.yaml`). Lodestar is for people aged 18 or over. Every change of a switch is logged as a `consent.changed` event with the notice version, and turning a switch off stops that processing at once.
 
 ## Consent switches
 

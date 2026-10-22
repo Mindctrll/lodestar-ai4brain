@@ -1,4 +1,5 @@
-"""`make seed`: a demo user with three weeks of practice, for building the dashboard.
+"""`make seed`: a demo user with eight weeks of practice, goals, life notes, experiments and
+the agent's decisions, for building and showing the dashboard.
 
 Projection rows (dimension_state, history) are written directly with a simple random walk. They are
 demo data only: once the scoring engine exists, `make rebuild-twin` recomputes them from the
@@ -14,6 +15,7 @@ from uuid import UUID, uuid4
 from psycopg.types.range import Range
 from sqlalchemy import Connection, insert, select
 
+from backend.agent.experiments import compare, design
 from backend.db import tables as t
 from backend.db.engine import get_engine
 from backend.db.twin_store import hash_token
@@ -21,7 +23,7 @@ from backend.registry.loader import load_registry
 from backend.registry.models import Registry
 
 DEMO_NAME = "Alex"
-DAYS = 21
+DAYS = 56
 SEED = 7
 
 
@@ -66,32 +68,41 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 changed_at=_ts(start, 20),
             )
         )
-    conn.execute(
-        insert(t.goals).values(
-            user_id=user_id,
-            dim="working_memory",
-            kind="range",
-            target=15,  # the 80% range within ±15 points (UW11)
-            due=today + timedelta(days=13),
-        )
-    )
-    conn.execute(
-        insert(t.life_context).values(
-            user_id=user_id,
-            label="exam week",
-            period=Range(_ts(today + timedelta(days=3), 0), _ts(today + timedelta(days=14), 0)),
-            weight=0.5,
-        )
-    )
+    for dim, target, due in [
+        ("working_memory", 15, 13),  # the 80% range within ±15 points (UW11)
+        ("processing_speed", 12, 20),
+        ("inhibition", 18, 30),
+    ]:
+        conn.execute(
+            insert(t.goals).values(
+                user_id=user_id, dim=dim, kind="range", target=target,
+                due=today + timedelta(days=due),
+            )
+        )  # fmt: skip
+    for label, begin, days in [
+        ("short nights", -40, 3),
+        ("holiday", -26, 5),
+        ("busy at work", -12, 4),
+        ("exam week", 3, 11),
+    ]:
+        day = today + timedelta(days=begin)
+        conn.execute(
+            insert(t.life_context).values(
+                user_id=user_id, label=label,
+                period=Range(_ts(day, 0), _ts(day + timedelta(days=days), 0)), weight=0.5,
+            )
+        )  # fmt: skip
 
     # Belief per skill: starts wide, sharpens with practice.
     belief = {d: {"mu": 0.0, "sigma": 1.5, "n": 0} for d in tracked}
+    session_ids: list[tuple[UUID, datetime]] = []
     for offset in range(DAYS):
         day = start + timedelta(days=offset)
-        if rng.random() < 0.35:  # not every day
+        if offset < DAYS - 6 and rng.random() < 0.25:  # not every day; a streak lately
             continue
-        hour = rng.choice([8, 13, 20, 21, 22])
+        hour = rng.choice([8, 9, 13, 18, 20, 21, 22])
         session_id = uuid4()
+        session_ids.append((session_id, _ts(day, hour)))
         conn.execute(
             insert(t.sessions).values(
                 session_id=session_id,
@@ -111,7 +122,8 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 payload={"trigger": "ui", "persona": "willow"},
             )
         )
-        for r, game in enumerate(rng.sample(p1_games, 3)):
+        played = rng.sample(p1_games, rng.choice([3, 3, 4, 5]))
+        for r, game in enumerate(played):
             round_id = uuid4()
             level = round(rng.uniform(0.2, 0.7), 2)
             started = _ts(day, hour, 1 + r * 4)
@@ -160,7 +172,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 if dim not in belief:
                     continue
                 b = belief[dim]
-                b["mu"] += loading * rng.uniform(-0.05, 0.12)
+                b["mu"] += loading * rng.uniform(-0.06, 0.1)
                 b["sigma"] = max(0.35, b["sigma"] * (0.93 if loading == 1.0 else 0.98))
                 b["n"] += 10
         for dim, b in belief.items():
@@ -176,7 +188,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 session_id=session_id,
                 ts=_ts(day, hour, 12),
                 type="session.ended",
-                payload={"reason": "budget", "rounds": 3, "minutes": 12},
+                payload={"reason": "budget", "rounds": len(played), "minutes": 4 * len(played)},
             )
         )
 
@@ -193,7 +205,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
             )
         )
     for component, rate in {"V": 0.7, "A": 0.6, "I": 0.5, "C": 0.4, "R": 0.8}.items():
-        for _ in range(12):
+        for _ in range(30):
             conn.execute(
                 insert(t.acs_observations).values(
                     user_id=user_id,
@@ -202,7 +214,78 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                     source="seed",
                 )
             )
+    _seed_experiments(conn, user_id, rng, today)
+    names = {d.id: d.name.lower() for d in registry.dimensions}
+    _seed_decisions(conn, user_id, rng, session_ids[-12:], belief, names)
     return user_id
+
+
+def _seed_experiments(conn: Connection, user_id: UUID, rng: random.Random, today: date) -> None:
+    """One finished time-of-day experiment (evening won) and one still running."""
+    plan = design(["quick_draw", "echo"], "processing_speed")
+    morning = [round(rng.uniform(0.55, 0.7), 3) for _ in range(3)]
+    evening = [round(rng.uniform(0.7, 0.85), 3) for _ in range(3)]
+    c = compare(morning, evening)
+    sessions = [
+        {"session_id": str(uuid4()), "condition": cond, "score": score}
+        for cond, scores in (("morning", morning), ("evening", evening))
+        for score in scores
+    ]
+    done = _ts(today - timedelta(days=9), 21)
+    conn.execute(
+        insert(t.experiments).values(
+            user_id=user_id, hypothesis="I react faster in the evening than in the morning",
+            design=plan, status="completed" if c.verdict != "inconclusive" else "inconclusive",
+            result={
+                "sessions": sessions, "verdict": c.verdict,
+                "p_evening_better": round(c.p_evening_better, 3),
+                "difference": round(c.difference, 4),
+                "interval": [round(c.low, 4), round(c.high, 4)],
+                "wins": c.wins, "pairs": c.pairs,
+            },
+            created_at=done - timedelta(days=10), updated_at=done,
+        )
+    )  # fmt: skip
+    running = [{"session_id": str(uuid4()), "condition": "morning", "score": 0.64}]
+    running.append({"session_id": str(uuid4()), "condition": "evening", "score": 0.71})
+    conn.execute(
+        insert(t.experiments).values(
+            user_id=user_id, hypothesis="My memory is sharper in the morning",
+            design=design(["echo", "seen_it"], "working_memory"), status="running",
+            result={"sessions": running}, created_at=_ts(today - timedelta(days=4), 9),
+        )
+    )  # fmt: skip
+
+
+def _seed_decisions(
+    conn: Connection, user_id: UUID, rng: random.Random, sessions: list[tuple[UUID, datetime]],
+    belief: dict[str, dict[str, float]], names: dict[str, str],
+) -> None:  # fmt: skip
+    """The agent's "which skill next" choice for recent sessions, with each score's parts."""
+    for session_id, at in sessions:
+        options = rng.sample(sorted(d for d, b in belief.items() if b["n"]), 3)
+        candidates = []
+        for dim in options:
+            parts = {
+                "uncertainty": round(belief[dim]["sigma"] / 1.5, 3),
+                "staleness": round(rng.uniform(0, 1), 3),
+                "goal_weight": 1.0 if dim in ("working_memory", "processing_speed") else 0.0,
+                "bandit_gain": round(rng.uniform(0, 0.4), 3),
+                "repetition": float(rng.random() < 0.2),
+            }
+            score = parts["uncertainty"] + 0.6 * parts["staleness"] + 0.5 * parts["goal_weight"]
+            candidates.append({"option": dim, "score": round(score, 4), "breakdown": parts})
+        candidates.sort(key=lambda c: -float(c["score"]))  # type: ignore[arg-type]
+        chosen = str(candidates[0]["option"])
+        name = names[chosen]
+        conn.execute(
+            insert(t.decisions).values(
+                decision_id=uuid4(), session_id=session_id, user_id=user_id, node="plan_next",
+                question="Which skill and game next?", candidates=candidates, chosen=chosen,
+                reason=f"I'm least sure about your {name}, so a round there teaches me the most.",
+                ts=at,
+            )
+        )  # fmt: skip
 
 
 def issue_token(conn: Connection, user_id: UUID) -> str:

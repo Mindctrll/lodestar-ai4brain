@@ -183,6 +183,7 @@ class ConsentSwitchInfo(Contract):
     title: str
     required: bool
     default: bool
+    short: str = Field(max_length=60, description="One line for the first-visit screen")
     plain: str = Field(description="What the switch allows, in plain words")
 
 

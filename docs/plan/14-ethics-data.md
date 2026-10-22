@@ -16,6 +16,8 @@ The brief requires consent, retention and deletion to be documented, and no sens
 
 Each switch is logged as a `consent.changed` event with the notice version. Turning a switch off stops that processing immediately.
 
+The first-visit screen shows each switch as its title and one short line (`short` in `registry/consent.yaml`), with the full text under "Details". Settings shows the full text.
+
 **Age:** 18+ gate in the prototype. Tunisian law requires a guardian's consent for minors, so a guardian flow is listed as future work.
 
 **As built (WP2.8).** The notice lives in `registry/consent.yaml` (text, defaults, version), so the first-visit screens, Settings and the API read the same words. Nothing is stored before the last first-visit screen: `POST /users` takes the 18+ confirmation, the switches and the coach in one call and refuses under-18s. Where each switch is enforced:

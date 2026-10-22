@@ -1,12 +1,13 @@
 @import 'tailwindcss';
 
-/* Design tokens. Daylight: white surfaces, slate ink, a serif for headings and Inter for the rest.
+/* Design tokens. Daylight: white surfaces, slate ink, a grotesk for headings, buttons and labels,
+ * Inter for running text.
  * Primary actions are near-black pills; sky blue marks links, focus and data. Cards sit on hairline
  * rings and soft shadows rather than borders. Every text colour clears WCAG AA on the surface it
  * sits on. */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', ui-sans-serif, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
   --color-bg: #ffffff;
@@ -69,7 +70,7 @@ h1,
 h2 {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.035em;
 }
 h2 {
   font-size: 1.5rem;
@@ -380,6 +381,70 @@ input[type='radio'] {
   background: #dff2fe;
 }
 
+/* The grotesk goes wherever text is short: headings, buttons, nav, chips and labels. */
+h3,
+h4,
+button,
+.chip,
+.pills,
+.eyebrow,
+.brand,
+.rail__group,
+.hero__lede,
+.page__head p,
+.pick__meta,
+.result__game,
+.labels__ask,
+.how-sure__scale {
+  font-family: var(--font-display);
+}
+h3 {
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+/* Icons in headings, tabs and page titles */
+.glyph {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.with-icon .glyph {
+  color: var(--color-muted);
+}
+.page__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.page__icon {
+  display: block;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--color-heading);
+}
+.page__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* Cards (onboarding, settings, panels' inner sections) */
 .card {
   background: var(--color-card);
@@ -679,15 +744,16 @@ input[type='radio'] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   width: 100%;
-  margin-top: 2.25rem;
+  margin-top: 1.75rem;
 }
 .action {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.05rem;
   min-height: 0;
-  padding: 1.25rem 1.375rem 1.375rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius);
   border: none;
   background: var(--color-card);
@@ -706,7 +772,7 @@ input[type='radio'] {
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  margin-bottom: 0.875rem;
+  grid-row: span 2;
   border-radius: 0.75rem;
   background: var(--color-raised);
   color: var(--color-ink);
@@ -721,13 +787,15 @@ input[type='radio'] {
   stroke-linejoin: round;
 }
 .action__title {
-  font-size: 1.0625rem;
+  align-self: end;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 .action__text {
+  align-self: start;
   color: var(--color-muted);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 400;
 }
 .action--primary .action__icon {
@@ -1161,7 +1229,7 @@ button.primary.pick__go {
 .thread > .turn-card {
   margin-top: 1.5rem;
 }
-.surface .sky {
+.surface .twin-map {
   margin-top: 0.875rem;
 }
 .stats {
@@ -1397,20 +1465,21 @@ button.primary.pick__go {
   box-shadow: var(--shadow);
   padding: 1.75rem;
 }
-.panel-block--sky {
-  padding: 0.75rem;
-}
 .page .card {
   margin: 0;
 }
 .page .card h2 {
-  font-size: 1.125rem;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .page .settings > h2 {
   display: none;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .inline-ask {
   display: flex;
@@ -1570,28 +1639,11 @@ button.primary.pick__go {
 .game-frame__header h2 {
   font-size: 1.625rem;
   color: var(--color-heading);
-  margin-top: 0.2rem;
+  margin: 0;
 }
 .game-frame__header .chips {
   flex: 1;
   margin: 0;
-}
-.live-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--color-right);
-  box-shadow: 0 0 0 3px #dcfce7;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .live-dot {
-    animation: live 1.6s ease-in-out infinite;
-  }
-  @keyframes live {
-    50% {
-      box-shadow: 0 0 0 6px rgb(0 188 125 / 0.08);
-    }
-  }
 }
 .game-frame__progress {
   margin: 0;
@@ -1726,11 +1778,76 @@ button.primary.pick__go {
 }
 .how-sure {
   display: grid;
-  gap: 0.5rem;
   justify-items: center;
+  width: min(26rem, 100%);
+  padding: 1.75rem 1.75rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--color-card);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
 }
-.how-sure input {
-  width: min(18rem, 70vw);
+.how-sure__q {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-heading);
+  text-wrap: balance;
+}
+.how-sure__value {
+  margin: 1rem 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.how-sure input[type='range'] {
+  --fill: 50%;
+  appearance: none;
+  width: 100%;
+  height: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) var(--fill),
+    var(--color-raised) var(--fill)
+  );
+  box-shadow: inset 0 0 0 1px rgb(2 6 24 / 0.06);
+  cursor: pointer;
+}
+.how-sure input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 2px 6px rgb(2 6 24 / 0.2);
+}
+.how-sure input[type='range']::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 2px 6px rgb(2 6 24 / 0.2);
+}
+.how-sure__scale {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+.lodestar-stage .how-sure button.primary {
+  min-width: 9rem;
+  margin-top: 1.5rem;
+  background: linear-gradient(rgb(255 255 255 / 0.1), transparent 60%), var(--color-cta);
+  color: #ffffff;
 }
 
 /* Onboarding, settings and data rights (docs/plan/14; UW1, UW14, UW22) */
@@ -1739,6 +1856,48 @@ button.primary.pick__go {
   letter-spacing: -0.02em;
   line-height: 1.05;
   color: var(--color-heading);
+}
+.choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.solo .card .choice button,
+.solo .card .choice button.primary {
+  min-height: 3rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.step-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 0.875rem;
+  background: var(--color-surface);
+  box-shadow: var(--ring);
+  color: var(--color-heading);
+}
+.step-icon .glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.switch__more {
+  margin: 0.125rem 0 0 1.8rem;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+.switch__more summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-accent);
+}
+.switch__more p {
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
 }
 .switches,
 .providers,
@@ -1791,6 +1950,9 @@ button.primary.pick__go {
   border-radius: 999px;
 }
 .tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   min-height: 2.125rem;
   border: 1px solid transparent;
   background: transparent;
@@ -1834,51 +1996,115 @@ button.primary.pick__go {
   overflow-wrap: anywhere;
 }
 
-/* Brain Twin: the night sky (docs/plan/13) */
-.sky {
+/* Brain Twin: a map of skill nodes on the page itself (docs/plan/13) */
+.twin-map {
   margin: 0;
+  overflow-x: auto;
 }
-.sky svg {
+.twin-map svg {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
-  border-radius: 1.125rem;
-  box-shadow: var(--ring);
+  overflow: visible;
+  user-select: none;
 }
-.sky--compact .sky__caption {
-  display: none;
+.twin-map__link {
+  stroke: #74d4ff;
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
 }
-.sky__caption {
+.twin-map__caption {
+  max-width: 44rem;
+  margin-top: 0.75rem;
   color: var(--color-muted);
   font-size: 0.8125rem;
-  margin-top: 0.625rem;
 }
-.sky__label {
-  fill: #e4e7ff;
-  font-family: var(--font-sans);
+.twin-map--compact .twin-map__caption {
+  display: none;
+}
+.twin-node {
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+.twin-node:active {
+  cursor: grabbing;
+}
+.twin-node__glow {
+  opacity: 0.3;
+}
+.twin-node__track {
+  fill: var(--color-card);
+  stroke: var(--color-line);
+  stroke-width: 4;
+}
+.twin-node__range {
+  fill: none;
+  stroke: #74d4ff;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.twin-node__core {
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 6px 10px rgb(0 105 168 / 0.25));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.2s var(--ease);
+}
+.twin-node:hover .twin-node__core,
+.twin-node:focus-visible .twin-node__core {
+  transform: scale(1.08);
+}
+.twin-node:focus-visible .twin-node__track,
+.twin-node:focus-visible .twin-node__dot {
+  stroke: var(--color-ink);
+}
+.twin-node__value {
+  fill: #ffffff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.twin-node__dot {
+  fill: var(--color-card);
+  stroke: var(--color-line-strong);
+  stroke-width: 1.5;
+}
+.twin-node--new:hover .twin-node__dot {
+  stroke: var(--color-accent);
+}
+.twin-node__name {
+  fill: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.twin-node--new .twin-node__name {
+  fill: var(--color-muted);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
-.sky__value {
-  fill: #a7b2e6;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
+.twin-node__range-text {
+  fill: var(--color-muted);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
   font-weight: 400;
 }
-.constellation--link {
-  cursor: pointer;
-}
-.constellation--link:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 4px;
-}
 @media (prefers-reduced-motion: no-preference) {
-  .sky svg {
-    animation: sky-in 0.6s ease-out;
+  .twin-node {
+    animation: node-in 0.5s var(--ease) both;
   }
-  @keyframes sky-in {
+  @keyframes node-in {
     from {
-      opacity: 0.6;
+      opacity: 0;
     }
   }
 }
@@ -2208,6 +2434,9 @@ button.primary.pick__go {
   }
   .mic__pop {
     right: -3.5rem;
+  }
+  .twin-map svg {
+    min-width: 40rem;
   }
 }
 

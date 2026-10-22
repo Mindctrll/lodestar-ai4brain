@@ -1,13 +1,14 @@
 # The consent notice (docs/plan/14, "Consent (layered)"). One switch per kind of processing; the
 # screens, the API and the checks that stop processing all read this file. Change the text, bump
 # `version`: every consent.changed event records the version the user saw.
-version: "2026-10-21"
+version: "2026-10-22"
 age_minimum: 18
 switches:
   - id: core
     title: Core practice data
     required: true
     default: true
+    short: Your results and profile, kept on this server.
     plain: >-
       Your game results, your skill profile and the notes Lodestar keeps about you, stored on this
       server. Lodestar can't work without it. To stop it, delete your data.
@@ -15,6 +16,7 @@ switches:
     title: Cloud AI
     required: false
     default: false
+    short: Send short summaries to your own AI provider.
     plain: >-
       Lets Lodestar send short, de-identified summaries (no name, no raw answers) to the AI provider
       you pick, with your own key. The provider and where it processes data are shown before you
@@ -23,6 +25,7 @@ switches:
     title: Microphone
     required: false
     default: false
+    short: Talk to Lodestar instead of typing.
     plain: >-
       Voice commands. Your browser's speech recognition may send the audio to its maker (for
       Chrome, Google). Audio is not kept.
@@ -30,6 +33,7 @@ switches:
     title: Camera
     required: false
     default: false
+    short: Spot strain on this device. No images kept.
     plain: >-
       Coarse "looks strained" cues worked out on this device only. No images leave it or are
       stored, and they never change your profile or scores.
@@ -37,6 +41,7 @@ switches:
     title: Voice tone
     required: false
     default: false
+    short: Hear when you might need a break.
     plain: >-
       Speaking speed and pauses, worked out on this device, to suggest a break. Never changes
       your profile or scores.
@@ -44,6 +49,7 @@ switches:
     title: Games with planted mistakes
     required: false
     default: true
+    short: Some games hide a mistake for you to find.
     plain: >-
       In Spot the AI's Mistake, Lodestar's worked answers sometimes contain a mistake on purpose, so
       you can practise checking AI. You're always told when a game does this.
@@ -51,5 +57,6 @@ switches:
     title: Research export
     required: false
     default: false
+    short: Share anonymised results with the team.
     plain: >-
       Lets the team include your anonymised results in its evaluation of Lodestar.

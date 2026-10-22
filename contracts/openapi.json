@@ -955,6 +955,12 @@
             "title": "Required",
             "type": "boolean"
           },
+          "short": {
+            "description": "One line for the first-visit screen",
+            "maxLength": 60,
+            "title": "Short",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -965,6 +971,7 @@
           "title",
           "required",
           "default",
+          "short",
           "plain"
         ],
         "title": "ConsentSwitchInfo",

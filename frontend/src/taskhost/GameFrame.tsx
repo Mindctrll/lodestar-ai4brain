@@ -39,13 +39,7 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
   return (
     <section className="game-frame" aria-label={game.name} ref={frame}>
       <header className="game-frame__header">
-        <div className="game-frame__title">
-          <p className="eyebrow">
-            <span className="live-dot" aria-hidden="true" />
-            Now playing
-          </p>
-          <h2>{game.name}</h2>
-        </div>
+        <h2 className="game-frame__title">{game.name}</h2>
         <ul className="chips" aria-label="Skills">
           {skills.map((s) => (
             <li key={s}>{s}</li>

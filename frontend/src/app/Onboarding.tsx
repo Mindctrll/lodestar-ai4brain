@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { api, signUp } from '../api/client'
 import type { Persona, Registry } from '../api/types'
+import { Glyph } from './icons'
 import { PERSONAS } from './personas'
 
 type Notice = Registry['consent']
@@ -46,6 +47,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     <section className="card onboarding" data-testid="onboarding">
       {step === 'welcome' && (
         <>
+          <span className="step-icon">
+            <Glyph name="star" />
+          </span>
           <h2>Welcome to Lodestar</h2>
           <p>
             Lodestar picks short games that train how you focus, remember and reason, and explains
@@ -69,9 +73,12 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
       {step === 'age' && (
         <>
+          <span className="step-icon">
+            <Glyph name="user" />
+          </span>
           <h2>How old are you?</h2>
           <p>This prototype is for people aged {notice?.age_minimum ?? 18} and over.</p>
-          <div className="flex gap-2">
+          <div className="choice">
             <button
               type="button"
               className="primary"
@@ -105,8 +112,11 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
       {step === 'consent' && notice && (
         <>
+          <span className="step-icon">
+            <Glyph name="shield" />
+          </span>
           <h2>What Lodestar may do</h2>
-          <p className="muted">You can change any of these later in Settings.</p>
+          <p className="muted">You can change these later in Settings.</p>
           <ul className="switches">
             {notice.switches.map((s) => (
               <li key={s.id}>
@@ -123,9 +133,13 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                     <strong>{s.title}</strong>
                     {s.required && <span className="muted"> (needed)</span>}
                     <br />
-                    <span className="muted">{s.plain}</span>
+                    <span className="muted">{s.short}</span>
                   </span>
                 </label>
+                <details className="switch__more">
+                  <summary>Details</summary>
+                  <p>{s.plain}</p>
+                </details>
               </li>
             ))}
           </ul>
@@ -143,6 +157,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
       {step === 'coach' && (
         <>
+          <span className="step-icon">
+            <Glyph name="smile" />
+          </span>
           <h2>Pick a coach</h2>
           <p className="muted">They all say the same facts, in their own way.</p>
           <div className="coaches" role="radiogroup" aria-label="Coach">

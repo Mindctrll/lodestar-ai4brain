@@ -1054,6 +1054,11 @@ export interface components {
       plain: string
       /** Required */
       required: boolean
+      /**
+       * Short
+       * @description One line for the first-visit screen
+       */
+      short: string
       /** Title */
       title: string
     }

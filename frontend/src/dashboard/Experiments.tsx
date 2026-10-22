@@ -30,7 +30,7 @@ export function Experiments({ onAsk }: { onAsk: () => void }) {
       </section>
     )
   return (
-    <div data-testid="experiments">
+    <div className="stack" data-testid="experiments">
       {list.map((e) => (
         <section key={e.exp_id} className="card experiment">
           <h2>{e.hypothesis}</h2>

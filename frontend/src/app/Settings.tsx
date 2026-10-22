@@ -10,6 +10,7 @@ import {
 } from '../voice/speech'
 import { canSpeak, setVoiceKind, speakReplies, voiceKind, type VoiceKind } from '../voice/tts'
 import { maskedKey, saveWakeSetup, WAKE_LABEL, wakeSetup } from '../voice/wake'
+import { Glyph, Heading, type GlyphName } from './icons'
 
 type Tab = 'privacy' | 'voice' | 'ai' | 'data' | 'terminal'
 
@@ -358,7 +359,7 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
 
   return (
     <div data-testid="my-data">
-      <h3>What Lodestar keeps about you</h3>
+      <Heading icon="database">What Lodestar keeps about you</Heading>
       {data && data.core.length === 0 && data.memories.length === 0 && (
         <p className="muted">Nothing yet.</p>
       )}
@@ -423,12 +424,12 @@ function Data({ onDeleted }: { onDeleted: (receipt: Receipt) => void }) {
         <p className="muted">Memories can&apos;t be shown right now.</p>
       )}
 
-      <h3>Take it with you</h3>
+      <Heading icon="download">Take it with you</Heading>
       <button type="button" onClick={() => void forget(() => api.exportData())}>
         Export my data
       </button>
 
-      <h3>Delete everything</h3>
+      <Heading icon="trash">Delete everything</Heading>
       {!confirming ? (
         <button
           type="button"
@@ -564,7 +565,7 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
   }
   return (
     <div data-testid="voice-settings">
-      <h3>Listening</h3>
+      <Heading icon="mic">Listening</Heading>
       <ul className="switches">
         <li>
           <label className="switch">
@@ -631,9 +632,9 @@ function Voice({ onChange }: { onChange: (speak: boolean) => void }) {
           </label>
         </li>
       </ul>
-      <h3>Wake word</h3>
+      <Heading icon="ear">Wake word</Heading>
       <WakeWord />
-      <h3>Speaking</h3>
+      <Heading icon="volume">Speaking</Heading>
       <label className="switch">
         <input
           type="checkbox"
@@ -702,7 +703,7 @@ function Terminal() {
   const [copied, setCopied] = useState(false)
   return (
     <div data-testid="terminal-settings">
-      <h3>Use Lodestar in a terminal</h3>
+      <Heading icon="terminal">Use Lodestar in a terminal</Heading>
       <p className="muted">
         The <code>lodestar</code> command chats with Lodestar, plays the text games and shows your
         profile and goals, from the same data as this app. Run <code>lodestar login</code> and paste
@@ -759,18 +760,18 @@ export function Settings({
   onDeleted: (receipt: Receipt) => void
 }) {
   const [tab, setTab] = useState<Tab>('privacy')
-  const tabs: [Tab, string][] = [
-    ['privacy', 'Privacy'],
-    ['voice', 'Voice'],
-    ['ai', 'AI provider'],
-    ['data', 'Memory & data'],
-    ['terminal', 'Terminal'],
+  const tabs: [Tab, string, GlyphName][] = [
+    ['privacy', 'Privacy', 'shield'],
+    ['voice', 'Voice', 'mic'],
+    ['ai', 'AI provider', 'spark'],
+    ['data', 'Memory & data', 'database'],
+    ['terminal', 'Terminal', 'terminal'],
   ]
   return (
     <section className="card settings" data-testid="settings">
       <h2>Settings</h2>
       <div className="tabs" role="tablist">
-        {tabs.map(([id, label]) => (
+        {tabs.map(([id, label, icon]) => (
           <button
             key={id}
             type="button"
@@ -780,6 +781,7 @@ export function Settings({
               setTab(id)
             }}
           >
+            <Glyph name={icon} />
             {label}
           </button>
         ))}

@@ -60,7 +60,8 @@ async function howSure(stage: HTMLElement, e2e: boolean, index: string): Promise
   stage.replaceChildren()
   stage.dataset['trial'] = `${index}.sure`
   const box = el('div', 'how-sure')
-  const label = el('label', '', 'How sure are you that you got that one right?')
+  const question = el('p', 'how-sure__q', 'How sure are you that you got that one right?')
+  const shown = el('output', 'how-sure__value', '75%')
   const slider = el('input')
   slider.type = 'range'
   slider.min = '50'
@@ -69,13 +70,17 @@ async function howSure(stage: HTMLElement, e2e: boolean, index: string): Promise
   slider.value = '75'
   slider.dataset['testid'] = 'sure-slider'
   slider.setAttribute('aria-label', 'How sure, from a guess (50%) to certain (100%)')
-  const shown = el('span', '', '75%')
-  slider.addEventListener('input', () => {
+  // The track fills up to the thumb, so the choice reads at a glance.
+  const fill = () => {
     shown.textContent = `${slider.value}%`
-  })
-  label.append(slider)
-  const done = button('OK', 'sure-done')
-  box.append(label, shown, done)
+    slider.style.setProperty('--fill', `${String((Number(slider.value) - 50) * 2)}%`)
+  }
+  fill()
+  slider.addEventListener('input', fill)
+  const scale = el('div', 'how-sure__scale')
+  scale.append(el('span', '', 'Just a guess'), el('span', '', 'Certain'))
+  const done = button('Done', 'sure-done', 'primary')
+  box.append(question, shown, slider, scale, done)
   stage.append(box)
   markAnswer(stage, e2e, 'click:sure-done')
   await new Promise<void>((resolve) => {

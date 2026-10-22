@@ -447,9 +447,6 @@ export function Conversation({
       {heroShown ? (
         <header className="hero">
           <span className="hero__orb" aria-hidden="true" />
-          <p className="eyebrow">
-            {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
           <h1>{greeting(now)}</h1>
           <p className="hero__lede">
             I&apos;m Lodestar, a practice coach for how you focus, remember and reason. Tell me how

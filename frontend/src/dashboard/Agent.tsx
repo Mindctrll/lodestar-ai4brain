@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
 import type { AgentEvent, Decision, TraceRow } from '../api/types'
+import { Heading } from '../app/icons'
 
 /** The graph's nodes in the order a session usually visits them (docs/plan/03). */
 const LANES: { title: string; nodes: string[] }[] = [
@@ -53,9 +54,11 @@ export function Agent({
   }, [sessionId, timeline.length])
 
   return (
-    <div className="agent" data-testid="agent">
+    <div className="agent stack" data-testid="agent">
       <section className="card">
-        <h2>The agent, live</h2>
+        <Heading as="h2" icon="pulse">
+          The agent, live
+        </Heading>
         <p className="muted">
           {sessionId
             ? 'Nodes light up as Lodestar works through your session.'
@@ -90,7 +93,9 @@ export function Agent({
       </section>
 
       <section className="card">
-        <h2>Decisions and why</h2>
+        <Heading as="h2" icon="route">
+          Decisions and why
+        </Heading>
         {decisions.length === 0 && <p className="muted">No decisions yet.</p>}
         <ul className="decisions">
           {decisions.map((d) => (
@@ -121,7 +126,9 @@ export function Agent({
 
       {trace && trace.length > 0 && (
         <section className="card">
-          <h2>Trace of this session</h2>
+          <Heading as="h2" icon="list">
+            Trace of this session
+          </Heading>
           <table className="trace">
             <thead>
               <tr>

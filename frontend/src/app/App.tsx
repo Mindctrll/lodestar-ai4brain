@@ -16,6 +16,7 @@ import { useSpeakReplies } from '../voice/useSpeakReplies'
 import { Composer } from './Composer'
 import { Conversation, type Panel } from './Conversation'
 import { DecisionCard } from './DecisionCard'
+import { Heading } from './icons'
 import { Onboarding } from './Onboarding'
 import { Settings } from './Settings'
 import { useSession } from './useSession'
@@ -186,7 +187,8 @@ export function App() {
   }
 
   const measured = twin?.dims.filter((d) => d.n > 0) ?? []
-  const title = ALL.find((n) => n.id === panel)?.label ?? ''
+  const current = ALL.find((n) => n.id === panel)
+  const title = current?.label ?? ''
 
   let body: ReactNode = null
   if (panel === 'twin' && registry && twin && progress) {
@@ -203,11 +205,11 @@ export function App() {
       />
     ) : (
       <>
-        <section className="panel-block panel-block--sky">
+        <section aria-label="Skill map">
           <NightSky registry={registry} dims={twin.dims} pulse={dash.updates} onSelect={setSkill} />
         </section>
         <section className="panel-block" aria-label="Ask your Twin">
-          <h3>Ask your Twin</h3>
+          <Heading icon="chat">Ask your Twin</Heading>
           <form
             className="inline-ask"
             onSubmit={(e) => {
@@ -236,7 +238,7 @@ export function App() {
           <p className="muted small">The answer shows up in the conversation.</p>
         </section>
         <section className="panel-block">
-          <h3>All skills at a glance</h3>
+          <Heading icon="radar">All skills at a glance</Heading>
           <Radar twin={twin} registry={registry} />
         </section>
       </>
@@ -245,11 +247,11 @@ export function App() {
     body = (
       <>
         <section className="panel-block">
-          <h3>Goals</h3>
+          <Heading icon="target">Goals</Heading>
           <Goals goals={goals} />
         </section>
         <section className="panel-block">
-          <h3>Each skill over time</h3>
+          <Heading icon="trend">Each skill over time</Heading>
           <p className="muted small">
             Line: estimate. Shaded: the 80% range. Dashed: the forecast for the next sessions.
             Orange strips: what you told Lodestar about your days.
@@ -270,11 +272,11 @@ export function App() {
           </div>
         </section>
         <section className="panel-block">
-          <h3>Change by week</h3>
+          <Heading icon="calendar">Change by week</Heading>
           <WeekHeatmap progress={progress} name={dimName} />
         </section>
         <section className="panel-block">
-          <h3>When you do best</h3>
+          <Heading icon="clock">When you do best</Heading>
           <HourHeatmap progress={progress} />
         </section>
       </>
@@ -412,7 +414,14 @@ export function App() {
         {panel && (
           <section className="page" aria-label={title} data-panel={panel}>
             <header className="page__head">
-              <h1>{title}</h1>
+              <div className="page__title">
+                {current && (
+                  <span className="page__icon">
+                    <Icon>{current.icon}</Icon>
+                  </span>
+                )}
+                <h1>{title}</h1>
+              </div>
               <p className="muted">{SUBTITLE[panel]}</p>
             </header>
             <div className="page__body">{body ?? <p className="muted">Loading…</p>}</div>

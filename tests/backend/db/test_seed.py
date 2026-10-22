@@ -13,9 +13,12 @@ def test_seed_creates_a_consistent_demo_user(conn: Connection) -> None:
         return int(conn.execute(query).scalar_one())
 
     rounds = count(t.rounds)
-    assert rounds > 0 and rounds % 3 == 0
+    assert rounds > 0
     assert count(t.trials) == rounds * 10
     assert count(t.events) == count(t.trials) + 2 * count(t.sessions)
     assert count(t.dimension_state) == len(tracked_dims(load_registry()))
     assert count(t.history) > 0
     assert count(t.consent) == 7
+    assert count(t.goals) == 3
+    assert count(t.experiments) == 2
+    assert count(t.decisions) > 0
