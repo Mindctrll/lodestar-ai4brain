@@ -35,10 +35,11 @@ Library: ECharts for these; visx/D3 for the night sky.
 ## The night sky (Brain Twin visual identity)
 
 - Each dimension is a node. Skills start grouped by family; people can drag nodes, and the layout they make is kept on their device.
-- **Node size and the number in it = the estimate**; the arc around it is the 80% range; a soft glow behind it widens with σ (SVG `feGaussianBlur`), so nodes sharpen as Lodestar learns. Skills not measured yet are small hollow dots.
+- **Each measured skill is a white card**: the number in its family-coloured tile is the estimate, the bar along its foot is the 80% range with the estimate marked, and a soft shadow behind it widens with σ (SVG `feGaussianBlur`), so cards sharpen as Lodestar learns. Skills not measured yet are small grey tags.
+- Grey wires join skills of one family; blue wires join each skill to the two skills it goes with most (NCPT correlations, r ≥ 0.2).
+- "Ask your Twin" answers on the Twin page itself, in its own short thread; the question and answer also stay in the conversation's history.
 - (The first build drew this as a night sky with stars; the daylight redesign replaced it with nodes.)
 - Stale skills slowly blur (the drift in `07`) and the Twin can say so.
-- Lines between constellations show correlated skills.
 - Tap a node → that skill's page (definition, games, curve, biases, evidence badge).
 - Experimental skills have a dashed ring, with a caption.
 

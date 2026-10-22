@@ -22,7 +22,7 @@ function greeting(now: Date): string {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-function Star({ size = 32 }: { size?: number }) {
+export function Star({ size = 32 }: { size?: number }) {
   return (
     <span className="avatar" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" width={size * 0.55} height={size * 0.55}>

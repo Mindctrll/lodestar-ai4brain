@@ -31,6 +31,14 @@ export function Experiments({ onAsk }: { onAsk: () => void }) {
     )
   return (
     <div className="stack" data-testid="experiments">
+      {!list.some((e) => e.status === 'running') && (
+        <div className="experiments__new">
+          <button type="button" className="primary" onClick={onAsk}>
+            Start one
+          </button>
+          <p className="muted small">Test another idea, one at a time.</p>
+        </div>
+      )}
       {list.map((e) => (
         <section key={e.exp_id} className="card experiment">
           <h2>{e.hypothesis}</h2>

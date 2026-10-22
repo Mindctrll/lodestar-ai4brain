@@ -1476,6 +1476,17 @@ button.primary.pick__go {
 .page .settings > h2 {
   display: none;
 }
+.experiments__new {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.experiments__new button.primary {
+  margin-top: 0;
+}
+.experiments__new p {
+  margin: 0;
+}
 .stack {
   display: flex;
   flex-direction: column;
@@ -2008,12 +2019,6 @@ button.primary.pick__go {
   overflow: visible;
   user-select: none;
 }
-.twin-map__link {
-  stroke: #74d4ff;
-  stroke-width: 1.5;
-  stroke-dasharray: 2 6;
-  stroke-linecap: round;
-}
 .twin-map__caption {
   max-width: 44rem;
   margin-top: 0.75rem;
@@ -2023,6 +2028,25 @@ button.primary.pick__go {
 .twin-map--compact .twin-map__caption {
   display: none;
 }
+.twin-wire {
+  fill: none;
+  stroke: var(--color-line-strong);
+  stroke-width: 1.5;
+}
+.twin-wire--related {
+  stroke: #00a6f4;
+  stroke-dasharray: 6 6;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .twin-wire--related {
+    animation: wire-flow 1.6s linear infinite;
+  }
+  @keyframes wire-flow {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+}
 .twin-node {
   cursor: grab;
   touch-action: none;
@@ -2031,72 +2055,64 @@ button.primary.pick__go {
 .twin-node:active {
   cursor: grabbing;
 }
-.twin-node__glow {
-  opacity: 0.3;
+.twin-node__haze {
+  opacity: 0.22;
 }
-.twin-node__track {
+.twin-node__card {
   fill: var(--color-card);
-  stroke: var(--color-line);
-  stroke-width: 4;
+  stroke: rgb(2 6 24 / 0.1);
+  stroke-width: 1;
+  transition: stroke 0.15s var(--ease);
 }
-.twin-node__range {
-  fill: none;
-  stroke: #74d4ff;
-  stroke-width: 4;
-  stroke-linecap: round;
+.twin-node:hover .twin-node__card,
+.twin-node:hover .twin-node__tag {
+  stroke: rgb(2 6 24 / 0.28);
 }
-.twin-node__core {
-  stroke: #ffffff;
+.twin-node:focus-visible .twin-node__card,
+.twin-node:focus-visible .twin-node__tag {
+  stroke: var(--color-accent);
   stroke-width: 2;
-  filter: drop-shadow(0 6px 10px rgb(0 105 168 / 0.25));
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 0.2s var(--ease);
-}
-.twin-node:hover .twin-node__core,
-.twin-node:focus-visible .twin-node__core {
-  transform: scale(1.08);
-}
-.twin-node:focus-visible .twin-node__track,
-.twin-node:focus-visible .twin-node__dot {
-  stroke: var(--color-ink);
 }
 .twin-node__value {
-  fill: #ffffff;
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.02em;
   text-anchor: middle;
   pointer-events: none;
-}
-.twin-node__dot {
-  fill: var(--color-card);
-  stroke: var(--color-line-strong);
-  stroke-width: 1.5;
-}
-.twin-node--new:hover .twin-node__dot {
-  stroke: var(--color-accent);
 }
 .twin-node__name {
   fill: var(--color-ink);
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 650;
-  letter-spacing: -0.01em;
-  text-anchor: middle;
+  letter-spacing: -0.015em;
   pointer-events: none;
-}
-.twin-node--new .twin-node__name {
-  fill: var(--color-muted);
-  font-size: 12px;
-  font-weight: 500;
 }
 .twin-node__range-text {
   fill: var(--color-muted);
   font-family: var(--font-sans);
+  font-size: 11px;
+  pointer-events: none;
+}
+.twin-node__track {
+  fill: var(--color-raised);
+}
+.twin-node__tag {
+  fill: var(--color-surface);
+  stroke: var(--color-line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.twin-node__tag-dot {
+  fill: var(--color-line-strong);
+}
+.twin-node__tag-name {
+  fill: var(--color-muted);
+  font-family: var(--font-display);
   font-size: 11.5px;
-  font-weight: 400;
+  font-weight: 500;
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: no-preference) {
   .twin-node {
@@ -2107,6 +2123,31 @@ button.primary.pick__go {
       opacity: 0;
     }
   }
+}
+
+/* The Twin page's own chat */
+.twin-chat {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  max-height: 26rem;
+  overflow-y: auto;
+  margin: 0.25rem 0 1rem;
+  padding: 0;
+}
+.twin-chat__you {
+  display: flex;
+  justify-content: flex-end;
+}
+.twin-chat .said p {
+  font-size: 1rem;
+}
+.twin-chat .said--cont {
+  margin-top: -0.5rem;
+}
+.twin-chat .said--cont .avatar {
+  visibility: hidden;
 }
 .skill > h2 {
   font-size: 2rem;

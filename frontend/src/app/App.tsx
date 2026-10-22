@@ -14,7 +14,8 @@ import { useDashboard } from '../dashboard/useDashboard'
 import { setSpeakReplies, speakReplies, stopSpeaking } from '../voice/tts'
 import { useSpeakReplies } from '../voice/useSpeakReplies'
 import { Composer } from './Composer'
-import { Conversation, type Panel } from './Conversation'
+import { Cited } from './Cited'
+import { Conversation, Star, type Panel } from './Conversation'
 import { DecisionCard } from './DecisionCard'
 import { Heading } from './icons'
 import { Onboarding } from './Onboarding'
@@ -94,6 +95,8 @@ export function App() {
   const [localMode, setLocalMode] = useState(false)
   const [receipt, setReceipt] = useState<Receipt | null>(null)
   const [twinAsk, setTwinAsk] = useState('')
+  /** Where the Twin page's own chat starts in the session feed. */
+  const [twinFrom, setTwinFrom] = useState<number | null>(null)
   const dash = useDashboard(registered)
   const [persona, setPersona] = useState<Persona>('willow')
   // Voice in, voice out: once someone talks to Lodestar, replies are spoken too (and always shown).
@@ -210,6 +213,40 @@ export function App() {
         </section>
         <section className="panel-block" aria-label="Ask your Twin">
           <Heading icon="chat">Ask your Twin</Heading>
+          {twinFrom !== null && (
+            <ul className="twin-chat" data-testid="twin-chat" aria-live="polite">
+              {session.state.feed.slice(twinFrom).map((item, i) =>
+                item.kind === 'you' ? (
+                  <li key={i} className="twin-chat__you">
+                    <p className="bubble">{item.text.replace(/^Twin, /, '')}</p>
+                  </li>
+                ) : item.kind === 'lodestar' ? (
+                  <li
+                    key={i}
+                    className={`said${session.state.feed[twinFrom + i - 1]?.kind === 'lodestar' ? ' said--cont' : ''}`}
+                  >
+                    <Star />
+                    <p>
+                      <Cited text={item.text} refs={item.refs} onWhy={setWhy} />
+                    </p>
+                  </li>
+                ) : null,
+              )}
+              {session.state.busy && (
+                <li className="said">
+                  <Star />
+                  <p className="thinking">
+                    <span className="thinking__dots" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    Thinking
+                  </p>
+                </li>
+              )}
+            </ul>
+          )}
           <form
             className="inline-ask"
             onSubmit={(e) => {
@@ -217,7 +254,7 @@ export function App() {
               const said = twinAsk.trim()
               setTwinAsk('')
               if (said) {
-                setPanel(null)
+                if (twinFrom === null) setTwinFrom(session.state.feed.length)
                 void session.send(`Twin, ${said}`)
               }
             }}
@@ -235,7 +272,7 @@ export function App() {
               Ask
             </button>
           </form>
-          <p className="muted small">The answer shows up in the conversation.</p>
+          <p className="muted small">Your Twin answers here, from what Lodestar has measured.</p>
         </section>
         <section className="panel-block">
           <Heading icon="radar">All skills at a glance</Heading>

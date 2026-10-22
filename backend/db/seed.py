@@ -221,40 +221,37 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
 
 
 def _seed_experiments(conn: Connection, user_id: UUID, rng: random.Random, today: date) -> None:
-    """One finished time-of-day experiment (evening won) and one still running."""
-    plan = design(["quick_draw", "echo"], "processing_speed")
-    morning = [round(rng.uniform(0.55, 0.7), 3) for _ in range(3)]
-    evening = [round(rng.uniform(0.7, 0.85), 3) for _ in range(3)]
-    c = compare(morning, evening)
-    sessions = [
-        {"session_id": str(uuid4()), "condition": cond, "score": score}
-        for cond, scores in (("morning", morning), ("evening", evening))
-        for score in scores
-    ]
-    done = _ts(today - timedelta(days=9), 21)
-    conn.execute(
-        insert(t.experiments).values(
-            user_id=user_id, hypothesis="I react faster in the evening than in the morning",
-            design=plan, status="completed" if c.verdict != "inconclusive" else "inconclusive",
-            result={
-                "sessions": sessions, "verdict": c.verdict,
-                "p_evening_better": round(c.p_evening_better, 3),
-                "difference": round(c.difference, 4),
-                "interval": [round(c.low, 4), round(c.high, 4)],
-                "wins": c.wins, "pairs": c.pairs,
-            },
-            created_at=done - timedelta(days=10), updated_at=done,
-        )
-    )  # fmt: skip
-    running = [{"session_id": str(uuid4()), "condition": "morning", "score": 0.64}]
-    running.append({"session_id": str(uuid4()), "condition": "evening", "score": 0.71})
-    conn.execute(
-        insert(t.experiments).values(
-            user_id=user_id, hypothesis="My memory is sharper in the morning",
-            design=design(["echo", "seen_it"], "working_memory"), status="running",
-            result={"sessions": running}, created_at=_ts(today - timedelta(days=4), 9),
-        )
-    )  # fmt: skip
+    """Two finished time-of-day experiments: one where the evening won, one too close to call.
+    None is left running, so the demo can start a new one."""
+    for hypothesis, games, dim, (m_lo, m_hi), (e_lo, e_hi), ago in [
+        ("I react faster in the evening than in the morning", ["quick_draw", "echo"],
+         "processing_speed", (0.55, 0.7), (0.7, 0.85), 9),
+        ("My memory is sharper in the morning", ["echo", "seen_it"], "working_memory",
+         (0.6, 0.75), (0.58, 0.74), 2),
+    ]:  # fmt: skip
+        morning = [round(rng.uniform(m_lo, m_hi), 3) for _ in range(3)]
+        evening = [round(rng.uniform(e_lo, e_hi), 3) for _ in range(3)]
+        c = compare(morning, evening)
+        sessions = [
+            {"session_id": str(uuid4()), "condition": cond, "score": score}
+            for cond, scores in (("morning", morning), ("evening", evening))
+            for score in scores
+        ]
+        done = _ts(today - timedelta(days=ago), 21)
+        conn.execute(
+            insert(t.experiments).values(
+                user_id=user_id, hypothesis=hypothesis, design=design(games, dim),
+                status="completed" if c.verdict != "inconclusive" else "inconclusive",
+                result={
+                    "sessions": sessions, "verdict": c.verdict,
+                    "p_evening_better": round(c.p_evening_better, 3),
+                    "difference": round(c.difference, 4),
+                    "interval": [round(c.low, 4), round(c.high, 4)],
+                    "wins": c.wins, "pairs": c.pairs,
+                },
+                created_at=done - timedelta(days=10), updated_at=done,
+            )
+        )  # fmt: skip
 
 
 def _seed_decisions(

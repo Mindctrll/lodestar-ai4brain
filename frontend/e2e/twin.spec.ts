@@ -20,12 +20,13 @@ test('ask the Twin when I am sharpest, then start an experiment', async ({ page 
   const ask = page.getByRole('region', { name: 'Ask your Twin' })
   await ask.getByRole('textbox').fill('when am I sharpest?')
   await ask.getByRole('button', { name: 'Ask' }).click()
-  // The Twin answers in the conversation: first person, from facts (the chips), and honest about
-  // how sure it is. The agent opens the Twin beside its answer.
-  const chat = page.getByTestId('chat')
+  // The Twin answers right there on its page: first person, from facts (the chips), and honest
+  // about how sure it is.
+  const chat = page.getByTestId('twin-chat')
+  await expect(chat).toContainText('when am I sharpest?')
   await expect(chat).toContainText(/My games go best in the (morning|evening)/, { timeout: 60_000 })
   await expect(chat.locator('.cite').first()).toBeVisible()
-  await expect(page.getByTestId('night-sky-inline')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Brain Twin', level: 1 })).toBeVisible()
 
   await page.getByRole('button', { name: 'Experiments' }).click()
   await page.getByRole('button', { name: 'Start one' }).click()
