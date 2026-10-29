@@ -60,7 +60,7 @@ format: ## auto-format backend and frontend
 migrate: ## apply database migrations (uses DATABASE_URL, default: compose Postgres)
 	uv run alembic upgrade head
 
-seed: ## add the demo user (Alex) with eight weeks of practice and memory notes; prints a sign-in link
+seed: ## add the demo user (Alex) with four months of practice and memory notes; prints a sign-in link (or press "Demo person" in the app)
 	uv run python -m backend.db.seed --token
 	docker compose exec -T backend python -m backend.db.seed_memory || echo "Memory notes skipped: start the backend (make up) and run make seed again."
 

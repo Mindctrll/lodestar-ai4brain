@@ -594,6 +594,40 @@ h3 {
   font-size: 0.75rem;
   color: var(--color-ink-2);
 }
+.demo-toggle__track {
+  position: relative;
+  width: 1.75rem;
+  height: 1rem;
+  margin-left: auto;
+  flex: none;
+  border-radius: 999px;
+  background: var(--color-line-strong);
+  transition: background 0.15s var(--ease);
+}
+.demo-toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s var(--ease);
+}
+.demo-toggle[aria-checked='true'] {
+  color: var(--color-ink);
+  background: var(--color-accent-soft);
+}
+.demo-toggle[aria-checked='true'] .demo-toggle__track {
+  background: var(--color-accent);
+}
+.demo-toggle[aria-checked='true'] .demo-toggle__track::after {
+  transform: translateX(0.75rem);
+}
+.onboarding button.ghost {
+  margin-left: 0.5rem;
+}
 .rail__dot {
   width: 0.5rem;
   height: 0.5rem;
@@ -3581,6 +3615,7 @@ button.primary.pick__go {
 }
 @media (max-width: 1099px) {
   .rail__label,
+  .demo-toggle__track,
   .brand__name,
   .rail__group {
     display: none;

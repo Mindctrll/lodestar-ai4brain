@@ -20,6 +20,7 @@ import { setSpeakReplies, speakReplies, stopSpeaking } from '../voice/tts'
 import { useSpeakReplies } from '../voice/useSpeakReplies'
 import { Composer } from './Composer'
 import { Cited } from './Cited'
+import { DemoToggle } from './DemoToggle'
 import { Conversation, Star, type Panel } from './Conversation'
 import { DecisionCard } from './DecisionCard'
 import { Heading } from './icons'
@@ -479,6 +480,7 @@ export function App() {
               <span className="rail__label">Local mode</span>
             </p>
           )}
+          <DemoToggle variant="rail" />
           {navButton(SETTINGS)}
         </nav>
       </aside>

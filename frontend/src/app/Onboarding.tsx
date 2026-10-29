@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { api, signUp } from '../api/client'
 import type { Persona, Registry } from '../api/types'
+import { DemoToggle } from './DemoToggle'
 import { Glyph } from './icons'
 import { PERSONAS } from './personas'
 
@@ -68,6 +69,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           >
             Get started
           </button>
+          <DemoToggle variant="welcome" />
         </>
       )}
 

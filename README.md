@@ -41,7 +41,7 @@ You need Docker (with Compose), `make`, and [uv](https://docs.astral.sh/uv/). No
 
 ```bash
 make up      # creates .env with a fresh encryption key, builds and starts everything
-make seed    # a demo user (Alex) with eight weeks of practice; prints a sign-in link
+make seed    # a demo user (Alex) with four months of practice; or press "Demo person" in the app
 ```
 
 Open the link (http://localhost:5173/?signin=…). To start fresh as a new user, open http://localhost:5173.
@@ -86,7 +86,7 @@ flowchart LR
 - **Coach**: the agent builds a facts packet; the LLM drafts; a verifier checks every number against the facts and every word against the banned list; failures are repaired or replaced by a template.
 - **Memory**: Qdrant search is always filtered by user; Markdown notes are the only files Lodestar writes.
 
-Design documents: [docs/plan](docs/plan/README.md). Technical report: [docs/report/report.pdf](docs/report/report.pdf).
+Design documents: [docs/plan](docs/plan/README.md). Technical report: [docs/report/report.pdf](docs/report/report.pdf). The full technical guide (architecture, assessment, how the Brain Twin is implemented, the agent and the coach, with every formula and constant): [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
 ## Evaluation
 

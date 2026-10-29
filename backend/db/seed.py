@@ -1,6 +1,7 @@
-"""`make seed`: a demo user with eight weeks of practice, goals, life notes, experiments and
+"""`make seed`: a demo user with four months of practice, goals, life notes, experiments and
 the agent's decisions, for building and showing the dashboard. Their memory notes are written by
-`backend.db.seed_memory`, which runs inside the backend container.
+`backend.db.seed_memory`, which runs inside the backend container. The "Demo" button in the app
+does the same through `POST /demo` (backend/api/demo.py).
 
 Projection rows (dimension_state, history) are written directly with a simple random walk. They are
 demo data only: once the scoring engine exists, `make rebuild-twin` recomputes them from the
@@ -10,11 +11,12 @@ events written here.
 import argparse
 import random
 import secrets
+import zlib
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID, uuid4
 
 from psycopg.types.range import Range
-from sqlalchemy import Connection, insert, select
+from sqlalchemy import Connection, func, insert, select
 
 from backend.agent.experiments import compare, design
 from backend.db import tables as t
@@ -24,8 +26,30 @@ from backend.registry.loader import load_registry
 from backend.registry.models import Registry
 
 DEMO_NAME = "Alex"
-DAYS = 56
+DAYS = 120
 SEED = 7
+# How fast each skill grows per practised round, before noise: some climb, some hold still.
+GROWTH = {
+    "working_memory": 0.025,
+    "processing_speed": 0.02,
+    "inhibition": 0.018,
+    "cognitive_flexibility": 0.014,
+    "reasoning": 0.012,
+    "short_term_memory": 0.01,
+    "selective_attention": 0.008,
+    "sustained_attention": 0.0,  # a plateau, so the Twin has something honest to say
+}
+# (label, first day relative to today, length in days): short nights and busy weeks cost a little.
+LIFE = [
+    ("short nights", -98, 4),
+    ("new job", -84, 10),
+    ("short nights", -40, 3),
+    ("holiday", -26, 5),
+    ("cold", -18, 3),
+    ("busy at work", -12, 4),
+    ("exam week", 3, 11),
+]
+HARD_TIMES = {"short nights", "busy at work", "cold", "new job"}
 
 
 def _ts(day: date, hour: int, minute: int = 0) -> datetime:
@@ -43,6 +67,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
     today = today or datetime.now(UTC).date()
     registry = load_registry()
     p1_games = [g for g in registry.games if g.phase == "P1"]
+    p2_games = [g for g in registry.games if g.phase == "P2"]
     tracked = tracked_dims(registry)
 
     user_id: UUID = conn.execute(
@@ -73,6 +98,8 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
         ("working_memory", 15, 13),  # the 80% range within ±15 points (UW11)
         ("processing_speed", 12, 20),
         ("inhibition", 18, 30),
+        ("reasoning", 16, 45),
+        ("sustained_attention", 20, 60),
     ]:
         conn.execute(
             insert(t.goals).values(
@@ -80,13 +107,11 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 due=today + timedelta(days=due),
             )
         )  # fmt: skip
-    for label, begin, days in [
-        ("short nights", -40, 3),
-        ("holiday", -26, 5),
-        ("busy at work", -12, 4),
-        ("exam week", 3, 11),
-    ]:
+    hard_days: set[date] = set()
+    for label, begin, days in LIFE:
         day = today + timedelta(days=begin)
+        if label in HARD_TIMES:
+            hard_days.update(day + timedelta(days=i) for i in range(days))
         conn.execute(
             insert(t.life_context).values(
                 user_id=user_id, label=label,
@@ -99,7 +124,9 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
     session_ids: list[tuple[UUID, datetime]] = []
     for offset in range(DAYS):
         day = start + timedelta(days=offset)
-        if offset < DAYS - 6 and rng.random() < 0.25:  # not every day; a streak lately
+        holiday = -26 <= (day - today).days < -21
+        skip = 0.85 if holiday else 0.25
+        if offset < DAYS - 9 and rng.random() < skip:  # not every day; a streak lately
             continue
         hour = rng.choice([8, 9, 13, 18, 20, 21, 22])
         session_id = uuid4()
@@ -126,10 +153,15 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
         # The last two weeks have long sessions that slow down after about 13 minutes, so the
         # fatigue point (docs/plan/10) has something to find.
         recent = offset >= DAYS - 14
-        played = rng.sample(p1_games, 5 if recent else rng.choice([3, 3, 4]))
+        # Later on, the wider set of games joins the first sixteen.
+        pool = p1_games if offset < DAYS // 3 else p1_games + p2_games
+        played = rng.sample(pool, 5 if recent else rng.choice([3, 3, 4, 4]))
+        # Evenings go a little better (the experiments find it), hard days a little worse.
+        base = 0.72 + 0.12 * offset / DAYS + (0.05 if hour >= 18 else 0.0)
+        base -= 0.08 if day in hard_days else 0.0
         for r, game in enumerate(played):
             round_id = uuid4()
-            level = round(rng.uniform(0.2, 0.7), 2)
+            level = round(min(0.95, rng.uniform(0.2, 0.5) + 0.35 * offset / DAYS), 2)
             started = _ts(day, hour, 1 + r * 4)
             correct_count = 0
             conn.execute(
@@ -145,8 +177,9 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 )
             )
             tired = recent and r >= 3
+            trials, events = [], []
             for i in range(10):
-                correct = rng.random() < (0.7 if tired else 0.78)
+                correct = rng.random() < (base - 0.08 if tired else base)
                 correct_count += correct
                 slow = 1.45 if tired else 1.0
                 # About one answer in seven gets a "How sure?" reading, a little over-confident.
@@ -158,20 +191,22 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                     "confidence": sure, "stimulus": {"i": i}, "response": {"ok": correct},
                     "ts": started + timedelta(seconds=6 * i),
                 }  # fmt: skip
-                conn.execute(insert(t.trials).values(**trial))
-                conn.execute(
-                    insert(t.events).values(
-                        user_id=user_id,
-                        session_id=session_id,
-                        ts=trial["ts"],
-                        type="trial.recorded",
-                        payload={
+                trials.append(trial)
+                events.append(
+                    {
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "ts": trial["ts"],
+                        "type": "trial.recorded",
+                        "payload": {
                             k: str(v) if isinstance(v, (UUID, datetime)) else v
                             for k, v in trial.items()
                             if k != "user_id"
                         },
-                    )
+                    }
                 )
+            conn.execute(insert(t.trials), trials)
+            conn.execute(insert(t.events), events)
             score = correct_count / 10
             conn.execute(
                 t.rounds.update().where(t.rounds.c.round_id == round_id).values(score=score)
@@ -180,7 +215,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
                 if dim not in belief:
                     continue
                 b = belief[dim]
-                b["mu"] += loading * rng.uniform(-0.06, 0.1)
+                b["mu"] += loading * (GROWTH.get(dim, 0.008) + rng.uniform(-0.06, 0.06))
                 b["sigma"] = max(0.35, b["sigma"] * (0.93 if loading == 1.0 else 0.98))
                 b["n"] += 10
         for dim, b in belief.items():
@@ -213,7 +248,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
             )
         )
     for component, rate in {"V": 0.7, "A": 0.6, "I": 0.5, "C": 0.4, "R": 0.8}.items():
-        for _ in range(30):
+        for _ in range(60):
             conn.execute(
                 insert(t.acs_observations).values(
                     user_id=user_id,
@@ -224,14 +259,18 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
             )
     _seed_experiments(conn, user_id, rng, today)
     names = {d.id: d.name.lower() for d in registry.dimensions}
-    _seed_decisions(conn, user_id, rng, session_ids[-12:], belief, names)
+    _seed_decisions(conn, user_id, rng, session_ids[-30:], belief, names)
     return user_id
 
 
 def _seed_experiments(conn: Connection, user_id: UUID, rng: random.Random, today: date) -> None:
-    """Two finished time-of-day experiments: one where the evening won, one too close to call.
+    """Four finished time-of-day experiments: two where the evening won, two too close to call.
     None is left running, so the demo can start a new one."""
     for hypothesis, games, dim, (m_lo, m_hi), (e_lo, e_hi), ago in [
+        ("I hold back faster in the evening", ["hold_it", "brake"], "inhibition",
+         (0.55, 0.68), (0.68, 0.82), 60),
+        ("My attention lasts longer in the morning", ["night_guard", "look_here"],
+         "sustained_attention", (0.6, 0.72), (0.6, 0.73), 33),
         ("I react faster in the evening than in the morning", ["quick_draw", "echo"],
          "processing_speed", (0.55, 0.7), (0.7, 0.85), 9),
         ("My memory is sharper in the morning", ["echo", "seen_it"], "working_memory",
@@ -298,6 +337,17 @@ def issue_token(conn: Connection, user_id: UUID) -> str:
     token = secrets.token_urlsafe(32)
     conn.execute(insert(t.user_tokens).values(token_hash=hash_token(token), user_id=user_id))
     return token
+
+
+def demo_sign_in(conn: Connection) -> tuple[UUID, str, bool]:
+    """The demo user and a fresh sign-in token for them, seeding them first if they're missing.
+    Returns whether they were just created. Safe when two tabs ask at once."""
+    conn.execute(select(func.pg_advisory_xact_lock(zlib.crc32(b"lodestar.demo"))))
+    existing = conn.execute(
+        select(t.users.c.user_id).where(t.users.c.display_name == DEMO_NAME)
+    ).scalar_one_or_none()
+    user_id = existing or seed_demo_user(conn)
+    return user_id, issue_token(conn, user_id), existing is None
 
 
 def main() -> None:

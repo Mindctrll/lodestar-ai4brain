@@ -6973,6 +6973,28 @@
         ]
       }
     },
+    "/demo": {
+      "post": {
+        "description": "A bearer token for the demo user, who has four months of practice to look around in.",
+        "operationId": "post_demo_demo_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedUser"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Post Demo",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/events": {
       "post": {
         "operationId": "post_events_events_post",

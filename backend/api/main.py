@@ -14,6 +14,7 @@ from backend.agent.graph import checkpoint_pool, checkpointer, compile_graph
 from backend.agent.runner import SessionRunner
 from backend.api import (
     affect,
+    demo,
     experiments,
     goals,
     insights,
@@ -102,6 +103,7 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
     )
     app.include_router(registry.router)
     app.include_router(twin.router)
+    app.include_router(demo.router)
     app.include_router(llm.router)
     app.include_router(sessions.router)
     app.include_router(affect.router)

@@ -4,7 +4,7 @@ The brief asks for 3–5 minutes. Each scene says what to show and what to say. 
 
 ## Before you record
 
-- `make up`, then `make seed`. Open the printed sign-in link in a normal window (Alex, eight weeks of data).
+- `make up`, then `make seed`. Open the app and switch on "Demo person" in the sidebar (Alex, four months of data), or open the printed sign-in link.
 - Open a **private window** on http://localhost:5173 for the first-visit scene.
 - Browser at 1440×900, zoom 100%, bookmarks bar hidden, notifications off.
 - Start Ollama (or add a key in Settings → AI provider) so the coach writes fresh replies; check the sidebar doesn't say "Local mode" if you want a hosted model.

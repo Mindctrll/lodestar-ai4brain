@@ -133,6 +133,48 @@ export function forgetUser(): void {
   }
 }
 
+const OWN_TOKEN_KEY = 'lodestar.token.own'
+const DEMO_KEY = 'lodestar.demo'
+
+/** Whether this browser is looking around as the demo user. */
+export function inDemo(): boolean {
+  try {
+    return localStorage.getItem(DEMO_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** Sign in as the demo user (Alex, four months of practice), keeping this browser's own sign-in to
+ * come back to. The page reloads afterwards. */
+export async function startDemo(): Promise<void> {
+  const demo = await request<{ user_id: string; token: string }>('/demo', { method: 'POST' })
+  const own = memoryToken ?? getToken()
+  try {
+    if (own && !inDemo()) localStorage.setItem(OWN_TOKEN_KEY, own)
+    localStorage.setItem(DEMO_KEY, '1')
+    localStorage.removeItem('lodestar.session')
+  } catch {
+    // Private mode: the demo lasts until the page closes.
+  }
+  memoryToken = demo.token
+  setToken(demo.token)
+}
+
+/** Back to this browser's own user, or to the first-visit screens if there isn't one. */
+export function endDemo(): void {
+  let own: string | null = null
+  try {
+    own = localStorage.getItem(OWN_TOKEN_KEY)
+    for (const key of [OWN_TOKEN_KEY, DEMO_KEY, 'lodestar.session', TOKEN_KEY])
+      localStorage.removeItem(key)
+  } catch {
+    // nothing stored
+  }
+  memoryToken = own
+  if (own) setToken(own)
+}
+
 /** Download a response body as a file. */
 async function download(path: string, filename: string): Promise<void> {
   const token = memoryToken ?? getToken()

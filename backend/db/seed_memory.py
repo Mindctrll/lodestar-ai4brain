@@ -4,6 +4,7 @@ inside the backend container: `make seed` calls it after `backend.db.seed`."""
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from qdrant_client import AsyncQdrantClient
 from sqlalchemy import select
@@ -22,6 +23,9 @@ CORE = [
     "Likes the Detective story more than plain drills.",
     "Prefers short sessions on busy days.",
     "Calm, short coaching works best.",
+    "Started a new job about three months ago; weekdays are tighter since.",
+    "Likes to see the range, not just the number.",
+    "Wants to keep reasoning steady while the job settles.",
 ]
 # (days ago, collection, kind, text)
 MOMENTS = [
@@ -35,20 +39,34 @@ MOMENTS = [
     (9, "episodic", "milestone", "Finished the morning-or-evening experiment: evening won."),
     (12, "episodic", "milestone", "Reached the inhibition goal a week early."),
     (26, "episodic", "moment", "Back from holiday; sessions were shorter that week."),
+    (1, "episodic", "moment", "Played five games in one go and noticed slowing down near the end."),
+    (4, "episodic", "preference", "Asked for the Detective story again instead of plain drills."),
+    (16, "episodic", "moment", "Had a cold; kept to one short round a day."),
+    (33, "episodic", "milestone", "Morning-or-evening for attention came out too close to call."),
+    (45, "episodic", "milestone", "First week with a session every day."),
+    (60, "episodic", "milestone", "Evening won the hold-back experiment."),
+    (80, "episodic", "moment", "First week at the new job; skipped three days and came back."),
+    (100, "episodic", "milestone", "Finished the first full set of games."),
+    (115, "episodic", "moment", "First session: wanted to know what a Brain Twin is."),
+    (40, "facts", "fact", "Attention has held steady for weeks; growth is in memory and speed."),
+    (60, "facts", "fact", "Reaction and holding back are both a little better in the evening."),
+    (85, "facts", "fact", "Weekdays are busier since the new job; weekends have longer sessions."),
     (9, "facts", "fact", "Best time of day: evening, from their own experiment."),
     (20, "facts", "fact", "Tends to slow down after about a quarter of an hour of play."),
 ]
 
 
-async def seed_memory() -> None:
+async def seed_memory(user_id: UUID | None = None, memory: MemoryStore | None = None) -> None:
     settings = get_settings()
-    with get_engine().connect() as conn:
-        user_id = conn.execute(
-            select(t.users.c.user_id).where(t.users.c.display_name == DEMO_NAME)
-        ).scalar_one()
+    if user_id is None:
+        with get_engine().connect() as conn:
+            user_id = conn.execute(
+                select(t.users.c.user_id).where(t.users.c.display_name == DEMO_NAME)
+            ).scalar_one()
     Notes(settings.memory_dir).write_core(user_id, CORE)
-    memory = MemoryStore(AsyncQdrantClient(url=settings.qdrant_url, timeout=10), Embedder())
-    await memory.ensure_collections()
+    if memory is None:
+        memory = MemoryStore(AsyncQdrantClient(url=settings.qdrant_url, timeout=10), Embedder())
+        await memory.ensure_collections()
     now = datetime.now(UTC)
     for days, collection, kind, text in MOMENTS:
         await memory.write(

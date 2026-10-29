@@ -22,6 +22,7 @@ class Settings(BaseModel, frozen=True):
     memory_dir: str
     registry_dir: str
     whisper_model: str = "base.en"
+    demo: bool = True  # the "Demo" button: anyone who can reach the API may sign in as Alex
 
 
 def _optional(name: str) -> str | None:
@@ -50,4 +51,5 @@ def get_settings() -> Settings:
         memory_dir=os.environ.get("LODESTAR_MEMORY_DIR", "memory"),
         registry_dir=os.environ.get("LODESTAR_REGISTRY_DIR", "registry"),
         whisper_model=os.environ.get("LODESTAR_WHISPER_MODEL", "base.en"),
+        demo=os.environ.get("LODESTAR_DEMO", "1") != "0",
     )
