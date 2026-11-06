@@ -30,15 +30,26 @@ DAYS = 120
 SEED = 7
 # How fast each skill grows per practised round, before noise: some climb, some hold still.
 GROWTH = {
-    "working_memory": 0.025,
-    "processing_speed": 0.02,
-    "inhibition": 0.018,
-    "cognitive_flexibility": 0.014,
-    "reasoning": 0.012,
-    "short_term_memory": 0.01,
-    "selective_attention": 0.008,
-    "sustained_attention": 0.0,  # a plateau, so the Twin has something honest to say
+    "working_memory": 0.035,
+    "processing_speed": 0.03,
+    "inhibition": 0.03,
+    "cognitive_flexibility": 0.03,
+    "reasoning": 0.02,
+    "short_term_memory": 0.025,
+    "selective_attention": 0.015,
 }
+DEFAULT_GROWTH = 0.025
+NOISE = 0.1
+# Where each skill starts. Alex's reasoning is far ahead of their selective attention, so the
+# demo shows a split profile with a track for each side.
+START = {"reasoning": 1.9, "spatial_thinking": 0.9, "selective_attention": -2.4}
+DEFAULT_START = -0.4
+# A plateau: played every other session lately, and it barely moves.
+PLATEAU_DIM = "sustained_attention"
+PLATEAU_GAME = "night_guard"
+PLATEAU_DAYS = 46
+# Every other skill keeps moving lately, so only the plateau reads as stuck.
+LATE_GROWTH = 3.0
 # (label, first day relative to today, length in days): short nights and busy weeks cost a little.
 LIFE = [
     ("short nights", -98, 4),
@@ -120,7 +131,7 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
         )  # fmt: skip
 
     # Belief per skill: starts wide, sharpens with practice.
-    belief = {d: {"mu": 0.0, "sigma": 1.5, "n": 0} for d in tracked}
+    belief = {d: {"mu": START.get(d, DEFAULT_START), "sigma": 1.5, "n": 0} for d in tracked}
     session_ids: list[tuple[UUID, datetime]] = []
     for offset in range(DAYS):
         day = start + timedelta(days=offset)
@@ -156,6 +167,10 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
         # Later on, the wider set of games joins the first sixteen.
         pool = p1_games if offset < DAYS // 3 else p1_games + p2_games
         played = rng.sample(pool, 5 if recent else rng.choice([3, 3, 4, 4]))
+        stuck = offset >= DAYS - PLATEAU_DAYS
+        if stuck and len(session_ids) % 2 == 0:
+            guard = registry.game(PLATEAU_GAME)
+            played = [guard, *[g for g in played if g.id != PLATEAU_GAME]]
         # Evenings go a little better (the experiments find it), hard days a little worse.
         base = 0.72 + 0.12 * offset / DAYS + (0.05 if hour >= 18 else 0.0)
         base -= 0.08 if day in hard_days else 0.0
@@ -209,13 +224,20 @@ def seed_demo_user(conn: Connection, today: date | None = None) -> UUID:
             conn.execute(insert(t.events), events)
             score = correct_count / 10
             conn.execute(
-                t.rounds.update().where(t.rounds.c.round_id == round_id).values(score=score)
+                t.rounds.update()
+                .where(t.rounds.c.round_id == round_id)
+                .values(score=score, scored_at=started + timedelta(minutes=2))
             )
             for dim, loading in game.dims.items():
                 if dim not in belief:
                     continue
                 b = belief[dim]
-                b["mu"] += loading * (GROWTH.get(dim, 0.008) + rng.uniform(-0.06, 0.06))
+                if dim == PLATEAU_DIM and stuck:
+                    b["mu"] += loading * rng.uniform(-0.015, 0.015)
+                else:
+                    b["mu"] += loading * (
+                        GROWTH.get(dim, DEFAULT_GROWTH) + rng.uniform(-NOISE, NOISE)
+                    )
                 b["sigma"] = max(0.35, b["sigma"] * (0.93 if loading == 1.0 else 0.98))
                 b["n"] += 10
         for dim, b in belief.items():
