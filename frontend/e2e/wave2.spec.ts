@@ -27,7 +27,7 @@ test('wave 2 gate: a whole first week in one go', async ({ page }) => {
     await expect(suggestion).toBeVisible({ timeout: 60_000 })
     if (game === 0) {
       await expect(page.locator('.reason')).toContainText('Warm-up game 1')
-      await page.getByRole('button', { name: 'Why?' }).click()
+      await page.getByRole('button', { name: 'See every option' }).click()
       await expect(page.getByTestId('why-card')).toContainText('Why this choice')
       await page.getByTestId('why-card').getByRole('button', { name: 'Close' }).click()
     }
