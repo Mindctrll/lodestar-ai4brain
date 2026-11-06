@@ -119,6 +119,25 @@ def history_days(text: str) -> int:
     return 30
 
 
+_WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+_DAYS_AGO = re.compile(r"\b(\d{1,2}) days? ago\b")
+
+
+def named_day(text: str, today: date) -> date | None:
+    """The day a question is about: today, yesterday, 3 days ago, on Tuesday (the latest one)."""
+    lowered = text.lower()
+    if re.search(r"\byesterday\b", lowered):
+        return today - timedelta(days=1)
+    if m := _DAYS_AGO.search(lowered):
+        return today - timedelta(days=int(m.group(1)))
+    for index, name in enumerate(_WEEKDAYS):
+        if re.search(rf"\b{name}\b", lowered):
+            return today - timedelta(days=(today.weekday() - index - 1) % 7 + 1)
+    if re.search(r"\btoday\b", lowered):
+        return today
+    return None
+
+
 @dataclass(frozen=True)
 class LifeEvent:
     label: str

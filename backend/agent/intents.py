@@ -53,7 +53,28 @@ _CUSTOM = re.compile(
 )
 CUSTOM_GAME = "custom_blocks"
 
-ToolChoice = Literal["explain", "read_profile", "get_history", "search_memory"]
+ToolChoice = Literal[
+    "explain",
+    "read_profile",
+    "get_history",
+    "search_memory",
+    "session_history",
+    "forecast_range",
+    "contest",
+]
+
+# The user disagrees with a reading of them, or says something outside the game got in the way.
+_CONTEST = re.compile(
+    r"\b(i disagree|you'?re wrong|you are wrong|that'?s (wrong|not right|not fair|unfair|"
+    r"not accurate|inaccurate)|that is (wrong|not right|not fair|unfair|not accurate|inaccurate)|"
+    r"(wasn'?t|isn'?t) (a )?fair|(doesn'?t|does not|didn'?t) (reflect|seem right)|"
+    r"not (really )?my (real|true|usual|actual)|i was (distracted|interrupted)|"
+    r"(got|kept getting|keep getting) (distracted|interrupted)|"
+    r"(room|place|it) was (so |too |really )?(noisy|loud)|too (noisy|loud)|"
+    r"because of (the )?(noise|distractions?|interruptions?)|(lots|lot) of (noise|distractions?)|"
+    r"someone (came in|called|interrupted)|my phone (rang|kept)|phone was ringing)\b",
+    re.I,
+)
 
 # Patterns per kind. A turn whose patterns point to one kind is routed without asking a model.
 _KINDS: list[tuple[IntentKind, re.Pattern[str]]] = [
@@ -108,6 +129,25 @@ _CHAT_TOOLS: list[tuple[ToolChoice, re.Pattern[str]]] = [
         re.compile(
             r"\b(why|how did you (choose|pick|decide)|what made you|explain (your|that|this|the) "
             r"(choice|pick|decision))\b",
+            re.I,
+        ),
+    ),
+    (
+        "forecast_range",
+        re.compile(
+            r"\b(will|going to|gonna)\b.{0,40}\b(my|i)\b.{0,40}\b(score|be|reach|get)\b.{0,40}"
+            r"\b(next|in a|in one|in \d+|by|later|future)\b|\b(predict|forecast)\b|\bmy future\b|"
+            r"\b(exactly|precisely)\b.{0,30}\b(will|score)\b",
+            re.I,
+        ),
+    ),
+    (
+        "session_history",
+        re.compile(
+            r"\b(what did i (play|do)|what (have i|games? did i) play\w*|which games? (did|have) i|"
+            r"how did i do|my last (session|round|game)|last session|session history|"
+            r"play(ed)? (yesterday|last|this|on)|games? (yesterday|last week|this week)|"
+            r"show me my history)\b",
             re.I,
         ),
     ),
@@ -220,8 +260,10 @@ def classify(text: str, trigger: str, registry: Registry | None = None) -> Route
         dims = skills_in(pause.group("rest"), registry) if pause else []
         return Routed(Intent(kind="settings", text=stripped, avoid_dims=dims), sure=True)
     tool = chat_tool(stripped)
-    if tool == "explain":
+    if tool == "explain" and not _CONTEST.search(stripped):
         return Routed(Intent(kind="chat", text=stripped, tool=tool), sure=True)
+    if _CONTEST.search(stripped):
+        return Routed(Intent(kind="chat", text=stripped, tool="contest"), sure=True)
     if _CUSTOM.search(stripped) and game in (None, CUSTOM_GAME):
         # A game made to order: the request text becomes the recipe brief.
         return Routed(Intent(kind="play", text=stripped, game_id=CUSTOM_GAME), sure=True)
@@ -285,7 +327,9 @@ Pick the kind:
 - play: wants to play now, names a game or skill, or turns one down ("not memory today")
 - chat: anything else said to Lodestar. tool = explain (asks why Lodestar chose something),
   read_profile (asks about their skills now), get_history (asks how a skill changed over time),
-  search_memory (asks what Lodestar remembers about them), or null.
+  search_memory (asks what Lodestar remembers about them), session_history (asks which games they
+  played or how a past session went), forecast_range (asks what a skill or score will be in the
+  future), contest (disagrees with a result, or says a distraction spoiled it), or null.
 - twin_chat: asks their Twin about their own patterns (best time of day, what helps them)
 - experiment: wants to test something about themselves over several sessions
 - goal: wants to reach a level in a skill by a date
@@ -293,7 +337,7 @@ Pick the kind:
 - settings: wants to change the coach, difficulty mode, camera or microphone
 Reply with one JSON object and nothing else, shaped like:
 {"kind": "play", "tool": null, "game": null, "skill": null, "avoid_skill": null, "quick": false}
-(tool: "explain", "read_profile", "get_history", "search_memory" or null; game, skill and
+(tool: one of the tools above or null; game, skill and
 avoid_skill: the user's words or null; quick: true if they want something short)"""
 
 

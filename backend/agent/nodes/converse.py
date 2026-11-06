@@ -187,6 +187,13 @@ async def converse(state: LodestarState, runtime: Runtime[LodestarContext]) -> d
         call = _call("get_history", args_h, call_id)
     elif intent.tool == "search_memory":
         call = _call("search_memory", {"query": text or "about me"}, call_id)
+    elif intent.tool == "session_history":
+        args_s = {"days": history_days(text), "question": text}
+        call = _call("session_history", args_s, call_id)
+    elif intent.tool == "forecast_range":
+        call = _call("forecast_range", {"dim": intent.dim, "question": text}, call_id)
+    elif intent.tool == "contest":
+        call = _call("contest", {"said": text}, call_id)
     else:
         outcome = await _free_chat(ctx, state, text)
     return {"tool_call": call, "confirmed": None, "tool_outcome": outcome}

@@ -497,6 +497,46 @@ def build_server(get_runner: Callable[[], SessionRunner]) -> MCPServer:
         return _answer((await read(ctx, "explain", args, session_id))[0])
 
     @server.tool(annotations=ToolAnnotations(read_only_hint=True))
+    async def session_history(
+        ctx: Context,
+        days: Annotated[int, Field(ge=1, le=3650)] = 7,
+        question: str = "",
+        session_id: UUID | None = None,
+    ) -> Answer:
+        """Which games the user played and how each went, by day."""
+        args = tools.SessionHistoryArgs(days=days, question=question)
+        return _answer((await read(ctx, "session_history", args, session_id))[0])
+
+    @server.tool(annotations=ToolAnnotations(read_only_hint=True))
+    async def forecast_range(
+        ctx: Context,
+        dim: DimensionId | None = None,
+        question: str = "",
+        session_id: UUID | None = None,
+    ) -> Answer:
+        """A skill's likely future, always as a range and never one number."""
+        args = tools.ForecastRangeArgs(dim=dim, question=question)
+        return _answer((await read(ctx, "forecast_range", args, session_id))[0])
+
+    @server.tool(annotations=ToolAnnotations(read_only_hint=False))
+    async def contest(
+        ctx: Context,
+        said: Annotated[str, Field(min_length=1, max_length=2000)],
+        session_id: UUID | None = None,
+    ) -> Answer:
+        """Disagree with the latest round's reading. The estimate stays, its range widens, and
+        speaking up counts toward the AI Collaboration Score, once per round."""
+        user_id = await user_of(ctx)
+        sid, persona = await session(user_id, session_id)
+        lodestar = await get_runner().context_for(user_id, sid)
+        call = ToolCall(
+            call_id=uuid4(), name="contest", args=tools.ContestArgs(said=said).model_dump()
+        )
+        state = _graph_state(user_id, sid, persona)
+        outcome, _ = await tools.TOOLS["contest"].run(lodestar, state, call)
+        return _answer(outcome)
+
+    @server.tool(annotations=ToolAnnotations(read_only_hint=True))
     async def goals(ctx: Context) -> list[GoalView]:
         """The user's active goals and how far along each is, as the Goals page shows them."""
         user_id = await user_of(ctx)

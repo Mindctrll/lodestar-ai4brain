@@ -12,15 +12,19 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from pydantic import Field
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import Range
 
-from backend.agent import experiments
+from backend.acs.score import score as acs_score
+from backend.agent import experiments, why
 from backend.agent.context import LodestarContext
-from backend.agent.slots import LifeEvent
+from backend.agent.intents import game_in
+from backend.agent.slots import LifeEvent, named_day
 from backend.agent.state import LodestarState
+from backend.agent.telemetry import emit
 from backend.contracts.common import Contract, DimensionId, GameId, Persona, SuccessMode
 from backend.contracts.events import (
     ContextAdded,
@@ -33,7 +37,8 @@ from backend.contracts.facts import Fact, FactsPacket, MemoryItem
 from backend.contracts.session import Intent, ToolCall, ToolName, ToolOutcome
 from backend.contracts.views import DimensionView
 from backend.db import tables as t
-from backend.db.twin_store import append_event, read_twin
+from backend.db.twin_store import acs_counts, append_event, contest_round, read_twin
+from backend.ml.serve import forecast_bands, user_history
 from backend.scoring.goals import range_floor, rounds_to_target, suggest_target
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.levels import TARGET_P
@@ -64,6 +69,20 @@ class StartGameArgs(Contract):
 class ExplainArgs(Contract):
     decision_id: UUID | None = None
     question: str = ""
+
+
+class SessionHistoryArgs(Contract):
+    days: int = Field(default=7, ge=1, le=3650)
+    question: str = ""
+
+
+class ForecastRangeArgs(Contract):
+    dim: DimensionId | None = None
+    question: str = ""
+
+
+class ContestArgs(Contract):
+    said: str = Field(min_length=1, max_length=2000)
 
 
 class SetGoalArgs(Contract):
@@ -230,23 +249,56 @@ async def search_memory(
     return outcome, {}
 
 
+def _first_up(text: str) -> str:
+    return text[:1].upper() + text[1:]
+
+
+async def _user_today(conn: Any, user_id: UUID) -> tuple[str, date]:
+    tz = (
+        await conn.execute(select(t.users.c.timezone).where(t.users.c.user_id == user_id))
+    ).scalar_one_or_none() or "UTC"
+    today = (await conn.execute(select(func.date(func.timezone(tz, func.now()))))).scalar_one()
+    return tz, today
+
+
 async def explain(
     ctx: LodestarContext, state: LodestarState, call: ToolCall
 ) -> tuple[ToolOutcome, dict[str, Any]]:
-    """UW7: the latest pick (or a given one), with its top candidates and their scores."""
+    """UW7, the "why" audit: the latest pick (or the one on the day, or of the game, the user names)
+    with its top candidates, their scores and the data behind it."""
     args = ExplainArgs.model_validate(call.args)
+    registry = ctx.services.registry
     query = select(t.decisions).where(t.decisions.c.user_id == ctx.user_id)
+    day: date | None = None
     if args.decision_id is not None:
         query = query.where(t.decisions.c.decision_id == args.decision_id)
     else:
         query = query.where(t.decisions.c.node == "plan_next")
     async with ctx.services.engine.connect() as conn:
-        row = (await conn.execute(query.order_by(t.decisions.c.ts.desc()).limit(1))).one_or_none()
+        tz, today = await _user_today(conn, ctx.user_id)
+        if args.decision_id is None:
+            day = named_day(args.question, today)
+            game = game_in(args.question, registry)
+            if game is not None:
+                dim = registry.game(game).primary_dims[0]
+                query = query.where(t.decisions.c.chosen.in_([f"{dim}:{game}", dim]))
+        latest = query.order_by(t.decisions.c.ts.desc()).limit(1)
+        on_day = (
+            latest.where(func.date(func.timezone(tz, t.decisions.c.ts)) == day)
+            if day is not None
+            else latest
+        )
+        row = (await conn.execute(on_day)).one_or_none()
+        if row is None and day == today:  # "why this game today?" before today's first pick
+            row = (await conn.execute(latest)).one_or_none()
     if row is None:
-        reply = "I haven't picked a game for you yet. Say 'play' and I'll explain my pick."
+        reply = (
+            f"I don't have a pick saved for {why.day_words(day, today).removeprefix('on ')}."
+            if day is not None
+            else "I haven't picked a game for you yet. Say 'play' and I'll explain my pick."
+        )
         return ToolOutcome(name="explain", reply=reply), {}
     facts = [Fact(id="D1", text=row.reason, decision=True, ref=str(row.decision_id))]
-    registry = ctx.services.registry
     for i, cand in enumerate(row.candidates[:3]):
         option = cand["option"]
         known = any(d.id == option for d in registry.dimensions)
@@ -256,13 +308,33 @@ async def explain(
         )
         text = f"{label} scored {cand['score']:.2f}" + (f" ({parts})" if parts else "")
         facts.append(Fact(id=f"F{i + 1}", text=text, dim=option if label != option else None))
+    lines = why.decode(row.evidence or [])
+    cited: list[str] = []
+    for line in lines:
+        fact = Fact(id=f"F{len(facts)}", text=f"{line.source}: {line.text}")
+        facts.append(fact)
+        cited.append(f"{line.text} [{fact.id}].")
     instruction = (
         f'The user asked: "{args.question}". Explain the pick in at most 3 sentences: first the '
-        "reason [D1], then what made it score highest. Cite every fact you use."
+        "reason [D1], then the data behind it, naming the chart it comes from. Cite every fact "
+        "you use."
     )
     fallback = f"{row.reason.rstrip('.')} [D1]."
-    if len(facts) > 1:
+    if cited:
+        fallback += " " + " ".join(cited[:2])
+    elif len(facts) > 1:
         fallback += f" Top of my list: {facts[1].text} [F1]."
+    emit(
+        {
+            "kind": "card",
+            "card": "why",
+            "decision_id": str(row.decision_id),
+            "reason": row.reason,
+            "when": why.day_words(row.ts.astimezone(ZoneInfo(tz)).date(), today),
+            "lines": [line.model_dump() for line in lines],
+            "chosen": str(row.chosen).split(":")[0],
+        }
+    )
     outcome = ToolOutcome(
         name="explain",
         facts=FactsPacket(facts=facts),
@@ -270,6 +342,333 @@ async def explain(
         fallback=fallback,
     )
     return outcome, {}
+
+
+async def session_history(
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
+) -> tuple[ToolOutcome, dict[str, Any]]:
+    """What the user played and how it went, day by day, with the pick behind each session."""
+    args = SessionHistoryArgs.model_validate(call.args)
+    registry = ctx.services.registry
+    async with ctx.services.engine.connect() as conn:
+        tz, today = await _user_today(conn, ctx.user_id)
+        only = named_day(args.question, today)
+        since = today - timedelta(days=args.days if "last" in args.question.lower() else 7)
+        local = func.date(func.timezone(tz, t.rounds.c.started_at))
+        where = [
+            t.rounds.c.user_id == ctx.user_id,
+            t.rounds.c.status.in_(["completed", "eased"]),
+            local == only if only is not None else local >= since,
+        ]
+        game = game_in(args.question, registry)
+        if game is not None:
+            where.append(t.rounds.c.game_id == game)
+        rows = (
+            await conn.execute(
+                select(
+                    t.rounds.c.game_id,
+                    t.rounds.c.score,
+                    t.rounds.c.session_id,
+                    local.label("day"),
+                )
+                .where(*where)
+                .order_by(t.rounds.c.started_at.desc())
+                .limit(40)
+            )
+        ).all()
+        sessions = {r.session_id for r in rows}
+        picks: dict[Any, str] = {}
+        if sessions:
+            for d in await conn.execute(
+                select(t.decisions.c.session_id, t.decisions.c.decision_id)
+                .where(
+                    t.decisions.c.user_id == ctx.user_id,
+                    t.decisions.c.node == "plan_next",
+                    t.decisions.c.session_id.in_(sessions),
+                )
+                .order_by(t.decisions.c.ts)
+            ):
+                picks.setdefault(d.session_id, str(d.decision_id))
+    if not rows:
+        when = why.day_words(only, today) if only else f"in the last {args.days} days"
+        return ToolOutcome(
+            name="session_history", reply=f"I don't see any finished rounds {when}."
+        ), {}
+    by_day: dict[date, list[Any]] = {}
+    for r in rows:
+        by_day.setdefault(r.day, []).append(r)
+
+    def shown(r: Any) -> str:
+        name = registry.game(r.game_id).name
+        return (
+            f"{name} ({round(r.score * 100)}%)" if r.score is not None else f"{name} (not counted)"
+        )
+
+    scores = [float(r.score) for r in rows if r.score is not None]
+    facts: list[Fact] = []
+    if scores:
+        facts.append(
+            Fact(
+                id="F1",
+                text=f"{len(rows)} round{'s' if len(rows) != 1 else ''} on {len(by_day)} "
+                f"day{'s' if len(by_day) != 1 else ''}, "
+                f"{round(100 * sum(scores) / len(scores))}% right on average",
+            )
+        )
+    for day, group in list(by_day.items())[:4]:
+        facts.append(
+            Fact(
+                id=f"F{len(facts) + 1}",
+                text=f"{_first_up(why.day_words(day, today))} you played "
+                + ", ".join(shown(r) for r in group[:5]),
+            )
+        )
+    emit(
+        {
+            "kind": "card",
+            "card": "history",
+            "rows": [
+                {
+                    "day": why.day_words(r.day, today),
+                    "game": registry.game(r.game_id).name,
+                    "score": None if r.score is None else round(r.score * 100),
+                    "decision_id": picks.get(r.session_id),
+                }
+                for r in rows[:12]
+            ],
+        }
+    )
+    outcome = ToolOutcome(
+        name="session_history",
+        facts=FactsPacket(facts=facts),
+        instruction=(
+            f'The user asked: "{args.question}". Answer in at most 3 sentences from these facts. '
+            "Say which games they played and how it went."
+        ),
+        fallback=" ".join(f"{f.text} [{f.id}]." for f in facts[:3]),
+    )
+    return outcome, {}
+
+
+FORECAST_SKILLS = 3
+
+
+async def forecast_range(
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
+) -> tuple[ToolOutcome, dict[str, Any]]:
+    """A question about the future gets a range, how often such ranges hold, and no promises
+    (AGENTS.md rule 5). There is no overall score to predict: each skill has its own."""
+    args = ForecastRangeArgs.model_validate(call.args)
+    services = ctx.services
+    lowered = args.question.lower()
+    span = 7 if "week" in lowered else 30
+    async with services.engine.connect() as conn:
+        pace = (
+            await conn.execute(
+                select(func.count())
+                .select_from(t.sessions)
+                .where(
+                    t.sessions.c.user_id == ctx.user_id,
+                    t.sessions.c.started_at >= datetime.now(UTC) - timedelta(days=span),
+                )
+            )
+        ).scalar_one()
+        twin = await read_twin(conn, ctx.user_id, norms=services.norms)
+        metrics = (
+            await conn.execute(
+                select(t.ml_models.c.metrics).where(
+                    t.ml_models.c.name == "growth_forecast", t.ml_models.c.active.is_(True)
+                )
+            )
+        ).scalar_one_or_none()
+    sessions = min(max(int(pace), 1), 20)
+    bands = (
+        forecast_bands(
+            services.forecaster,
+            services.registry,
+            await user_history(services.engine, ctx.user_id),
+            sessions,
+        )
+        if services.forecaster is not None
+        else {}
+    )
+    views = {v.dim: v for v in twin.dims if v.n > 0}
+    if args.dim is not None:
+        wanted = [args.dim]
+    else:
+        wanted = sorted(views, key=lambda d: views[d].n, reverse=True)
+    chosen = [d for d in wanted if d in bands and d in views][:FORECAST_SKILLS]
+    honest = "I can't give you an exact number, and no honest coach could: a forecast is a range."
+    if not chosen:
+        reply = (
+            f"{honest} I don't have enough practice days yet to draw one for you. "
+            "Play on a few more days and I will."
+        )
+        return ToolOutcome(name="forecast_range", reply=reply), {}
+
+    def pct(dim: str, mu: float) -> int:
+        return round(services.norms.percentile(dim, Belief(mu, 1e-4)).value)
+
+    facts: list[Fact] = []
+    rows: list[dict[str, Any]] = []
+    for dim in chosen:
+        band, view, name = bands[dim], views[dim], dim_name(ctx, dim)
+        low, mid, high = pct(dim, band.low), pct(dim, band.median), pct(dim, band.high)
+        facts.append(
+            Fact(
+                id=f"F{len(facts) + 1}",
+                text=f"Forecast for {name} after {sessions} more sessions: {mid}% "
+                f"(80% range {low}-{high}%)",
+                dim=dim,
+            )
+        )
+        rows.append(
+            {
+                "name": name,
+                "now": round(view.percent),
+                "now_low": round(view.percent_low),
+                "now_high": round(view.percent_high),
+                "low": low,
+                "median": mid,
+                "high": high,
+            }
+        )
+    held: int | None = None
+    by_k = (metrics or {}).get("by_k", {})
+    nearest = min(by_k, key=lambda k: abs(int(k) - sessions), default=None)
+    if nearest is not None:
+        held = round(100 * float(by_k[nearest].get("coverage", 0)))
+        facts.append(
+            Fact(
+                id=f"F{len(facts) + 1}",
+                text=f"On players the model never saw, its 80% ranges held {held}% of the time",
+            )
+        )
+    first, name = rows[0], dim_name(ctx, chosen[0])
+    text = (
+        f"{honest} At your current pace, after {sessions} more sessions your {name.lower()} is "
+        f"likely between {first['low']}% and {first['high']}% [F1]."
+    )
+    if held is not None:
+        text += (
+            f" Ranges like this held {held}% of the time on players the model never saw "
+            f"[{facts[-1].id}]."
+        )
+    emit(
+        {
+            "kind": "card",
+            "card": "forecast",
+            "sessions": sessions,
+            "held": held,
+            "rows": rows,
+        }
+    )
+    outcome = ToolOutcome(
+        name="forecast_range",
+        facts=FactsPacket(facts=facts),
+        instruction=(
+            f'The user asked: "{args.question}". Do not give one number and make no promises: say '
+            "you can't be exact, then give the 80% range from the facts, using the word likely. "
+            "At most 3 sentences."
+        ),
+        fallback=text,
+    )
+    return outcome, {}
+
+
+async def contest(
+    ctx: LodestarContext, state: LodestarState, call: ToolCall
+) -> tuple[ToolOutcome, dict[str, Any]]:
+    """The user pushes back on a reading (a noisy room, an interruption). Lodestar doesn't defend
+    the profile: the estimate stays, its range gets wider, and speaking up counts toward the AI
+    Collaboration Score. The user's words are the request, and only the range changes, so this
+    doesn't ask for a yes first."""
+    args = ContestArgs.model_validate(call.args)
+    services = ctx.services
+    async with services.engine.connect() as conn:
+        before = acs_score(await acs_counts(conn, ctx.user_id))  # type: ignore[arg-type]
+    result = await contest_round(
+        services.engine, ctx.user_id, ctx.session_id, services.registry, args.said
+    )
+    if result is None:
+        reply = "There's no round to look at yet. Play one and tell me how it felt."
+        return ToolOutcome(name="contest", reply=reply), {}
+    if not result.counted:
+        reply = (
+            "Thanks for telling me. That round already didn't count toward your profile, so "
+            "nothing needs undoing."
+        )
+        return ToolOutcome(name="contest", reply=reply), {}
+    if not result.new:
+        reply = "I've already noted that about this round, and its range is still wider for it."
+        return ToolOutcome(name="contest", reply=reply), {}
+    async with services.engine.connect() as conn:
+        after = acs_score(await acs_counts(conn, ctx.user_id))  # type: ignore[arg-type]
+
+    def pct(dim: str, mu: float, sigma: float) -> tuple[int, int, int]:
+        p = services.norms.percentile(dim, Belief(mu, sigma))
+        return round(p.value), round(p.low), round(p.high)
+
+    facts: list[Fact] = []
+    dims: list[dict[str, Any]] = []
+    for change in result.changes:
+        name = dim_name(ctx, change.dim)
+        _, low, high = pct(change.dim, change.mu_before, change.sigma_before)
+        value2, low2, high2 = pct(change.dim, change.mu_after, change.sigma_after)
+        facts.append(
+            Fact(
+                id=f"F{len(facts) + 1}",
+                text=f"{name} estimate {value2}%: 80% range widened from {low}-{high}% to "
+                f"{low2}-{high2}%",
+                dim=change.dim,
+            )
+        )
+        dims.append(
+            {
+                "name": name,
+                "value": value2,
+                "before_low": low,
+                "before_high": high,
+                "after_low": low2,
+                "after_high": high2,
+            }
+        )
+    parts = ["Fair point: you know what was around you, and I don't."]
+    if facts:
+        first = dims[0]
+        parts.append(
+            f"I kept your {first['name'].lower()} estimate at {first['value']}% but widened its "
+            f"range from {first['before_low']}-{first['before_high']}% to "
+            f"{first['after_low']}-{first['after_high']}% [F1]."
+        )
+    if after.value is not None and after.low is not None and after.high is not None:
+        # One moment moves the score a little: one decimal, so "up from" stays true.
+        now_text = f"{after.value:.1f}"
+        was = "not enough data" if before.value is None else f"{before.value:.1f}"
+        fact = Fact(
+            id=f"F{len(facts) + 1}",
+            text=f"AI Collaboration Score {now_text} (80% range {round(after.low)}-"
+            f"{round(after.high)}), was {was}",
+        )
+        facts.append(fact)
+        parts.append(
+            f"Questioning me counts as good collaboration: your AI Collaboration Score is now "
+            f"{now_text}, likely {round(after.low)}-{round(after.high)}, up from {was} [{fact.id}]."
+        )
+    parts.append("A clean round will settle it. Say 'play' when you're ready.")
+    emit(
+        {
+            "kind": "card",
+            "card": "pushback",
+            "game": services.registry.game(result.game_id).name,
+            "dims": dims,
+            "acs_before": None if before.value is None else round(before.value, 1),
+            "acs_after": None if after.value is None else round(after.value, 1),
+            "acs_low": None if after.low is None else round(after.low),
+            "acs_high": None if after.high is None else round(after.high),
+        }
+    )
+    return ToolOutcome(name="contest", facts=FactsPacket(facts=facts), reply=" ".join(parts)), {}
 
 
 async def start_game(
@@ -698,6 +1097,18 @@ TOOLS: dict[str, ToolSpec] = {
         ),
         ToolSpec("start_game", StartGameArgs, False, start_game, "Start a round"),
         ToolSpec("explain", ExplainArgs, False, explain, "Why Lodestar chose something"),
+        ToolSpec(
+            "session_history", SessionHistoryArgs, False, session_history, "Past rounds, by day"
+        ),
+        ToolSpec(
+            "forecast_range",
+            ForecastRangeArgs,
+            False,
+            forecast_range,
+            "A skill's future, as a range",
+        ),
+        # Writes, but needs no yes: the user's own words are the request (see `contest`).
+        ToolSpec("contest", ContestArgs, False, contest, "Disagree with a round's reading"),
         ToolSpec("set_goal", SetGoalArgs, True, set_goal, "Set a range goal for a skill"),
         ToolSpec(
             "log_life_context", LogLifeContextArgs, True, log_life_context, "Note sleep, exams…"

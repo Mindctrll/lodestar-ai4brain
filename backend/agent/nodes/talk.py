@@ -31,6 +31,7 @@ from backend.db.twin_store import append_event
 from backend.llm.factory import NoModelAvailable
 from backend.memory.consolidate import consolidate_user
 from backend.scoring.kalman_elo import Belief
+from backend.scoring.quality import FLAGGED
 
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
 
@@ -54,6 +55,18 @@ async def reflect(state: LodestarState, runtime: Runtime[LodestarContext]) -> di
         n += 1
         facts.append(Fact(id=f"{prefix}{n}", text=text, dim=dim, decision=decision))
 
+    if summary is not None and summary.quality_verdict in FLAGGED:
+        game = registry.game(summary.game_id)
+        if summary.median_rt_ms is not None:
+            add(f"Your typical answer took {round(summary.median_rt_ms)} ms in {game.name}")
+        if summary.answered:
+            add(f"You got {summary.correct} of {summary.answered} right")
+        for change in summary.changes:
+            name = registry.dimension(change.dim).name
+            _, low, high = _pct(ctx, change.dim, change.mu_before, change.sigma_before)
+            _, low2, high2 = _pct(ctx, change.dim, change.mu_after, change.sigma_after)
+            add(f"{name} range widened from {low}-{high}% to {low2}-{high2}%", change.dim)
+        return {"facts": FactsPacket(facts=facts)}
     if summary is not None:
         game = registry.game(summary.game_id)
         if summary.answered:
@@ -180,9 +193,27 @@ async def draft_verified(
     return final, reply_model, degraded
 
 
+def rushed_reply(packet: FactsPacket) -> str:
+    """Asks what happened; a rushed round is not a drop in skill, and no model writes this."""
+    speed, right, *ranges = [*packet.facts, None, None]
+    said = ["That round didn't count toward your profile."]
+    if speed is not None and right is not None and "ms" in speed.text:
+        said.append(f"{speed.text} [{speed.id}]. {right.text} [{right.id}].")
+    if ranges and ranges[0] is not None:
+        said.append(
+            f"I kept your estimate and I'm less sure of it now: {ranges[0].text} [{ranges[0].id}]."
+        )
+    said.append("Were you distracted, or rushing?")
+    return " ".join(said)
+
+
 @traced("coach")
 async def coach(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     packet = state.facts or FactsPacket()
+    if state.last_round is not None and state.last_round.quality_verdict in FLAGGED:
+        text = rushed_reply(packet)
+        emit_reply(text, packet, "coach")
+        return {"messages": [AIMessage(text)]}
     final, reply_model, degraded = await draft_verified(
         runtime.context, packet, state.persona, "Write the short message shown after this game."
     )
@@ -277,15 +308,9 @@ def after_remember(state: LodestarState) -> str:
         return "consolidate"
     if state.game_waiting() and state.intent and state.intent.kind not in ("play", "proactive"):
         return "play"  # a question while a game was waiting: back to that game
-    if (
-        state.intent
-        and state.intent.kind in ("play", "proactive")
-        and state.verdict
-        in (
-            "continue",
-            "ease",
-        )
-    ):
+    # Only `monitor` sets these, right after a round: a question asked while that game was waiting
+    # doesn't stop the session.
+    if state.verdict in ("continue", "ease"):
         return "plan_next"
     return "__end__"
 
