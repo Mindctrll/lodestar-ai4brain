@@ -85,3 +85,18 @@ export function summarise(
     mood: null,
   }
 }
+
+const MASHING_MS = 200
+const MASHING_WINDOW = 6
+const MASHING_MIN = 3
+
+/** The latest answers came too fast to be real answers. That's rushing, not struggling, so the
+ * game doesn't offer to get easier; the round is flagged when it ends. */
+export function isMashing(records: TrialRecord[]): boolean {
+  const rts = records
+    .filter((r) => !r.practice && r.rt_ms !== null)
+    .slice(-MASHING_WINDOW)
+    .map((r) => r.rt_ms ?? 0)
+    .sort((a, b) => a - b)
+  return rts.length >= MASHING_MIN && (rts[Math.floor(rts.length / 2)] ?? 0) < MASHING_MS
+}

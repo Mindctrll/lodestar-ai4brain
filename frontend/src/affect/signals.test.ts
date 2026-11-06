@@ -1,5 +1,5 @@
 import type { TrialRecord } from '../taskhost/types'
-import { currentMissStreak, longestMissStreak, summarise } from './signals'
+import { currentMissStreak, isMashing, longestMissStreak, summarise } from './signals'
 
 const trial = (correct: boolean | null, rt = 500, practice = false, hint = 0): TrialRecord => ({
   trial_index: 0,
@@ -43,4 +43,11 @@ test('RT is compared with the same user’s earlier rounds of the same game', ()
   expect(first.rt_z).toBeNull() // no baseline yet
   const slower = summarise('test_game_b', [trial(true, 800), trial(true, 800)], 0, 'completed')
   expect(slower.rt_z).toBeGreaterThan(1.5)
+})
+
+test('fast misses are mashing, slow misses are a struggle', () => {
+  const at = (rt_ms: number) => Array.from({ length: 6 }, () => ({ ...trial(false), rt_ms }))
+  expect(isMashing(at(60))).toBe(true)
+  expect(isMashing(at(800))).toBe(false)
+  expect(isMashing(at(60).slice(0, 2))).toBe(false)
 })

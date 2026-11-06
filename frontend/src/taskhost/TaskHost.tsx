@@ -2,7 +2,7 @@ import { initJsPsych, type JsPsych } from 'jspsych'
 import { useEffect, useMemo, useRef } from 'react'
 
 import { sendCues } from '../affect/cues'
-import { currentMissStreak, STRUGGLE_STREAK, summarise } from '../affect/signals'
+import { currentMissStreak, isMashing, STRUGGLE_STREAK, summarise } from '../affect/signals'
 import { api } from '../api/client'
 import type { ExerciseSpec, RoundResult, TrialEvent } from '../api/types'
 import { mulberry32 } from '../lib/rng'
@@ -140,7 +140,7 @@ export function TaskHost({
         }
         steps += 1
         callbacks.current.onProgress?.(steps, total)
-        if (!offered && currentMissStreak(records) >= STRUGGLE_STREAK) {
+        if (!offered && currentMissStreak(records) >= STRUGGLE_STREAK && !isMashing(records)) {
           offered = true
           callbacks.current.onStruggle?.()
         }
