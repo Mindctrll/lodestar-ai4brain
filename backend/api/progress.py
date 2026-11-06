@@ -27,13 +27,12 @@ from backend.db.engine import libpq_url
 from backend.db.twin_store import NOTIFY_CHANNEL, user_for_token
 from backend.scoring.kalman_elo import Belief
 from backend.scoring.norms import Norms
+from backend.scoring.patterns import HOUR_BLOCKS
 
 router = APIRouter(tags=["twin"])
 
 WEEKS = 8
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-HOUR_BLOCKS = [(0, 6, "night"), (6, 10, "6-10"), (10, 14, "10-14"), (14, 18, "14-18"),
-               (18, 22, "18-22"), (22, 24, "22-24")]  # fmt: skip
 MIN_ANSWERS = 10
 
 

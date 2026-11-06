@@ -8,6 +8,12 @@ from typing import Literal
 
 # Faster than this is an anticipation, not a response (docs/plan/05).
 ANTICIPATION_MS = 150.0
+# Button mashing: answers this fast with many errors are flagged even in a short round.
+MASHING_MS = 200.0
+MASHING_MIN_TRIALS = 5
+MASHING_MAX_ACCURACY = 0.7
+# Verdicts that mean the answers can't be taken at face value.
+FLAGGED: frozenset[str] = frozenset({"random_clicking", "impossible_speed"})
 
 Verdict = Literal["ok", "random_clicking", "impossible_speed", "too_few"]
 
@@ -24,6 +30,7 @@ class QualityReport:
     verdict: Verdict
     anticipations: int
     accuracy: float | None
+    median_rt_ms: float | None = None
 
 
 def _binomial_tail(k: int, n: int, p: float) -> float:
@@ -39,27 +46,34 @@ def assess_quality(
     scored = [t for t in trials if t.correct is not None]
     rts = [t.rt_ms for t in trials if t.rt_ms is not None]
     anticipations = sum(1 for rt in rts if rt < ANTICIPATION_MS)
-    if len(scored) < min_trials:
-        return QualityReport(1.0, "too_few", anticipations, None)
-
-    hits = sum(1 for t in scored if t.correct)
-    accuracy = hits / len(scored)
     median_rt = statistics.median(rts) if rts else None
+    hits = sum(1 for t in scored if t.correct)
+    accuracy = hits / len(scored) if scored else None
+    if (
+        accuracy is not None
+        and median_rt is not None
+        and len(scored) >= MASHING_MIN_TRIALS
+        and median_rt < MASHING_MS
+        and accuracy < MASHING_MAX_ACCURACY
+    ):
+        return QualityReport(0.0, "random_clicking", anticipations, accuracy, median_rt)
+    if len(scored) < min_trials or accuracy is None:
+        return QualityReport(1.0, "too_few", anticipations, None, median_rt)
 
     # Impossibly fast and nearly always right: not a human playing honestly.
     if median_rt is not None and median_rt < 200.0 and accuracy >= 0.9:
-        return QualityReport(0.0, "impossible_speed", anticipations, accuracy)
+        return QualityReport(0.0, "impossible_speed", anticipations, accuracy, median_rt)
     # Many anticipations means responses aren't waiting for the stimulus.
     if rts and anticipations / len(rts) > 0.4:
-        return QualityReport(0.0, "impossible_speed", anticipations, accuracy)
+        return QualityReport(0.0, "impossible_speed", anticipations, accuracy, median_rt)
     # Accuracy indistinguishable from chance, answered quickly: random clicking.
     if (
         _binomial_tail(hits, len(scored), chance) > 0.2
         and median_rt is not None
         and median_rt < 450.0
     ):
-        return QualityReport(0.0, "random_clicking", anticipations, accuracy)
-    return QualityReport(1.0, "ok", anticipations, accuracy)
+        return QualityReport(0.0, "random_clicking", anticipations, accuracy, median_rt)
+    return QualityReport(1.0, "ok", anticipations, accuracy, median_rt)
 
 
 # Device lag (docs/plan/06, Quick Draw): a slow screen or input adds a constant delay to every

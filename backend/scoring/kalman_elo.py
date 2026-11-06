@@ -94,3 +94,8 @@ def update_item_difficulty(b: float, score: float, p: float, learner_sigma: floa
 def interval(belief: Belief, z: float = 1.2816) -> tuple[float, float]:
     """80% interval for theta by default (mu +/- 1.28 sigma)."""
     return belief.mu - z * belief.sigma, belief.mu + z * belief.sigma
+
+
+def widen(belief: Belief, factor: float) -> Belief:
+    """Less sure, same estimate: a round that didn't count, or one the user contested."""
+    return replace(belief, sigma=min(belief.sigma * factor, SIGMA_START))

@@ -2,7 +2,7 @@
 
 1. every sentence that makes a claim cites at least one known fact id,
 2. every number appears in a cited fact,
-3. no forecast is stated as a certainty (it must carry a range),
+3. no forecast is stated as a certainty (it must carry a range, and promises are out),
 4. the clinical-language filter passes,
 5. the persona's style rules pass.
 """
@@ -25,6 +25,14 @@ _FORECAST = re.compile(
     re.IGNORECASE,
 )
 _RANGE = re.compile(r"\d+\s*%?\s*(?:-|\u2013|to)\s*\d+|\bbetween\s+\d+|\blikely\b", re.IGNORECASE)
+
+# Promises about the future or a person (the "fortune teller" guardrail): fine only when denied.
+_ABSOLUTE = re.compile(
+    r"\b(definitely|guarantee\w*|for sure|for certain|certainly|without (a )?doubt|exactly|"
+    r"promise\w*|100%)",
+    re.IGNORECASE,
+)
+_DENIED = re.compile(r"\b(can'?t|cannot|won'?t|not|no one|nobody|never)\b", re.IGNORECASE)
 
 MAX_SENTENCES = 6
 MAX_CHARS = 700
@@ -93,6 +101,8 @@ def verify(
                 violations.append(f"number {number} not in cited facts: {sentence!r}")
         if _FORECAST.search(bare) and numbers and not _RANGE.search(bare):
             violations.append(f"forecast stated without its range: {sentence!r}")
+        if _ABSOLUTE.search(bare) and not _DENIED.search(bare):
+            violations.append(f"absolute claim: {sentence!r}")
     for banned in find_banned(text):
         violations.append(f"banned word '{banned.word}'")
     violations += style_violations(text, persona)
