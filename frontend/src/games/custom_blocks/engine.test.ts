@@ -42,6 +42,7 @@ const spec = (content: Recipe, seed: number): ExerciseSpec => ({
   content,
   content_item_id: null,
   theme: null,
+  track: null,
 })
 
 test('item pools match the sizes the server validates against', () => {

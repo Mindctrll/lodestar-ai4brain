@@ -9,6 +9,13 @@ from backend.contracts.affect import BehaviourSignals
 from backend.contracts.common import Contract, GameId, Level, PlayMode, Probability
 
 
+class WhyLine(Contract):
+    """One piece of evidence behind a pick, and the chart or card it comes from."""
+
+    source: str = Field(description="Progress curve, Time-of-day heatmap, Response time, ...")
+    text: str
+
+
 class ExerciseSpec(Contract):
     """Payload of the `play` interrupt."""
 
@@ -28,6 +35,10 @@ class ExerciseSpec(Contract):
     practice_trials: int = Field(ge=0)
     duration_s: int = Field(ge=0)
     reason: str = Field(min_length=1, description="Why this exercise, in plain words")
+    why: list[WhyLine] = Field(default_factory=list, description="The data behind the reason")
+    track: Literal["advanced", "foundation", "new_format"] | None = Field(
+        default=None, description="Set when a split profile or a plateau shaped this pick"
+    )
 
 
 RoundStatus = Literal["completed", "stopped", "eased"]

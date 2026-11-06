@@ -2,10 +2,13 @@
 
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import Field, field_validator
+from sqlalchemy import func, select
 
 from backend.acs.score import score
+from backend.agent.nodes.play import formats_by_dim
+from backend.agent.patterns import read_patterns
 from backend.api.deps import Conn, CurrentUser, Engine, RegistryDep
 from backend.contracts.common import ConsentSwitch, Contract, Persona
 from backend.contracts.trial import TrialEvent
@@ -14,9 +17,11 @@ from backend.contracts.views import (
     AcsView,
     CreatedUser,
     IngestResult,
+    PatternsView,
     TwinView,
 )
-from backend.db.consent_store import set_consent
+from backend.db import tables as t
+from backend.db.consent_store import granted_switches, set_consent
 from backend.db.twin_store import (
     ForeignRound,
     RoundNotFound,
@@ -95,10 +100,34 @@ async def post_events(batch: TrialBatch, user_id: CurrentUser, engine: Engine) -
         ) from exc
 
 
+@router.get("/me/patterns", response_model=PatternsView, tags=["twin"])
+async def get_patterns(
+    user_id: CurrentUser, conn: Conn, registry: RegistryDep, request: Request
+) -> PatternsView:
+    """Skills that have stopped moving, and a split profile's two tracks (docs/plan/07, 13)."""
+    consent = await granted_switches(conn, user_id, registry.consent)
+    return await read_patterns(
+        conn,
+        user_id,
+        registry,
+        request.app.state.services.norms,
+        formats_by_dim(registry, consent),
+    )
+
+
 @router.get("/acs", response_model=AcsView, tags=["twin"])
 async def get_acs(user_id: CurrentUser, conn: Conn) -> AcsView:
     result = score(await acs_counts(conn, user_id))  # type: ignore[arg-type]  # str keys from SQL
+    pushbacks = (
+        await conn.execute(
+            select(func.count(func.distinct(t.acs_observations.c.round_id))).where(
+                t.acs_observations.c.user_id == user_id,
+                t.acs_observations.c.source == "pushback",
+            )
+        )
+    ).scalar_one()
     return AcsView(
+        pushbacks=int(pushbacks),
         score=result.value,
         low=result.low,
         high=result.high,

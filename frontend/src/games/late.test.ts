@@ -35,6 +35,7 @@ const spec = (game_id: string): ExerciseSpec => ({
   content: null,
   content_item_id: null,
   theme: null,
+  track: null,
 })
 
 const LATE = [

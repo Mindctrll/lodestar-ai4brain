@@ -1,6 +1,7 @@
 """Read models for the dashboard (docs/plan/13). Every number comes with its range."""
 
 import datetime as dt
+from typing import Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, Field
@@ -62,6 +63,50 @@ class AcsView(Contract):
     low: float | None
     high: float | None
     components: list[AcsComponentView]
+    pushbacks: int = Field(default=0, description="Times the user contested a reading")
+
+
+class PlateauView(Contract):
+    """A skill that has stopped moving, and the change of format Lodestar suggests."""
+
+    dim: DimensionId
+    name: str
+    started: dt.date
+    days: int
+    answers: int
+    percent: float
+    low: float
+    high: float
+    game_id: str | None = Field(description="The format to try next")
+    game_name: str | None
+    same_skill: bool = Field(description="False when the skill has only one game")
+    strategy: str
+
+
+class SplitTrackView(Contract):
+    """One side of a split profile: its own difficulty, never an average of the two."""
+
+    dim: DimensionId
+    name: str
+    track: Literal["advanced", "foundation"]
+    percent: float
+    low: float
+    high: float
+    level: float = Field(description="The level this side plays at, 0 to 1")
+    target_p: float
+    game_id: str | None
+    game_name: str | None
+
+
+class SplitView(Contract):
+    gap: float = Field(description="Percentage points between the two sides")
+    advanced: SplitTrackView
+    foundation: SplitTrackView
+
+
+class PatternsView(Contract):
+    plateaus: list[PlateauView]
+    split: SplitView | None = None
 
 
 class CreatedUser(Contract):

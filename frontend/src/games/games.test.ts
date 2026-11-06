@@ -36,6 +36,7 @@ const spec = (game_id: string, knobs: Record<string, number>, practice = 0): Exe
   content: null,
   content_item_id: null,
   theme: null,
+  track: null,
 })
 
 test('Quick Draw calibrates the device lag with tap in time when measuring', () => {

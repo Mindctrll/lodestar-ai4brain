@@ -463,6 +463,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/patterns': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Patterns
+     * @description Skills that have stopped moving, and a split profile's two tracks (docs/plan/07, 13).
+     */
+    get: operations['get_patterns_me_patterns_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/persona': {
     parameters: {
       query?: never
@@ -762,6 +782,12 @@ export interface components {
       high: number | null
       /** Low */
       low: number | null
+      /**
+       * Pushbacks
+       * @description Times the user contested a reading
+       * @default 0
+       */
+      pushbacks: number
       /** Score */
       score: number | null
     }
@@ -1689,6 +1715,17 @@ export interface components {
        * @default null
        */
       theme: string | null
+      /**
+       * Track
+       * @description Set when a split profile or a plateau shaped this pick
+       * @default null
+       */
+      track: ('advanced' | 'foundation' | 'new_format') | null
+      /**
+       * Why
+       * @description The data behind the reason
+       */
+      why?: components['schemas']['WhyLine'][]
     }
     /** ExperimentCompleted */
     ExperimentCompleted: {
@@ -2372,7 +2409,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: 'mood' | 'was_i_right'
+      kind: 'mood' | 'was_i_right' | 'rushed'
       /** Round Id */
       round_id?: string | null
       /**
@@ -2749,6 +2786,12 @@ export interface components {
        */
       timezone?: string | null
     }
+    /** PatternsView */
+    PatternsView: {
+      /** Plateaus */
+      plateaus: components['schemas']['PlateauView'][]
+      split?: components['schemas']['SplitView'] | null
+    }
     /** PerRoundGain */
     PerRoundGain: {
       /** A */
@@ -2763,6 +2806,45 @@ export interface components {
        * @enum {string}
        */
       persona: 'willow' | 'spark' | 'sage' | 'buddy'
+    }
+    /**
+     * PlateauView
+     * @description A skill that has stopped moving, and the change of format Lodestar suggests.
+     */
+    PlateauView: {
+      /** Answers */
+      answers: number
+      /** Days */
+      days: number
+      /** Dim */
+      dim: string
+      /**
+       * Game Id
+       * @description The format to try next
+       */
+      game_id: string | null
+      /** Game Name */
+      game_name: string | null
+      /** High */
+      high: number
+      /** Low */
+      low: number
+      /** Name */
+      name: string
+      /** Percent */
+      percent: number
+      /**
+       * Same Skill
+       * @description False when the skill has only one game
+       */
+      same_skill: boolean
+      /**
+       * Started
+       * Format: date
+       */
+      started: string
+      /** Strategy */
+      strategy: string
     }
     /**
      * PracticeGain
@@ -3382,6 +3464,48 @@ export interface components {
        */
       weeks: string[]
     }
+    /**
+     * SplitTrackView
+     * @description One side of a split profile: its own difficulty, never an average of the two.
+     */
+    SplitTrackView: {
+      /** Dim */
+      dim: string
+      /** Game Id */
+      game_id: string | null
+      /** Game Name */
+      game_name: string | null
+      /** High */
+      high: number
+      /**
+       * Level
+       * @description The level this side plays at, 0 to 1
+       */
+      level: number
+      /** Low */
+      low: number
+      /** Name */
+      name: string
+      /** Percent */
+      percent: number
+      /** Target P */
+      target_p: number
+      /**
+       * Track
+       * @enum {string}
+       */
+      track: 'advanced' | 'foundation'
+    }
+    /** SplitView */
+    SplitView: {
+      advanced: components['schemas']['SplitTrackView']
+      foundation: components['schemas']['SplitTrackView']
+      /**
+       * Gap
+       * @description Percentage points between the two sides
+       */
+      gap: number
+    }
     /** StartSession */
     StartSession: {
       /**
@@ -3784,6 +3908,19 @@ export interface components {
       msg: string
       /** Error Type */
       type: string
+    }
+    /**
+     * WhyLine
+     * @description One piece of evidence behind a pick, and the chart or card it comes from.
+     */
+    WhyLine: {
+      /**
+       * Source
+       * @description Progress curve, Time-of-day heatmap, Response time, ...
+       */
+      source: string
+      /** Text */
+      text: string
     }
   }
   responses: never
@@ -4659,6 +4796,37 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_patterns_me_patterns_get: {
+    parameters: {
+      query?: never
+      header?: {
+        authorization?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PatternsView']
+        }
       }
       /** @description Validation Error */
       422: {

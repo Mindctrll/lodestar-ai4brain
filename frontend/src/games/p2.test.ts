@@ -40,6 +40,7 @@ const spec = (game_id: string, content: Record<string, unknown> | null = null): 
   content,
   content_item_id: null,
   theme: null,
+  track: null,
 })
 
 const P2 = [

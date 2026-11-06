@@ -12,11 +12,12 @@ from langgraph.runtime import Runtime
 from langgraph.types import interrupt
 from sqlalchemy import any_, func, literal, select
 
-from backend.agent import experiments
+from backend.agent import experiments, why
 from backend.agent.affect import estimate, recent_cues
 from backend.agent.context import LodestarContext
 from backend.agent.nodes.perceive import read_twin_snapshot
 from backend.agent.nodes.talk import emit_reply
+from backend.agent.patterns import last_played, new_format, read_patterns
 from backend.agent.state import LodestarState
 from backend.agent.telemetry import emit, record_decision, traced
 from backend.contracts.affect import AffectReading, AffectSource
@@ -31,6 +32,7 @@ from backend.registry.models import Game, Registry
 from backend.scoring.kalman_elo import SIGMA_START, Belief
 from backend.scoring.levels import TARGET_P, b_for_level, choose_mode, knobs_for, next_level
 from backend.scoring.loadings import recipe_loadings
+from backend.scoring.quality import FLAGGED
 
 # docs/plan/03, "How plan_next decides". bandit_gain is the best-next-game bandit
 # (backend/ml/bandit.py); it stays 0 until the person has played enough rounds.
@@ -40,6 +42,7 @@ WEIGHTS = {
     "goal_weight": 0.20,
     "plan_priority": 0.15,
     "bandit_gain": 0.10,
+    "plateau": 0.15,
     "fatigue_penalty": -0.25,
     "repetition": -0.15,
 }
@@ -63,6 +66,24 @@ def core_games_by_dim(
             and game.kind == "game"
             and game.origin != "custom"
             and game.available
+            and allowed(game, consent)
+        ):
+            for dim in game.primary_dims:
+                out.setdefault(dim, []).append(game)
+    return out
+
+
+def formats_by_dim(
+    registry: Registry, consent: frozenset[str] | None = None
+) -> dict[str, list[Game]]:
+    """Every game a stuck skill could move to, the later games included."""
+    out: dict[str, list[Game]] = {}
+    for game in registry.games:
+        if (
+            game.kind == "game"
+            and game.origin != "custom"
+            and game.available
+            and game.id != "callback"  # it needs a Market List from earlier in the session
             and allowed(game, consent)
         ):
             for dim in game.primary_dims:
@@ -280,6 +301,37 @@ async def _nudge(state: LodestarState, runtime: Runtime[LodestarContext], dim: s
     return decision
 
 
+def _break_plateau(
+    dim: str,
+    plateaus: dict[str, Any],
+    registry: Registry,
+    by_dim: dict[str, list[Game]],
+    played_at: dict[str, datetime],
+    seed: int,
+) -> tuple[str, Game, str]:
+    """Same skill, new format (or its family's, when the skill has one game), and a new approach."""
+    p = plateaus[dim]
+    game, same = new_format(dim, registry, by_dim, played_at)
+    game = game or _pick(by_dim[dim], None, seed)
+    how = "a different format" if same else "a different format from the same family"
+    reason = (
+        f"Your {p.name.lower()} has stayed near {round(p.percent)}% (likely {round(p.low)}-"
+        f"{round(p.high)}%) for {p.days} days, so more of the same won't help. Trying {how}: "
+        f"{game.name}. New approach: {p.strategy}"
+    )
+    return game.primary_dims[0], game, reason
+
+
+def _split_pick(patterns: Any, pool: dict[str, list[Game]], played: int) -> Any:
+    """In a split profile rounds take turns: foundation first, then advanced. None when there is
+    no split, or today's choices leave out one side."""
+    split = patterns.split
+    if split is None or split.foundation.dim not in pool or split.advanced.dim not in pool:
+        return None
+    side = split.foundation if played % 2 == 0 else split.advanced
+    return side if side.game_id else None
+
+
 @traced("plan_next")
 async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> dict[str, Any]:
     """Choose the next skill and game with a utility whose parts are all shown (docs/plan/03).
@@ -287,6 +339,7 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
     ctx = runtime.context
     registry = ctx.services.registry
     by_dim = core_games_by_dim(registry, ctx.consent)
+    formats = formats_by_dim(registry, ctx.consent)
     now = datetime.now(UTC)
     last_game = state.rounds[-1].game_id if state.rounds else None
     last_dims = set(registry.game(last_game).primary_dims) if last_game else set()
@@ -311,6 +364,12 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
     if not pool:
         pool = by_dim
 
+    async with ctx.services.engine.connect() as conn:
+        patterns = await read_patterns(
+            conn, ctx.user_id, registry, ctx.services.norms, formats, now
+        )
+        played_at = await last_played(conn, ctx.user_id)
+    plateaus = {p.dim: p for p in patterns.plateaus}
     samples = await _bandit_samples(ctx, state, pool)
     bandit_by_dim = bandit.skill_gains(
         samples, {d: [g.id for g in games] for d, games in pool.items()}
@@ -325,6 +384,7 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
             "goal_weight": 1.0 if dim in state.goal_dims else 0.0,
             "plan_priority": 0.0,  # personal experiments, WP3.2
             "bandit_gain": bandit_by_dim.get(dim, 0.0),
+            "plateau": 1.0 if dim in plateaus else 0.0,
             "fatigue_penalty": fatigue * (1.0 if max(g.duration_s for g in games) > 90 else 0.5),
             "repetition": 1.0 if dim in last_dims else 0.0,
         }
@@ -358,8 +418,10 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
     )
     if no_list:
         requested = None
-    wanted_dim = intent.dim if intent and intent.dim in by_dim else None
+    wanted_dim = intent.dim if intent and (intent.dim in by_dim or intent.dim in plateaus) else None
     force_assess = False
+    track: str | None = None
+    last = state.last_round
     if switched_off and intent and intent.game_id:
         dim = candidates[0].option
         game = _pick(pool[dim], last_game, seed)
@@ -383,6 +445,9 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
         dim, game = themed.primary_dims[0], themed
         kind = registry.dimension(intent.dim).group if intent.dim else "game"
         reason = f"{intent.theme.capitalize()} {kind}, coming up: {game.name}."
+    elif wanted_dim is not None and wanted_dim in plateaus:
+        dim, game, reason = _break_plateau(wanted_dim, plateaus, registry, formats, played_at, seed)
+        track = "new_format"
     elif wanted_dim is not None:
         dim = wanted_dim
         game = _pick(pool.get(dim, by_dim[dim]), last_game, seed)
@@ -432,6 +497,29 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
         reason = (
             "Earlier you learned a market list. Let's see which words you still remember: Callback."
         )
+    elif last is not None and last.quality_verdict in FLAGGED:
+        # The last round said nothing about the person, so ask again.
+        game = registry.game(last.game_id)
+        dim = game.primary_dims[0]
+        reason = f"That last round didn't count, so let's take {game.name} again at your own pace."
+    elif (split_pick := _split_pick(patterns, pool, len(state.rounds))) is not None:
+        side = split_pick
+        dim, game = side.dim, registry.game(str(side.game_id))
+        track = side.track
+        assert patterns.split is not None
+        strong, weak = patterns.split.advanced, patterns.split.foundation
+        level = f"level {max(1, round(side.level * 10))} of 10"
+        reason = (
+            f"Your {strong.name.lower()} ({round(strong.percent)}%, likely {round(strong.low)}-"
+            f"{round(strong.high)}%) and {weak.name.lower()} ({round(weak.percent)}%, likely "
+            f"{round(weak.low)}-{round(weak.high)}%) are far apart, so I never use one difficulty "
+            f"for both. This is your {side.track} track: {game.name} at {level}."
+        )
+    elif candidates[0].option in plateaus:
+        dim, game, reason = _break_plateau(
+            candidates[0].option, plateaus, registry, formats, played_at, seed
+        )
+        track = "new_format"
     else:
         dim = candidates[0].option
         easing = not state.rounds and state.engagement is not None and state.engagement.high_risk
@@ -480,7 +568,17 @@ async def plan_next(state: LodestarState, runtime: Runtime[LodestarContext]) -> 
     belief = _belief(state, dim)
     eased = state.verdict == "ease" or any(e.startswith("engagement_risk:") for e in evidence)
     success_mode = "chill" if eased else state.success_mode
+    if track == "advanced":
+        success_mode = "push"
+    elif track == "foundation":
+        success_mode = "chill"
     mode = "assess" if force_assess else choose_mode(belief, success_mode)
+    if track == "new_format" and dim not in game.primary_dims:
+        belief = _belief(state, game.primary_dims[0])
+    if track:
+        evidence.append(f"track:{track}")
+    with contextlib.suppress(Exception):  # a missing chart line never stops a game
+        evidence += [why.encode(line) for line in await why.why_lines(ctx, dim, now)]
     if not state.rounds and state.fatigue_point is not None:
         budget = update.get("budget", state.budget)
         update["budget"] = budget.model_copy(
@@ -582,6 +680,8 @@ async def prepare_exercise(
             loadings=loadings,
         )
     words = await _market_list_words(ctx) if game.id == "callback" else []
+    picked = next((d for d in reversed(state.decisions) if d.node == "plan_next"), None)
+    evidence = picked.evidence if picked else []
     spec = ExerciseSpec(
         round_id=round_id,
         game_id=game.id,
@@ -596,7 +696,9 @@ async def prepare_exercise(
         seed=seed,
         practice_trials=game.practice_trials if played_before == 0 else 0,
         duration_s=game.duration_s,
-        reason=state.decisions[-1].reason if state.decisions else "Next round.",
+        reason=picked.reason if picked else "Next round.",
+        why=why.decode(picked.evidence) if picked else [],
+        track=next((e.split(":")[1] for e in evidence if e.startswith("track:")), None),
     )
     return {"exercise": spec, "degraded": degraded} if degraded else {"exercise": spec}
 
@@ -634,10 +736,45 @@ async def score_update(state: LodestarState, runtime: Runtime[LodestarContext]) 
         observations=scored.outcome.observations if scored else 0,
         changes=scored.changes if scored else [],
         quality_verdict=scored.outcome.quality.verdict if scored else "ok",
+        median_rt_ms=scored.outcome.quality.median_rt_ms if scored else None,
     )
+    if summary.quality_verdict in FLAGGED:
+        _emit_rushed(ctx, summary)
     await _experiment_round_done(runtime)
     story = await _story_round_done(state, ctx, result)
     return {"last_round": summary, "twin": await read_twin_snapshot(ctx), **story}
+
+
+def _emit_rushed(ctx: LodestarContext, summary: RoundSummary) -> None:
+    """The red screen: this round didn't count, and what that did to the range."""
+    norms, registry = ctx.services.norms, ctx.services.registry
+    dims = []
+    for change in summary.changes:
+        a = norms.percentile(change.dim, Belief(change.mu_before, change.sigma_before))
+        b = norms.percentile(change.dim, Belief(change.mu_after, change.sigma_after))
+        dims.append(
+            {
+                "name": registry.dimension(change.dim).name,
+                "value": round(b.value),
+                "before_low": round(a.low),
+                "before_high": round(a.high),
+                "after_low": round(b.low),
+                "after_high": round(b.high),
+            }
+        )
+    emit(
+        {
+            "kind": "card",
+            "card": "rushed",
+            "round_id": summary.round_id,
+            "game": registry.game(summary.game_id).name,
+            "verdict": summary.quality_verdict,
+            "median_rt_ms": None if summary.median_rt_ms is None else round(summary.median_rt_ms),
+            "correct": summary.correct,
+            "answered": summary.answered,
+            "dims": dims,
+        }
+    )
 
 
 async def _story_round_done(
@@ -813,7 +950,11 @@ async def monitor(state: LodestarState, runtime: Runtime[LodestarContext]) -> di
     minutes = (now - state.started_at).total_seconds() / 60 if state.started_at else 0.0
     budget = state.budget
     verdict: Verdict
-    if frustration > FRUSTRATION_P or stopped >= 2:
+    rushed = state.last_round is not None and state.last_round.quality_verdict in FLAGGED
+    if rushed and len(rounds) < budget.max_rounds:
+        # Mashing isn't struggling: nothing to ease, the round just needs a fair retake.
+        verdict, reason = "continue", "Those answers came too fast to count. Let's retake it."
+    elif frustration > FRUSTRATION_P or stopped >= 2:
         if len(rounds) < budget.max_rounds and stopped < 2:
             verdict, reason = "ease", "That one looked tough. Let's do something lighter."
         else:

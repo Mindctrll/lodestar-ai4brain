@@ -56,6 +56,9 @@ ToolName = Literal[
     "explain",
     "update_settings",
     "start_experiment",
+    "session_history",
+    "forecast_range",
+    "contest",
 ]
 
 
@@ -119,3 +122,4 @@ class RoundSummary(Contract):
     observations: int
     changes: list[DimensionChange] = Field(default_factory=list)
     quality_verdict: str = "ok"
+    median_rt_ms: float | None = None

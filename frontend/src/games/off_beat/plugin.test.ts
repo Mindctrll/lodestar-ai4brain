@@ -55,6 +55,7 @@ test('Off Beat is registered and builds its practice steps first', () => {
     content: null,
     content_item_id: null,
     theme: null,
+    track: null,
   }
   const timeline = game.timeline({ spec, rng: mulberry32(7), e2e: false })
   expect(timeline).toHaveLength(19)

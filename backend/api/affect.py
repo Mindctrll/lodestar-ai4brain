@@ -23,12 +23,16 @@ from backend.db.twin_store import append_event
 
 router = APIRouter(prefix="/affect", tags=["affect"])
 
-ALLOWED = {"mood": {"good", "ok", "tough"}, "was_i_right": {"yes", "no"}}
+ALLOWED = {
+    "mood": {"good", "ok", "tough"},
+    "was_i_right": {"yes", "no"},
+    "rushed": {"rushing", "distracted", "testing"},  # the answer to the red screen
+}
 
 
 class LabelInput(Contract):
     session_id: UUID
-    kind: Literal["mood", "was_i_right"]
+    kind: Literal["mood", "was_i_right", "rushed"]
     value: str
     round_id: UUID | None = None
     decision_id: UUID | None = None
