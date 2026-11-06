@@ -95,7 +95,7 @@ class MemoryWrittenPayload(Contract):
 class AffectLabelPayload(Contract):
     """A label from the user: a one-tap mood after a round, or "Was I right?" about a guess."""
 
-    kind: Literal["mood", "was_i_right"]
+    kind: Literal["mood", "was_i_right", "rushed"]
     value: str = Field(max_length=20)
     round_id: UUID | None = None
     decision_id: UUID | None = None
@@ -142,6 +142,15 @@ class LlmSelectionPayload(Contract):
     mode: LlmMode
     provider: ProviderId
     model: str
+
+
+class ContestPayload(Contract):
+    """The user said a round wasn't a fair reading of them, and why."""
+
+    round_id: UUID
+    game_id: str
+    dims: list[DimensionId]
+    said: str = Field(max_length=300)
 
 
 class StoryChapterPayload(Contract):
@@ -269,6 +278,11 @@ class StoryChapterCompleted(_Envelope):
     payload: StoryChapterPayload
 
 
+class AssessmentContested(_Envelope):
+    type: Literal["assessment.contested"] = "assessment.contested"
+    payload: ContestPayload
+
+
 Event = Annotated[
     SessionStarted
     | TrialRecorded
@@ -290,7 +304,8 @@ Event = Annotated[
     | DataExported
     | TwinSnapshotTaken
     | LlmSelectionChanged
-    | StoryChapterCompleted,
+    | StoryChapterCompleted
+    | AssessmentContested,
     Field(discriminator="type"),
 ]
 

@@ -852,7 +852,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: 'mood' | 'was_i_right'
+      kind: 'mood' | 'was_i_right' | 'rushed'
       /**
        * Round Id
        * @default null
@@ -909,6 +909,41 @@ export interface components {
       frustration_p: number
       /** Sources */
       sources: ('behaviour' | 'camera' | 'voice')[]
+    }
+    /** AssessmentContested */
+    AssessmentContested: {
+      /**
+       * Event Id
+       * @description Assigned by Postgres (uuidv7)
+       * @default null
+       */
+      event_id: string | null
+      payload: components['schemas']['ContestPayload']
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Session Id
+       * @default null
+       */
+      session_id: string | null
+      /**
+       * Ts
+       * Format: date-time
+       */
+      ts: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'assessment.contested'
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string
     }
     /** Battery */
     Battery: {
@@ -1167,6 +1202,23 @@ export interface components {
       switches: components['schemas']['SwitchView'][]
       /** Version */
       version: string
+    }
+    /**
+     * ContestPayload
+     * @description The user said a round wasn't a fair reading of them, and why.
+     */
+    ContestPayload: {
+      /** Dims */
+      dims: string[]
+      /** Game Id */
+      game_id: string
+      /**
+       * Round Id
+       * Format: uuid
+       */
+      round_id: string
+      /** Said */
+      said: string
     }
     /** ContextAdded */
     ContextAdded: {
@@ -1571,6 +1623,7 @@ export interface components {
       | components['schemas']['TwinSnapshotTaken']
       | components['schemas']['LlmSelectionChanged']
       | components['schemas']['StoryChapterCompleted']
+      | components['schemas']['AssessmentContested']
     /**
      * ExerciseSpec
      * @description Payload of the `play` interrupt.

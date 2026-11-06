@@ -9,6 +9,9 @@ I  iteration: a game played again after a failed round; a success is a better sc
 R  responsible use: a suggested break; a success is not starting a new session within 10 minutes.
 C  clarification: every Guide the Robot and Teach Me item; a success is asking Lodestar first when
    the request is ambiguous and not asking when it is clear.
+
+Pushing back on Lodestar's reading of a round (say, a noisy room) is a success for both V and I:
+the person checked the AI's claim and gave it something to correct.
 """
 
 from collections.abc import Sequence
@@ -55,3 +58,8 @@ def iteration(game_id: str, previous_score: float | None, score: float | None) -
     if previous_score is None or score is None or previous_score >= FAILED_ROUND:
         return []
     return [Observation("I", score > previous_score, game_id)]
+
+
+def pushback(game_id: str) -> list[Observation]:
+    """The user disagreed with a reading and said why."""
+    return [Observation("V", True, "pushback"), Observation("I", True, "pushback")]

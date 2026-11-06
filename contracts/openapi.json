@@ -372,7 +372,8 @@
           "kind": {
             "enum": [
               "mood",
-              "was_i_right"
+              "was_i_right",
+              "rushed"
             ],
             "title": "Kind",
             "type": "string"
@@ -508,6 +509,69 @@
           "behaviour_weight"
         ],
         "title": "AffectReading",
+        "type": "object"
+      },
+      "AssessmentContested": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Assigned by Postgres (uuidv7)",
+            "title": "Event Id"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ContestPayload"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "const": "assessment.contested",
+            "default": "assessment.contested",
+            "title": "Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "ts",
+          "payload"
+        ],
+        "title": "AssessmentContested",
         "type": "object"
       },
       "Battery": {
@@ -1039,6 +1103,42 @@
           "switches"
         ],
         "title": "ConsentView",
+        "type": "object"
+      },
+      "ContestPayload": {
+        "additionalProperties": false,
+        "description": "The user said a round wasn't a fair reading of them, and why.",
+        "properties": {
+          "dims": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "title": "Dims",
+            "type": "array"
+          },
+          "game_id": {
+            "title": "Game Id",
+            "type": "string"
+          },
+          "round_id": {
+            "format": "uuid",
+            "title": "Round Id",
+            "type": "string"
+          },
+          "said": {
+            "maxLength": 300,
+            "title": "Said",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round_id",
+          "game_id",
+          "dims",
+          "said"
+        ],
+        "title": "ContestPayload",
         "type": "object"
       },
       "ContextAdded": {
@@ -1862,6 +1962,7 @@
             "affect.biometric.cue": "#/components/schemas/AffectBiometricCue",
             "affect.estimated": "#/components/schemas/AffectEstimated",
             "affect.labelled": "#/components/schemas/AffectLabelled",
+            "assessment.contested": "#/components/schemas/AssessmentContested",
             "consent.changed": "#/components/schemas/ConsentChanged",
             "context.added": "#/components/schemas/ContextAdded",
             "data.exported": "#/components/schemas/DataExported",
@@ -1945,6 +2046,9 @@
           },
           {
             "$ref": "#/components/schemas/StoryChapterCompleted"
+          },
+          {
+            "$ref": "#/components/schemas/AssessmentContested"
           }
         ]
       },

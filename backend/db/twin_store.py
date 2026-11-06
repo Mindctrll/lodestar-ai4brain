@@ -17,10 +17,12 @@ from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
-from backend.acs.events import Observation, from_trials, iteration
+from backend.acs.events import Observation, from_trials, iteration, pushback
 from backend.contracts.acs import AcsEvent
 from backend.contracts.events import (
     AcsObserved,
+    AssessmentContested,
+    ContestPayload,
     DimensionChange,
     HistoryRow,
     RoundCompleted,
@@ -41,15 +43,18 @@ from backend.contracts.views import (
 )
 from backend.db import tables as t
 from backend.registry.models import Registry
-from backend.scoring.kalman_elo import Belief, drift, update_item_difficulty
+from backend.scoring.kalman_elo import Belief, drift, update_item_difficulty, widen
 from backend.scoring.loadings import loading_matrix
 from backend.scoring.norms import Norms
 from backend.scoring.priors import cold_start
-from backend.scoring.quality import TAP_IN_TIME, device_lag
+from backend.scoring.quality import FLAGGED, TAP_IN_TIME, device_lag
 from backend.scoring.rounds import RoundOutcome, score_round
 
 NOTIFY_CHANNEL = "twin_updated"
 LAG_TAPS = 16  # the latest calibration's taps
+# Rushed or contested answers: the estimate stays put and its range gets wider.
+FLAGGED_WIDEN = 1.35
+CONTEST_WIDEN = 1.35
 
 
 class RoundNotFound(LookupError):
@@ -359,6 +364,23 @@ async def score_round_tx(
             for d in loads
             if outcome.observations > 0
         ]
+        flagged = outcome.quality.verdict in FLAGGED
+        if flagged:
+            # Rushed answers say nothing about ability, so the estimate doesn't move, but Lodestar
+            # is now less sure about it (a skill with no estimate yet has nothing to widen).
+            changes = [
+                DimensionChange(
+                    dim=d,
+                    mu_before=before[d].mu,
+                    mu_after=before[d].mu,
+                    sigma_before=before[d].sigma,
+                    sigma_after=widen(before[d], FLAGGED_WIDEN).sigma,
+                    n_after=before[d].n,
+                    last_practised_after=before[d].last_practised,
+                )
+                for d in loads
+                if d in stored and stored[d].n > 0
+            ]
 
         await append_event(
             conn,
@@ -393,7 +415,7 @@ async def score_round_tx(
             .where(t.rounds.c.round_id == result.round_id)
             .values(
                 status=result.status,
-                score=outcome.mean_score,
+                score=None if flagged else outcome.mean_score,
                 ended_at=result.ended_at,
                 scored_at=now,
             )
@@ -425,6 +447,112 @@ async def score_round_tx(
             text("SELECT pg_notify(:c, :u)"), {"c": NOTIFY_CHANNEL, "u": str(user_id)}
         )
     return ScoredRound(result.round_id, outcome, changes, twin_event_id)
+
+
+@dataclass(frozen=True)
+class ContestResult:
+    round_id: UUID
+    game_id: str
+    changes: list[DimensionChange]
+    new: bool  # False when this round was already contested, or never counted
+    counted: bool
+
+
+async def contest_round(
+    engine: AsyncEngine,
+    user_id: UUID,
+    session_id: UUID | None,
+    registry: Registry,
+    said: str,
+    *,
+    now: datetime | None = None,
+) -> ContestResult | None:
+    """The user says their latest round wasn't a fair reading of them. In one transaction: the
+    range of each skill it touched gets wider (the estimate stays), the event log says why, and
+    speaking up counts toward the AI Collaboration Score, once per round. None without a round."""
+    now = now or datetime.now(UTC)
+    async with engine.begin() as conn:
+        await lock_user(conn, user_id)
+        await user_scope(conn, user_id)
+        row = (
+            await conn.execute(
+                select(t.rounds)
+                .where(t.rounds.c.user_id == user_id, t.rounds.c.status == "completed")
+                .order_by(t.rounds.c.started_at.desc())
+                .limit(1)
+            )
+        ).one_or_none()
+        if row is None:
+            return None
+        if row.score is None:  # rushed: it never counted, so there is nothing to soften
+            return ContestResult(row.round_id, row.game_id, [], False, False)
+        seen = (
+            await conn.execute(
+                select(func.count())
+                .select_from(t.events)
+                .where(
+                    t.events.c.user_id == user_id,
+                    t.events.c.type == "assessment.contested",
+                    t.events.c.payload["round_id"].as_string() == str(row.round_id),
+                )
+            )
+        ).scalar_one()
+        if seen:
+            return ContestResult(row.round_id, row.game_id, [], False, True)
+        loads = dict(row.loadings or loading_matrix(registry).get(row.game_id, {}))
+        changes = []
+        for r in await conn.execute(
+            select(t.dimension_state).where(
+                t.dimension_state.c.user_id == user_id, t.dimension_state.c.dim.in_(loads)
+            )
+        ):
+            belief = drift(Belief(r.mu, r.sigma, r.n, r.last_practised), now)
+            changes.append(
+                DimensionChange(
+                    dim=r.dim,
+                    mu_before=belief.mu,
+                    mu_after=belief.mu,
+                    sigma_before=belief.sigma,
+                    sigma_after=widen(belief, CONTEST_WIDEN).sigma,
+                    n_after=belief.n,
+                    last_practised_after=belief.last_practised,
+                )
+            )
+        twin_event = await append_event(
+            conn,
+            TwinUpdated(
+                user_id=user_id,
+                session_id=session_id,
+                ts=now,
+                payload=TwinUpdatedPayload(
+                    round_id=row.round_id,
+                    changes=changes,
+                    inputs=ScoringInputs(
+                        context_weight=1.0, trust=1.0, quality_verdict="contested"
+                    ),
+                ),
+            ),
+        )
+        await _apply_changes(conn, user_id, changes, twin_event, now.date())
+        await append_event(
+            conn,
+            AssessmentContested(
+                user_id=user_id,
+                session_id=session_id,
+                ts=now,
+                payload=ContestPayload(
+                    round_id=row.round_id,
+                    game_id=row.game_id,
+                    dims=[c.dim for c in changes],
+                    said=said[:300],
+                ),
+            ),
+        )
+        await record_acs(conn, user_id, session_id, pushback(row.game_id), row.round_id, now)
+        await conn.execute(
+            text("SELECT pg_notify(:c, :u)"), {"c": NOTIFY_CHANNEL, "u": str(user_id)}
+        )
+    return ContestResult(row.round_id, row.game_id, changes, True, True)
 
 
 async def record_acs(

@@ -22,7 +22,7 @@ ACS = 100 x sum_k w_k * s_k
 | V | Critical verification | 0.30 | Every Spot the AI's Mistake item (flag a wrong solution or accept a right one; balanced, so blanket distrust doesn't win). | `spot_the_mistake` |
 | A | Autonomy | 0.20 | Every Pattern Gap item, where hints are available: a success is solving it without asking for a hint first. | `pattern_gap` |
 | I | Iteration | 0.20 | A game played again after a failed round; a success is a better score. Also every Guide the Robot item whose first try failed: a success is a changed retry that works. | `guide_the_robot` |
-| C | Clarification | 0.15 | Every Guide the Robot and Teach Me item; a success is asking Lodestar first when the request is ambiguous and not asking when it is clear. | `guide_the_robot`, `teach_me` |
+| C | Clarification | 0.15 | Every Guide the Robot and Teach Me item; a success is asking Lodestar first when the request is ambiguous and not asking when it is clear. Pushing back on Lodestar's reading of a round (say, a noisy room) is a success for both V and I: the person checked the AI's claim and gave it something to correct. | `guide_the_robot`, `teach_me` |
 | R | Responsible use | 0.15 | A suggested break; a success is not starting a new session within 10 minutes. | - |
 
 The weights are a design hypothesis (the brief proposed V 25, A 20, I 20, C 20, R 15). Verification is raised because over-reliance on AI is the main failure mode (Buçinca et al. 2021; Lee et al., CHI 2025); clarification is lowered because its opportunities are the rarest, so its estimate is the noisiest. `backend/acs/sensitivity.py` checks rank stability under ±5-point weight changes on the simulator.
