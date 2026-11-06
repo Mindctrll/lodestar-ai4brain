@@ -21,6 +21,8 @@ import { useSpeakReplies } from '../voice/useSpeakReplies'
 import { Composer } from './Composer'
 import { Cited } from './Cited'
 import { DemoToggle } from './DemoToggle'
+import { PlateauToast, RushedScreen, SplitPlan } from './StressCases'
+import { skillMarks } from './stressHelpers'
 import { Conversation, Star, type Panel } from './Conversation'
 import { DecisionCard } from './DecisionCard'
 import { Heading } from './icons'
@@ -146,7 +148,7 @@ export function App() {
   // Voice in, voice out: once someone talks to Lodestar, replies are spoken too (and always shown).
   const [voiceUsed, setVoiceUsed] = useState(false)
   useSpeakReplies(session.state, persona, voiceUsed || speakReplies())
-  const { registry, twin, progress, forecast, goals, acs, decisions } = dash
+  const { registry, twin, progress, forecast, goals, acs, decisions, patterns } = dash
 
   const checkLlm = () => {
     Promise.all([api.llm(), api.consent()]).then(
@@ -197,6 +199,10 @@ export function App() {
     setPanel(id)
     setSkill(dim ?? null)
   }
+  const tryNewFormat = (name: string) => {
+    setPanel(null)
+    void session.start(`Try a new format for ${name}`)
+  }
 
   if (!registered) {
     return (
@@ -246,6 +252,10 @@ export function App() {
         twin={twin}
         progress={progress}
         forecast={forecast}
+        plateau={patterns?.plateaus.find((p) => p.dim === skill)}
+        onTry={(p) => {
+          tryNewFormat(p.name)
+        }}
         onBack={() => {
           setSkill(null)
         }}
@@ -253,7 +263,13 @@ export function App() {
     ) : (
       <>
         <section aria-label="Skill map">
-          <NightSky registry={registry} dims={twin.dims} pulse={dash.updates} onSelect={setSkill} />
+          <NightSky
+            registry={registry}
+            dims={twin.dims}
+            pulse={dash.updates}
+            onSelect={setSkill}
+            marks={skillMarks(patterns)}
+          />
         </section>
         <section className="panel-block" aria-label="Ask your Twin">
           <Heading icon="chat">Ask your Twin</Heading>
@@ -319,7 +335,16 @@ export function App() {
         </section>
         <section className="panel-block">
           <Heading icon="radar">All skills at a glance</Heading>
-          <Radar twin={twin} registry={registry} />
+          <Radar twin={twin} registry={registry} split={patterns?.split} />
+          {patterns?.split && (
+            <SplitPlan
+              split={patterns.split}
+              onPlay={() => {
+                setPanel(null)
+                void session.start()
+              }}
+            />
+          )}
         </section>
       </>
     )
@@ -346,6 +371,7 @@ export function App() {
                   forecast={forecast.find((f) => f.dim === d.dim)}
                   strips={progress.life_context}
                   name={dimName(d.dim)}
+                  plateauFrom={patterns?.plateaus.find((p) => p.dim === d.dim)?.started}
                 />
               </div>
             ))}
@@ -531,6 +557,26 @@ export function App() {
           </section>
         )}
       </div>
+
+      {home && !panel && patterns?.plateaus[0] && (
+        <PlateauToast
+          plateau={patterns.plateaus[0]}
+          onTry={(p) => {
+            tryNewFormat(p.name)
+          }}
+          onSee={(p) => {
+            open('twin', p.dim)
+          }}
+        />
+      )}
+
+      {session.state.rushed && (
+        <RushedScreen
+          card={session.state.rushed}
+          sessionId={session.state.sessionId}
+          onClose={session.seenRushed}
+        />
+      )}
 
       {why && (
         <div

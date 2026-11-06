@@ -12,6 +12,13 @@ const GROUPS: Record<string, { at: Point; soft: string; strong: string }> = {
   language: { at: [450, 340], soft: '#ffedd5', strong: '#c2410c' },
   speed: { at: [740, 340], soft: '#fef3c7', strong: '#a16207' },
 }
+/** Skills a stress case has flagged: a coloured outline and a tag on the card. */
+export type SkillMark = 'plateau' | 'advanced' | 'foundation'
+const MARK_LABEL: Record<SkillMark, string> = {
+  plateau: 'Plateau',
+  advanced: '▲ Advanced track',
+  foundation: '▼ Foundation track',
+}
 const WIDTH = 900
 const HEIGHT = 560
 const ROW = 76
@@ -95,6 +102,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * skills of one family, and blue wires join skills that tend to go together (NCPT). Cards can be
  * dragged; a tap opens the skill. */
 export function NightSky({
+  marks,
   registry,
   dims,
   onSelect,
@@ -102,6 +110,8 @@ export function NightSky({
   pulse = 0,
   testId = 'night-sky',
 }: {
+  /** Skills a stress case has flagged. */
+  marks?: Record<string, SkillMark> | undefined
   registry: Registry
   dims: DimensionView[]
   onSelect?: ((dim: string) => void) | undefined
@@ -239,7 +249,7 @@ export function NightSky({
           return (
             <g
               key={p.id}
-              className={`twin-node${v ? '' : ' twin-node--new'}`}
+              className={`twin-node${v ? '' : ' twin-node--new'}${marks?.[p.id] ? ` twin-node--${String(marks[p.id])}` : ''}`}
               data-dim={p.id}
               data-blur={v ? (v.sigma * 4).toFixed(2) : 'none'}
               role={onSelect ? 'button' : 'img'}
@@ -303,6 +313,16 @@ export function NightSky({
                   <text x={left + 54} y={top + 38} className="twin-node__range-text">
                     {`likely ${pct(v.percent_low)}-${pct(v.percent_high)}`}
                   </text>
+                  {marks?.[p.id] && (
+                    <text
+                      x={left + p.w - 8}
+                      y={top - 5}
+                      textAnchor="end"
+                      className="twin-node__mark"
+                    >
+                      {MARK_LABEL[marks[p.id] ?? 'plateau']}
+                    </text>
+                  )}
                   <rect
                     x={left + 12}
                     y={top + p.h - 9}

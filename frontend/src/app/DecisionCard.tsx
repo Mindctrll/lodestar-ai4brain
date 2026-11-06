@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
 import type { Decision } from '../api/types'
+import { WhyLines } from './StressCases'
+import { evidenceLines } from './stressHelpers'
 
 const PART_NAMES: Record<string, string> = {
   uncertainty: 'how unsure I am',
@@ -9,6 +11,7 @@ const PART_NAMES: Record<string, string> = {
   goal_weight: 'your goal',
   plan_priority: 'plan',
   bandit_gain: 'expected gain',
+  plateau: 'stuck for a while',
   fatigue_penalty: 'tiredness',
   repetition: 'played just now',
 }
@@ -47,6 +50,7 @@ export function DecisionCard({
       {decision && (
         <>
           <p>{decision.reason}</p>
+          <WhyLines lines={evidenceLines(decision.evidence)} />
           {decision.candidates.length > 0 && (
             <>
               <p className="muted">{decision.question} Top options:</p>

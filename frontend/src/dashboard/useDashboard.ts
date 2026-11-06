@@ -6,6 +6,7 @@ import type {
   Decision,
   ForecastView,
   GoalView,
+  PatternsView,
   ProgressView,
   Registry,
   TwinView,
@@ -19,6 +20,7 @@ export interface DashboardData {
   goals: GoalView[]
   acs: AcsView | null
   decisions: Decision[]
+  patterns: PatternsView | null
   error: string | null
   /** Bumped on every live "twin updated" push, so views can animate a change. */
   updates: number
@@ -32,6 +34,7 @@ const EMPTY: DashboardData = {
   goals: [],
   acs: null,
   decisions: [],
+  patterns: null,
   error: null,
   updates: 0,
 }
@@ -51,8 +54,9 @@ export function useDashboard(enabled: boolean): DashboardData & { refresh: () =>
       api.goals(),
       api.acs(),
       api.decisions(),
+      api.patterns(),
     ]).then(
-      ([registry, twin, progress, forecast, goals, acs, decisions]) => {
+      ([registry, twin, progress, forecast, goals, acs, decisions, patterns]) => {
         setData((d) => ({
           ...d,
           registry,
@@ -62,6 +66,7 @@ export function useDashboard(enabled: boolean): DashboardData & { refresh: () =>
           goals,
           acs,
           decisions,
+          patterns,
           error: null,
         }))
       },

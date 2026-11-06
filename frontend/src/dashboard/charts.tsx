@@ -11,7 +11,14 @@ import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import ReactEChartsCore from 'echarts-for-react/esm/core'
 
-import type { AcsView, ForecastView, ProgressView, Registry, TwinView } from '../api/types'
+import type {
+  AcsView,
+  ForecastView,
+  ProgressView,
+  Registry,
+  SplitView,
+  TwinView,
+} from '../api/types'
 
 echarts.use([
   RadarChart,
@@ -81,7 +88,15 @@ const round = (x: number) => Math.round(x)
 
 /** Radar with an uncertainty ring: the shaded ring between the inner and outer outline is the
  * 80% range; the line is the estimate (docs/plan/13, chart 1). */
-export function Radar({ twin, registry }: { twin: TwinView; registry: Registry }) {
+export function Radar({
+  twin,
+  registry,
+  split,
+}: {
+  twin: TwinView
+  registry: Registry
+  split?: SplitView | null | undefined
+}) {
   const dims = twin.dims.filter((d) => {
     const def = registry.dimensions.find((x) => x.id === d.dim)
     return d.n > 0 && def && !def.style
@@ -93,7 +108,22 @@ export function Radar({ twin, registry }: { twin: TwinView; registry: Registry }
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, data: ['80% range', 'Estimate'] },
     radar: {
-      indicator: dims.map((d) => ({ name: name(d.dim), max: 100 })),
+      // A split profile marks its two sides on the chart itself.
+      indicator: dims.map((d) => ({
+        name:
+          d.dim === split?.advanced.dim
+            ? `▲ ${name(d.dim)}`
+            : d.dim === split?.foundation.dim
+              ? `▼ ${name(d.dim)}`
+              : name(d.dim),
+        max: 100,
+        color:
+          d.dim === split?.advanced.dim
+            ? '#15803d'
+            : d.dim === split?.foundation.dim
+              ? '#c2410c'
+              : MUTED,
+      })),
       radius: '62%',
       splitArea: { show: false },
       axisName: { color: MUTED },
@@ -143,12 +173,15 @@ export function SkillCurve({
   forecast,
   strips,
   name,
+  plateauFrom,
 }: {
   twin: TwinView
   dim: string
   forecast: ForecastView | undefined
   strips: ProgressView['life_context']
   name: string
+  /** The day a plateau began: from there to now is highlighted. */
+  plateauFrom?: string | undefined
 }) {
   const points = (twin.curves ?? []).filter((c) => c.dim === dim)
   if (points.length === 0) return <p className="muted">No practice days yet for {name}.</p>
@@ -190,11 +223,26 @@ export function SkillCurve({
         itemStyle: { color: 'rgba(240, 160, 60, 0.12)' },
         label: { color: MUTED, fontSize: 11 },
         // Only strips that overlap the chart, snapped to its days (a category axis).
-        data: strips.flatMap((s) => {
-          const from = axis.find((d) => d >= s.start.slice(0, 10))
-          const to = [...axis].reverse().find((d) => d < s.end.slice(0, 10))
-          return from && to && from <= to ? [[{ name: s.label, xAxis: from }, { xAxis: to }]] : []
-        }),
+        data: [
+          ...strips.flatMap((s) => {
+            const from = axis.find((d) => d >= s.start.slice(0, 10))
+            const to = [...axis].reverse().find((d) => d < s.end.slice(0, 10))
+            return from && to && from <= to ? [[{ name: s.label, xAxis: from }, { xAxis: to }]] : []
+          }),
+          ...(plateauFrom && last
+            ? [
+                [
+                  {
+                    name: 'Plateau',
+                    xAxis: axis.find((d) => d >= plateauFrom) ?? last.day,
+                    itemStyle: { color: 'rgba(217, 119, 6, 0.22)' },
+                    label: { color: '#92400e', fontWeight: 'bold' },
+                  },
+                  { xAxis: last.day },
+                ],
+              ]
+            : []),
+        ],
       },
     },
   ]

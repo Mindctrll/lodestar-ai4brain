@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { api, ensureUser, getToken } from '../api/client'
 import { SessionSocket } from '../api/session'
-import type { AgentEvent, ConfirmRequest, ExerciseSpec, RoundResult } from '../api/types'
+import type { AgentCard, AgentEvent, ConfirmRequest, ExerciseSpec, RoundResult } from '../api/types'
 import type { Score } from '../taskhost/types'
 
 export type Phase =
@@ -39,8 +39,11 @@ export type FeedItem =
       says: Said[]
       gameId?: string
       score?: Score | undefined
+      /** The answers looked rushed: this round didn't count. */
+      flagged?: boolean
     }
   | { kind: 'show'; what: Surface; dim: string | null }
+  | { kind: 'card'; card: Exclude<AgentCard, { card: 'rushed' }> }
   | { kind: 'ended' }
 
 /** route_intent's reading of a turn, and the surface that goes with it. */
@@ -71,6 +74,10 @@ export interface SessionState {
   lastMonitor: { decisionId: string; chosen: string } | null
   /** A surface to open once this turn is answered (and any yes-or-no question settled). */
   surface: { what: Surface; dim: string | null } | null
+  /** Cards to add once this turn's words are in. */
+  cards: Exclude<AgentCard, { card: 'rushed' }>[]
+  /** The red screen: a round that didn't count, until the user has seen it. */
+  rushed: Extract<AgentCard, { card: 'rushed' }> | null
 }
 
 const INITIAL: SessionState = {
@@ -87,6 +94,8 @@ const INITIAL: SessionState = {
   lastRoundId: null,
   lastMonitor: null,
   surface: null,
+  cards: [],
+  rushed: null,
 }
 
 /** Lodestar's words in the feed, in order (chat replies and the after-game coach). */
@@ -161,6 +170,19 @@ export function useSession() {
           const what = surfaceFor(event.intent, event.tool)
           return what ? { ...next, surface: { what, dim: event.dim } } : next
         }
+        case 'card': {
+          if (event.card === 'rushed') {
+            const at = s.feed.findLastIndex((i) => i.kind === 'result')
+            return {
+              ...next,
+              rushed: event,
+              feed: s.feed.map((x, i) =>
+                i === at && x.kind === 'result' ? { ...x, flagged: true } : x,
+              ),
+            }
+          }
+          return { ...next, cards: [...s.cards, event] }
+        }
         case 'say': {
           const line = { text: event.text, refs: event.refs }
           // After a game the coach (and a story's ending) speaks in the result card; everything
@@ -204,16 +226,19 @@ export function useSession() {
           return { ...next, phase: 'ended', spec: null, feed: [...s.feed, { kind: 'ended' }] }
         case 'done': {
           // The turn is answered: open its surface, unless a yes-or-no question is still open.
+          const cards = s.cards.map((card) => ({ kind: 'card' as const, card }))
           const shown =
             s.surface && !s.confirm
               ? {
                   surface: null,
+                  cards: [],
                   feed: [
                     ...s.feed,
+                    ...cards,
                     { kind: 'show' as const, what: s.surface.what, dim: s.surface.dim },
                   ],
                 }
-              : {}
+              : { cards: [], feed: [...s.feed, ...cards] }
           if (s.phase === 'scoring')
             return { ...next, ...shown, busy: false, phase: event.waiting ? 'after' : 'ended' }
           if (s.phase === 'starting' && !event.waiting)
@@ -358,6 +383,10 @@ export function useSession() {
     })
   }, [attach, state.sessionId, state.spec])
 
+  const seenRushed = useCallback(() => {
+    setState((s) => ({ ...s, rushed: null }))
+  }, [])
+
   const play = useCallback(() => {
     setState((s) => ({ ...s, phase: 'playing' }))
   }, [])
@@ -379,5 +408,16 @@ export function useSession() {
 
   useEffect(() => () => socket.current?.close(), [])
 
-  return { state, start, send, answer, nextGame, play, finish, resumeSaved, skipSaved }
+  return {
+    state,
+    start,
+    send,
+    answer,
+    nextGame,
+    play,
+    finish,
+    resumeSaved,
+    skipSaved,
+    seenRushed,
+  }
 }

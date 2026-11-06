@@ -15,6 +15,14 @@ export function AcsPanel({ acs }: { acs: AcsView }) {
   return (
     <div className="acs" data-testid="acs">
       <AcsGauge acs={acs} />
+      {acs.pushbacks > 0 && (
+        <p className="stress stress--pushback acs__pushback" data-testid="acs-pushback">
+          <strong>
+            You pushed back {acs.pushbacks} time{acs.pushbacks === 1 ? '' : 's'}.
+          </strong>{' '}
+          Questioning a result counts toward critical verification and iteration.
+        </p>
+      )}
       <ul className="acs__parts">
         {acs.components.map((c) => (
           <li key={c.code}>

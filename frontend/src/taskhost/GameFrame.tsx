@@ -61,7 +61,7 @@ export function GameFrame({ spec, sessionId, game, skills, onFinish, reason }: P
 
       {!started ? (
         <div className="game-frame__intro">
-          {reason && <p className="game-frame__reason">{reason}</p>}
+          {reason && <div className="game-frame__reason">{reason}</div>}
           <p className="game-frame__how">{game.instructions}</p>
           <p className="game-frame__keys">{game.keysHint}</p>
           {spec.practice_trials > 0 && (

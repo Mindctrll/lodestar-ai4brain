@@ -3783,3 +3783,418 @@ button.primary.pick__go {
 .thread__end {
   scroll-margin-bottom: 9rem;
 }
+
+/* Stress cases: each one has its own colour, so it can't be mistaken for another. */
+.stress {
+  --tone: #0069a8;
+  --tone-soft: #e6f4fe;
+  border-left: 4px solid var(--tone);
+  background: var(--tone-soft);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin: 0.75rem 0;
+}
+.stress p {
+  margin: 0.375rem 0;
+}
+.stress--why {
+  --tone: #0069a8;
+  --tone-soft: #eff8ff;
+}
+.stress--plateau {
+  --tone: #b45309;
+  --tone-soft: #fef6e7;
+}
+.stress--pushback {
+  --tone: #6d28d9;
+  --tone-soft: #f5f1ff;
+}
+.stress--forecast {
+  --tone: #0f766e;
+  --tone-soft: #ecfdf8;
+}
+.stress--split {
+  --tone: #334155;
+  --tone-soft: #f4f6f9;
+}
+.stress-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  padding: 0.125rem 0.625rem;
+  margin: 0;
+  color: #fff;
+  background: #334155;
+  white-space: nowrap;
+}
+.stress-tag--why {
+  background: #0069a8;
+}
+.stress-tag--plateau {
+  background: #b45309;
+}
+.stress-tag--pushback {
+  background: #6d28d9;
+}
+.stress-tag--forecast {
+  background: #0f766e;
+}
+.stress-tag--advanced {
+  background: #15803d;
+}
+.stress-tag--foundation {
+  background: #c2410c;
+}
+.stress-tag--rushed {
+  background: #c81e1e;
+}
+
+/* The "why" on every pick */
+.why-box {
+  border-left: 4px solid #0069a8;
+  background: #eff8ff;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  margin-top: 0.75rem;
+}
+.why-box__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #00598a;
+  margin: 0 0 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.why-box .reason {
+  margin: 0;
+  display: block;
+}
+.why-box .reason__text {
+  display: inline;
+  white-space: normal;
+  overflow: visible;
+  color: var(--color-ink);
+  margin-right: 0.5rem;
+}
+.why-lines {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+.why-lines__source {
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #00598a;
+  background: #d4ecfd;
+  border-radius: 0.375rem;
+  padding: 0.0625rem 0.375rem;
+}
+.game-frame__reason > span {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* The button masher's red screen */
+.rushed {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #b91c1c;
+  color: #fff;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rushed {
+    animation: rushed-in 0.25s var(--ease);
+  }
+  @keyframes rushed-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+.rushed__body {
+  width: min(40rem, 100%);
+}
+.rushed h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  line-height: 1.05;
+  margin: 0.25rem 0 0.75rem;
+  color: #fff;
+}
+.rushed__flag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  color: #fecaca;
+}
+.rushed__lede {
+  font-size: 1.125rem;
+  margin: 0 0 1.25rem;
+}
+.rushed__stats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+}
+.rushed__stats li {
+  flex: 1 1 8rem;
+  background: rgb(0 0 0 / 0.2);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  display: grid;
+  gap: 0.125rem;
+}
+.rushed__stats strong {
+  font-size: 1.625rem;
+  font-family: var(--font-display);
+}
+.rushed__stats span {
+  font-size: 0.8rem;
+  color: #fee2e2;
+}
+.rushed__note {
+  margin: 0 0 0.375rem;
+}
+.rushed__ranges {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.625rem;
+}
+.rushed .muted {
+  color: #fee2e2;
+}
+.rushed__ask {
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin: 1rem 0 0.625rem;
+}
+.rushed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.rushed__actions button {
+  background: #fff;
+  color: #991b1b;
+  border: none;
+  font-weight: 600;
+}
+.rushed__actions button:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+.result--flagged {
+  box-shadow:
+    0 0 0 2px #c81e1e,
+    var(--shadow);
+}
+.result--flagged .result__check {
+  background: #c81e1e;
+}
+
+/* A range that got wider */
+.range-change p {
+  margin: 0 0 0.25rem;
+}
+.range-change__track {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgb(100 116 139 / 0.18);
+}
+.range-change__before,
+.range-change__after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+.range-change__after {
+  background: rgb(109 40 217 / 0.28);
+}
+.range-change__before {
+  background: rgb(109 40 217 / 0.6);
+  top: 0.1875rem;
+  bottom: 0.1875rem;
+}
+.range-change__dot {
+  position: absolute;
+  top: 50%;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: #2e1065;
+  transform: translate(-50%, -50%);
+}
+.rushed .range-change__track {
+  background: rgb(0 0 0 / 0.22);
+}
+.rushed .range-change__after {
+  background: rgb(255 255 255 / 0.4);
+}
+.rushed .range-change__before {
+  background: rgb(255 255 255 / 0.85);
+}
+.rushed .range-change__dot {
+  background: #450a0a;
+}
+
+/* The plateau popup */
+.toast {
+  position: fixed;
+  right: 1.25rem;
+  top: 1.25rem;
+  z-index: 30;
+  width: min(23rem, calc(100vw - 2rem));
+  margin: 0;
+  box-shadow: var(--shadow-lg);
+}
+.toast .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+.toast button {
+  font-size: 0.8125rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: pop 0.3s var(--ease);
+  }
+}
+
+/* Flagged skills on the map */
+.twin-node--plateau .twin-node__card {
+  stroke: #b45309;
+  stroke-width: 2.5;
+}
+.twin-node--advanced .twin-node__card {
+  stroke: #15803d;
+  stroke-width: 2.5;
+}
+.twin-node--foundation .twin-node__card {
+  stroke: #c2410c;
+  stroke-width: 2.5;
+}
+.twin-node__mark {
+  font-size: 11px;
+  font-weight: 700;
+  fill: #b45309;
+}
+.twin-node--advanced .twin-node__mark {
+  fill: #15803d;
+}
+.twin-node--foundation .twin-node__mark {
+  fill: #c2410c;
+}
+
+/* The split profile's two tracks */
+.split-tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+.split-track {
+  background: var(--color-card);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-top: 4px solid #15803d;
+}
+.split-track h4 {
+  margin: 0.125rem 0;
+}
+.split-track--foundation {
+  border-top-color: #c2410c;
+}
+.split-track__kind {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #15803d;
+}
+.split-track--foundation .split-track__kind {
+  color: #c2410c;
+}
+
+/* The forecast card */
+.forecast-rows {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.forecast-rows p {
+  margin: 0.125rem 0;
+}
+.forecast-rows__track {
+  position: relative;
+  height: 1rem;
+  border-radius: 999px;
+  background: rgb(15 118 110 / 0.1);
+}
+.forecast-rows__now,
+.forecast-rows__then {
+  position: absolute;
+  border-radius: 999px;
+}
+.forecast-rows__then {
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(15 118 110 / 0.12),
+    rgb(15 118 110 / 0.55),
+    rgb(15 118 110 / 0.12)
+  );
+}
+.forecast-rows__now {
+  top: 0.375rem;
+  bottom: 0.375rem;
+  background: #334155;
+  opacity: 0.55;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.history-table td {
+  padding: 0.3125rem 0.5rem 0.3125rem 0;
+  border-top: 1px solid rgb(100 116 139 / 0.2);
+}
+.acs__pushback {
+  grid-column: 1 / -1;
+}
+.ask-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-items: center;
+  margin-top: 1rem;
+}

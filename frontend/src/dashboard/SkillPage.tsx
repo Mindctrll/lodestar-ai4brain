@@ -1,4 +1,5 @@
-import type { ForecastView, ProgressView, Registry, TwinView } from '../api/types'
+import type { ForecastView, PlateauView, ProgressView, Registry, TwinView } from '../api/types'
+import { PlateauNote } from '../app/StressCases'
 import { SkillCurve } from './charts'
 
 const BADGE: Record<string, string> = {
@@ -15,6 +16,8 @@ export function SkillPage({
   twin,
   progress,
   forecast,
+  plateau,
+  onTry,
   onBack,
 }: {
   dim: string
@@ -22,6 +25,8 @@ export function SkillPage({
   twin: TwinView
   progress: ProgressView
   forecast: ForecastView[]
+  plateau?: PlateauView | undefined
+  onTry?: (plateau: PlateauView) => void
   onBack: () => void
 }) {
   const def = registry.dimensions.find((d) => d.id === dim)
@@ -48,12 +53,14 @@ export function SkillPage({
       ) : (
         <p className="muted">Not measured yet.</p>
       )}
+      {plateau && <PlateauNote plateau={plateau} onTry={onTry} />}
       <SkillCurve
         twin={twin}
         dim={dim}
         forecast={band}
         strips={progress.life_context}
         name={def.name}
+        plateauFrom={plateau?.started}
       />
       {band && (
         <p className="muted small">

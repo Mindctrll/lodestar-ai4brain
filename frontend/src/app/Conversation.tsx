@@ -9,6 +9,7 @@ import { GameFrame } from '../taskhost/GameFrame'
 import { Cited } from './Cited'
 import { Glyph } from './icons'
 import { PERSONAS } from './personas'
+import { AgentCardView, WhyLines, TrackTag } from './StressCases'
 import type { FeedItem, Surface, useSession } from './useSession'
 
 export type Panel =
@@ -314,7 +315,13 @@ export function Conversation({
               sessionId={state.sessionId}
               game={game}
               skills={skillNames(item.spec.game_id)}
-              reason={item.spec.reason}
+              reason={
+                <>
+                  {item.spec.track && <TrackTag track={item.spec.track} level={item.spec.level} />}
+                  <span>{item.spec.reason}</span>
+                  <WhyLines lines={item.spec.why ?? []} />
+                </>
+              }
               onFinish={finish}
             />
           )
@@ -324,9 +331,13 @@ export function Conversation({
               <p className="pick__meta">{state.phase === 'after' ? 'Up next' : 'Your game'}</p>
               <h2>{name}</h2>
               {game && <p className="pick__how">{game.instructions}</p>}
-              {item.reason && (
+              <div className="why-box" data-testid="why-box">
+                <p className="why-box__title">
+                  Why this game{item.spec.track ? ' ' : ''}
+                  {item.spec.track && <TrackTag track={item.spec.track} level={item.spec.level} />}
+                </p>
                 <p className="reason">
-                  <span className="reason__text">{item.reason}</span>
+                  <span className="reason__text">{item.reason ?? item.spec.reason}</span>
                   {item.decision && (
                     <button
                       type="button"
@@ -335,11 +346,12 @@ export function Conversation({
                         if (item.decision) setWhy(item.decision)
                       }}
                     >
-                      Why?
+                      See every option
                     </button>
                   )}
                 </p>
-              )}
+                <WhyLines lines={item.spec.why ?? []} />
+              </div>
             </div>
             {game ? (
               <button type="button" className="primary pick__go" onClick={play}>
@@ -375,16 +387,21 @@ export function Conversation({
         const facts = item.says.filter((l) => /\[[FDKM]\d+\]/.test(l.text))
         return (
           <article
-            className={`result${live ? ' result--live' : ''}`}
+            className={`result${live ? ' result--live' : ''}${item.flagged ? ' result--flagged' : ''}`}
             data-testid={live ? 'after-game' : undefined}
           >
             <div className="result__head">
               <span className="result__check" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
-                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  <path d={item.flagged ? 'M6 6l12 12M18 6L6 18' : 'M5 12.5l4.5 4.5L19 7.5'} />
                 </svg>
               </span>
               <p className="result__game">{gameName}</p>
+              {item.flagged && (
+                <span className="stress-tag stress-tag--rushed" data-testid="not-counted">
+                  Not counted
+                </span>
+              )}
               {item.score && item.score.total > 0 && (
                 <p className="result__score">
                   <strong>{item.score.right}</strong>
@@ -422,16 +439,21 @@ export function Conversation({
               {item.says.length === 0 && live && (
                 <p className="muted thinking">Looking at your round</p>
               )}
-              {facts[0] && (
+              {!item.flagged && facts[0] && (
                 <p className="coach__main">
                   <Cited text={facts[0].text} refs={facts[0].refs} onWhy={setWhy} />
                 </p>
               )}
               {story.map((line, j) => (
-                <p key={j}>
+                <p key={j} className={item.flagged && j === 0 ? 'coach__main' : undefined}>
                   <Cited text={line.text} refs={line.refs} onWhy={setWhy} />
                 </p>
               ))}
+              {item.flagged && facts[0] && (
+                <p>
+                  <Cited text={facts[0].text} refs={facts[0].refs} onWhy={setWhy} />
+                </p>
+              )}
               {facts.length > 1 && (
                 <details className="result__more">
                   <summary>How I worked this out</summary>
@@ -466,6 +488,8 @@ export function Conversation({
             onOpen={onOpen}
           />
         )
+      case 'card':
+        return <AgentCardView card={item.card} onWhy={setWhy} />
       case 'ended':
         return (
           <article className="turn-card ended">
@@ -537,6 +561,26 @@ export function Conversation({
                 <span className="action__title">Detective story</span>
                 <span className="action__text">A mystery where every chapter is a game</span>
               </button>
+            </div>
+          )}
+          {state.phase === 'home' && (
+            <div className="ask-chips" aria-label="Try asking">
+              <span className="muted small">Try asking</span>
+              {[
+                'Why did you pick my last game?',
+                'What did I play this week?',
+                'What exactly will my score be next month?',
+                "That wasn't fair, the room was noisy",
+              ].map((ask) => (
+                <button
+                  key={ask}
+                  type="button"
+                  className="chip chip--small"
+                  onClick={() => void start(ask)}
+                >
+                  {ask}
+                </button>
+              ))}
             </div>
           )}
         </header>

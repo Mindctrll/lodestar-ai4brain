@@ -5,6 +5,7 @@ import type {
   Decision,
   ExperimentView,
   ForecastView,
+  PatternsView,
   InsightsView,
   GoalView,
   KeySaved,
@@ -205,7 +206,7 @@ export const api = {
     }),
   label: (body: {
     session_id: string
-    kind: 'mood' | 'was_i_right'
+    kind: 'mood' | 'was_i_right' | 'rushed'
     value: string
     round_id?: string
     decision_id?: string
@@ -254,6 +255,7 @@ export const api = {
     request<undefined>(`/experiments/${id}/cancel`, { method: 'POST' }),
   forecast: (sessions = 5) => request<ForecastView[]>(`/forecast?sessions=${String(sessions)}`),
   acs: () => request<AcsView>('/acs'),
+  patterns: () => request<PatternsView>('/me/patterns'),
   insights: () => request<InsightsView>('/me/insights'),
   models: () => request<ModelCard[]>('/about/models'),
   setPersona: (persona: Persona) =>
