@@ -81,7 +81,7 @@ Four Postgres schemas keep things tidy: `app`, `twin`, `agent`, plus the tables 
 
 ### Event types
 
-`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `affect.labelled` (mood check, "Was I right?"), `affect.biometric.cue` (one coarse camera or voice cue, only with its switch on; never read into the profile), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `settings.changed` (coach, difficulty mode, a paused skill), `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key), `story.chapter_completed` (a chapter of a story such as Detective, see `06`).
+`session.started`, `trial.recorded`, `round.completed`, `twin.updated`, `acs.observed`, `affect.estimated` (behaviour only, with a flag if a camera signal was used), `affect.labelled` (mood check, "Was I right?"), `affect.biometric.cue` (one coarse camera or voice cue, only with its switch on; never read into the profile), `context.added`, `goal.set`, `experiment.*`, `consent.changed`, `memory.written`, `settings.changed` (coach, difficulty mode, a paused skill), `session.ended`, `data.exported`, `twin.snapshot` (see Retention below), `llm.selection_changed` (provider and model only, never the key), `story.chapter_completed` (a chapter of a story such as Detective, see `06`), `assessment.contested` (the user said a round wasn't a fair reading of them, and why).
 
 ## Dashboard queries come straight from SQL
 

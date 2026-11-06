@@ -18,6 +18,19 @@ These are the misreadings we've seen. Each is checkable.
 | "Predictions are point estimates" | Every estimate and forecast is a range; the forecast contract can't express a single number. | `tests/backend/test_contracts.py::test_forecast_is_a_range` |
 | "No real users tested" | True: a pilot with real Lodestar users is planned (`docs/plan/15`, "Real pilot"), not done. Everything above is the evidence available before it. | — |
 
+## Stress cases
+
+Six situations a jury is likely to try. Each has its own look in the app, so it can't be mistaken for another, and `make e2e` plays all six on the demo person and writes screenshots to `screenshots/stress-cases/`.
+
+| Case | What happens | Where you see it | Check |
+|---|---|---|---|
+| Button masher | Answers too fast to be real are flagged. The estimate doesn't move, its range widens, the round's score is left empty, and the coach asks whether you were distracted or rushing. | Full red screen when the round ends; "Not counted" on the result | `backend/scoring/quality.py`, `tests/backend/agent/test_stress_cases.py` |
+| Plateau | No trend over at least 14 days and 60 answers: the skill scores higher in `plan_next`, and the next pick changes format and suggests a new approach. | Amber popup on home, amber card on the Twin map, highlighted stretch on the curve, "New format" on the pick | `backend/scoring/patterns.py`, `backend/agent/patterns.py` |
+| The "why" audit | Every pick carries its reason and the data behind it, each line naming its chart. Past picks and past rounds can be asked about by day or by game. | Blue "Why this game" box on every pick; blue cards in the conversation | `backend/agent/why.py`, `explain` and `session_history` in `backend/agent/tools.py` |
+| Pushback | Disagreeing with a result (a noisy room, an interruption) counts toward critical verification and iteration, once per round. The estimate stays and its range widens. | Violet card with the range before and after; a note on the AI collaboration page | `contest_round` in `backend/db/twin_store.py`; event `assessment.contested` |
+| Fortune teller | A question about the future gets an 80% range and how often such ranges held on held-out players, never one number. The verifier also rejects promises in a draft. | Teal "A range, not a promise" card | `forecast_range` in `backend/agent/tools.py`, `backend/coach/verify.py` |
+| Asymmetrical mind | One skill at 90% or above and another at 20% or below, with ranges that don't overlap, gives two tracks, each at its own level and target, taking turns. | Marked spokes on the radar, green and orange track cards, track tag on the pick | `find_split` in `backend/scoring/patterns.py`, `_split_pick` in `backend/agent/nodes/play.py` |
+
 ## Phase A
 
 ### Relevance (20%): does it do what the brief asks?
@@ -36,7 +49,7 @@ These are the misreadings we've seen. Each is checkable.
 
 ### Quality (20%)
 
-- 267 backend tests (pytest), 84 frontend unit tests (vitest), 14 end-to-end suites in a real browser (Playwright), run in CI (`.github/workflows/ci.yml`).
+- 342 backend tests (pytest) and 86 frontend unit tests (vitest), run in CI (`.github/workflows/ci.yml`); 15 end-to-end suites in a real browser (Playwright), run with `make e2e`.
 - `mypy --strict` on the agent and scoring code, ruff, eslint, prettier, TypeScript strict.
 - Every schema change is an Alembic migration; API types are generated from OpenAPI and checked up to date (`test_openapi_file_is_up_to_date`).
 - One transaction per scored round under a per-user advisory lock; events are append-only, so the profile can be rebuilt exactly from the log.

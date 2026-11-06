@@ -131,6 +131,7 @@ U(d) = 0.35 · uncertainty(d)      # sigma_d / sigma_start: what we know least a
      + 0.20 · goal_weight(d)      # user's goals
      + 0.15 · plan_priority(d)    # weekly plan, experiments in progress
      + 0.10 · bandit_gain(d)      # expected improvement from the "best next game" bandit (10)
+     + 0.15 · plateau(d)          # no trend for weeks: time for a new format (07)
      - 0.25 · fatigue_penalty(d)  # if fatigue is rising, prefer short, easy, fun games
      - 0.15 · repetition(d)       # avoid the same game twice in a row
 ```
@@ -138,6 +139,8 @@ U(d) = 0.35 · uncertainty(d)      # sigma_d / sigma_start: what we know least a
 Mode decides the success target: **Assess** aims at 60–70% (more informative), **Train** at 75–85% (better for learning), and the user can pick Chill, Balanced or Push. The top three candidates and their score breakdown go into a `Decision`, so Lodestar can say: "I picked memory because it's the skill I'm least sure about (uncertainty 0.31) and you last practised it 9 days ago."
 
 The LLM can suggest overrides ("the user said they want reasoning today"). These enter as `goal_weight` changes, never as direct picks, so the policy stays in charge.
+
+**As built (stress cases).** After a flagged round the same game comes back for a fair retake. In a split profile rounds take turns between a foundation track and an advanced track, each with its own target (`backend/agent/patterns.py`). A plateaued skill gets a game it hasn't played lately, or one from its family when it has only one game.
 
 **As built (WP2.3).** A named game or skill ("play Echo", "a memory game") is honoured for one pick. A new user first plays the onboarding battery (`registry/batteries.yaml`, Quick Draw first) in Assess mode. After 14 or more days away the first three picks are in Assess mode with a "welcome back" reason (UW15). Active goals set `goal_weight`. `bandit_gain` and `plan_priority` are 0 until WP3.3 and WP3.2, and still appear in every breakdown. Only games whose browser plugin exists (`available: true`) are offered.
 
